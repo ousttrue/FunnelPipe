@@ -1,140 +1,32 @@
 #include "Application.h"
-#include <ScreenState.h>
-// #include "VR.h"
-// #include "CameraView.h"
 #include "Gui/Gui.h"
-// #include "Gui/GuiView.h"
-// #include "Gizmo.h"
-#include <frame_metrics.h>
-// #include <OrbitCamera.h>
 #include "Renderer.h"
-// #include <hierarchy.h>
-#include <functional>
-// #include "Shader.h"
+#include "View/CameraView.h"
+#include <ScreenState.h>
+#include <frame_metrics.h>
 
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
-
-///
-/// logger setup
-///
-namespace plog
-{
-class MyFormatter
-{
-public:
-    static util::nstring header()
-    {
-        return util::nstring();
-    }
-
-    static util::nstring format(const Record &r)
-    {
-        tm t;
-        util::localtime_s(&t, &r.getTime().time);
-
-        util::nostringstream ss;
-        ss
-            << std::setw(2) << t.tm_hour << ':' << std::setw(2) << t.tm_min << '.' << std::setw(2) << t.tm_sec
-            << '[' << severityToString(r.getSeverity()) << ']'
-            << r.getFunc() << '(' << r.getLine() << ") "
-            << r.getMessage()
-
-            << "\n"; // Produce a simple string with a log message.
-
-        return ss.str();
-    }
-};
-
-template <class Formatter>          // Typically a formatter is passed as a template parameter.
-class MyAppender : public IAppender // All appenders MUST inherit IAppender interface.
-{
-    using OnWrite = std::function<void(const char *)>;
-    OnWrite m_onWrite;
-
-public:
-    void write(const Record &record) override // This is a method from IAppender that MUST be implemented.
-    {
-        util::nstring str = Formatter::format(record); // Use the formatter to get a string from a record.
-        if (m_onWrite)
-        {
-            auto utf8 = UTF8Converter::convert(str);
-            m_onWrite(utf8.c_str());
-        }
-    }
-
-    void onWrite(const OnWrite &callback)
-    {
-        m_onWrite = callback;
-    }
-};
-
-} // namespace plog
+#include "LogConfig.h"
 
 class ApplicationImpl
 {
     plog::ColorConsoleAppender<plog::MyFormatter> m_consoleAppender;
     plog::MyAppender<plog::MyFormatter> m_imGuiAppender;
 
-    // VR m_vr;
-    // hierarchy::Scene m_scene;
-
     Renderer m_renderer;
-
     gui::Gui m_imgui;
-    // CameraView m_view;
-    // gizmesh::GizmoSystem::Buffer m_gizmoBuffer;
-    // std::shared_ptr<hierarchy::SceneView> m_sceneView;
-    // size_t m_viewTextureID = 0;
+
+    CameraView m_view;
 
     bool m_initialized = false;
 
 public:
     ApplicationImpl(int argc, char **argv)
-        : m_renderer(256)
-    // , m_sceneView(new hierarchy::SceneView)
+        : m_renderer(256), m_view(argc, argv)
     {
-        // m_sceneView->ClearColor = {
-        //     0.3f,
-        //     0.4f,
-        //     0.5f,
-        //     1.0f,
-        // };
-
         m_imGuiAppender.onWrite(std::bind(&gui::Gui::Log, &m_imgui, std::placeholders::_1));
         plog::init(plog::debug, &m_consoleAppender).addAppender(&m_imGuiAppender);
-
-        // auto path = std::filesystem::current_path();
-        // if (argc > 1)
-        // {
-        //     path = argv[1];
-        // }
-        // hierarchy::ShaderManager::Instance().watch(path);
-
-        // {
-        //     auto node = hierarchy::SceneNode::Create("grid");
-        //     node->Mesh(hierarchy::CreateGrid());
-        //     m_scene.gizmoNodes.push_back(node);
-        // }
-
-        // if (argc > 2)
-        // {
-        //     auto model = hierarchy::SceneModel::LoadFromPath(argv[2]);
-        //     if (model)
-        //     {
-        //         m_scene.sceneNodes.push_back(model->root);
-        //     }
-        // }
-
-        // return;
-        // if (m_vr.Connect())
-        // {
-        //     LOGI << "vr.Connect";
-        // }
-        // else
-        // {
-        //     LOGW << "fail to vr.Connect";
-        // }
     }
 
     void OnFrame(void *hwnd, const screenstate::ScreenState &state)
@@ -145,24 +37,14 @@ public:
             m_initialized = true;
         }
 
-        // {
-        //     frame_metrics::scoped s("vr");
-        //     m_vr.OnFrame(&m_scene);
-        // }
-
         // imgui
-        // bool isShowView = false;
-        screenstate::ScreenState viewState;
-        {
-            frame_metrics::scoped s("imgui");
-            m_imgui.OnFrame(state);
+        frame_metrics::scoped s("imgui");
+        m_imgui.OnFrame(state);
 
-            // // view
-            // auto viewTextureID = m_renderer.ViewTextureID(m_sceneView);
-            // // imgui window for rendertarget. convert screenState for view
-            // isShowView = m_imgui.View(m_sceneView.get(), state, viewTextureID,
-            //                           &viewState);
-        }
+        // view
+        // auto viewTextureID = m_renderer.ViewTextureID(this);
+
+        m_view.OnFrame();
 
         // renderering
         {

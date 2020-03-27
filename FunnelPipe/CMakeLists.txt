@@ -9,6 +9,8 @@ add_executable(${TARGET_NAME}
     Gui/ImGuiDX12.cpp
     Gui/ImGuiDX12FrameResources.cpp
     Gui/ImGuiImplScreenState.cpp
+    View/CameraView.cpp
+    View/Gizmo.cpp
     Application.cpp
     main.cpp
     )
@@ -19,11 +21,14 @@ target_include_directories(${TARGET_NAME} PRIVATE
     ${EXTERNAL_DIR}/plog/include
     ${EXTERNAL_DIR}/nlohmann_json/include
     ${EXTERNAL_DIR}/imgui
+    ${EXTERNAL_DIR}/gizmesh/example/camera_example
     )
 target_link_libraries(${TARGET_NAME} PRIVATE
     # falg
     window_example
-    # gizmesh    
+    camera_example
+    gizmesh   
+    Hierarchy 
     FrameMetrics
     Gpu
     #
