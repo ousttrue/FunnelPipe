@@ -1,0 +1,3 @@
+[submodule "external/gizmesh"]
+	path = external/gizmesh
+	url = https://github.com/ousttrue/gizmesh.git
