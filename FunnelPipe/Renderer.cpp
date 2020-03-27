@@ -1,12 +1,11 @@
 #include "Renderer.h"
-// #include "Gui/ImGuiDX12.h"
+#include "Gui/ImGuiDX12.h"
 #include <Gpu.h>
 
 // #include <DrawList.h>
 // #include <SceneView.h>
 
 #include <plog/Log.h>
-// #include <imgui.h>
 #include <wrl/client.h>
 
 const uint32_t BACKBUFFER_COUNT = 2;
@@ -27,7 +26,7 @@ class Impl
     std::unique_ptr<Gpu::dx12::CommandList> m_commandlist;
     // std::unique_ptr<Gpu::dx12::SceneMapper> m_sceneMapper;
 
-    // ImGuiDX12 m_imguiDX12;
+    ImGuiDX12 m_imguiDX12;
 
     // scene
     // std::unique_ptr<hierarchy::SceneLight> m_light;
@@ -64,7 +63,7 @@ public:
         m_commandlist->InitializeDirect(m_device);
         // m_rootSignature->Initialize(m_device);
 
-        // m_imguiDX12.Initialize(m_device.Get(), BACKBUFFER_COUNT);
+        m_imguiDX12.Initialize(m_device.Get(), BACKBUFFER_COUNT);
 
         //
         // settings
@@ -108,8 +107,8 @@ public:
         float clear[4] = {0.2f, 0.4f, 0.3f, 1.0f};
         m_backbuffer->Begin(frameIndex, commandList, clear);
 
-        // ImGui::Render();
-        // m_imguiDX12.RenderDrawData(commandList.Get(), ImGui::GetDrawData());
+        ImGui::Render();
+        m_imguiDX12.RenderDrawData(commandList.Get(), ImGui::GetDrawData());
 
         m_backbuffer->End(frameIndex, commandList);
 

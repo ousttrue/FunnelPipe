@@ -1,7 +1,8 @@
 #include "Application.h"
+#include <ScreenState.h>
 // #include "VR.h"
 // #include "CameraView.h"
-// #include "Gui/Gui.h"
+#include "Gui/Gui.h"
 // #include "Gui/GuiView.h"
 // #include "Gizmo.h"
 #include <frame_metrics.h>
@@ -80,7 +81,7 @@ class ApplicationImpl
 
     Renderer m_renderer;
 
-    // gui::Gui m_imgui;
+    gui::Gui m_imgui;
     // CameraView m_view;
     // gizmesh::GizmoSystem::Buffer m_gizmoBuffer;
     // std::shared_ptr<hierarchy::SceneView> m_sceneView;
@@ -91,7 +92,7 @@ class ApplicationImpl
 public:
     ApplicationImpl(int argc, char **argv)
         : m_renderer(256)
-        // , m_sceneView(new hierarchy::SceneView)
+    // , m_sceneView(new hierarchy::SceneView)
     {
         // m_sceneView->ClearColor = {
         //     0.3f,
@@ -100,7 +101,7 @@ public:
         //     1.0f,
         // };
 
-        // m_imGuiAppender.onWrite(std::bind(&gui::Gui::Log, &m_imgui, std::placeholders::_1));
+        m_imGuiAppender.onWrite(std::bind(&gui::Gui::Log, &m_imgui, std::placeholders::_1));
         plog::init(plog::debug, &m_consoleAppender).addAppender(&m_imGuiAppender);
 
         // auto path = std::filesystem::current_path();
@@ -151,17 +152,17 @@ public:
 
         // imgui
         // bool isShowView = false;
-        // screenstate::ScreenState viewState;
-        // {
-        //     frame_metrics::scoped s("imgui");
-        //     m_imgui.OnFrame(state, &m_scene);
+        screenstate::ScreenState viewState;
+        {
+            frame_metrics::scoped s("imgui");
+            m_imgui.OnFrame(state);
 
-        //     // view
-        //     auto viewTextureID = m_renderer.ViewTextureID(m_sceneView);
-        //     // imgui window for rendertarget. convert screenState for view
-        //     isShowView = m_imgui.View(m_sceneView.get(), state, viewTextureID,
-        //                               &viewState);
-        // }
+            // // view
+            // auto viewTextureID = m_renderer.ViewTextureID(m_sceneView);
+            // // imgui window for rendertarget. convert screenState for view
+            // isShowView = m_imgui.View(m_sceneView.get(), state, viewTextureID,
+            //                           &viewState);
+        }
 
         // renderering
         {

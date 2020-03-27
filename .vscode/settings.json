@@ -2,6 +2,11 @@
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
     "cSpell.words": [
         "Drawlist",
-        "hwnd"
-    ]
+        "hwnd",
+        "imgui"
+    ],
+    "files.associations": {
+        "*.hlsl": "c",
+        "mutex": "cpp"
+    }
 }

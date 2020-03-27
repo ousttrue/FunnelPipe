@@ -1,5 +1,9 @@
 #pragma once
-#include <ScreenState.h>
+
+namespace screenstate
+{
+struct ScreenState;
+}
 
 class Application
 {
