@@ -1,7 +1,7 @@
-// #include "Application.h"
-// #include "save_windowplacement.h"
-// #include "frame_metrics.h"
+#include "Application.h"
+#include <frame_metrics.h>
 #include <Win32Window.h>
+// #include "save_windowplacement.h"
 #include <filesystem>
 #include <iostream>
 
@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     }
     window.Show();
 
-    // Application app(argc, argv);
+    Application app(argc, argv);
 
     // auto windowconf = std::filesystem::current_path().append("FunnelPipe.window.json").u16string();
     // windowplacement::Restore(hwnd, SW_SHOW, (const wchar_t *)windowconf.c_str());
@@ -28,23 +28,21 @@ int main(int argc, char **argv)
     // };
 
     {
+        screenstate::ScreenState state;
+        while (true)
         {
-            screenstate::ScreenState state;
-            while (true)
+            frame_metrics::new_frame();
+            frame_metrics::scoped s("frame");
             {
-                // frame_metrics::new_frame();
-                // frame_metrics::scoped s("frame");
-                // {
-                //     frame_metrics::scoped ss("window");
-                    if (!window.TryGetInput(&state))
-                    {
-                        break;
-                    }
-                // }
-                // {
-                //     frame_metrics::scoped ss("app");
-                //     app.OnFrame(hwnd, state);
-                // }
+                frame_metrics::scoped ss("window");
+                if (!window.TryGetInput(&state))
+                {
+                    break;
+                }
+            }
+            {
+                frame_metrics::scoped ss("app");
+                app.OnFrame(hwnd, state);
             }
         }
     }

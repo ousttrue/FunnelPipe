@@ -1,3 +1,6 @@
 [submodule "external/gizmesh"]
 	path = external/gizmesh
 	url = https://github.com/ousttrue/gizmesh.git
+[submodule "external/plog"]
+	path = external/plog
+	url = https://github.com/SergiusTheBest/plog.git

@@ -13,7 +13,7 @@ scene+
   \   /
    | |
    v v
- drawlist
+ Drawlist
    v v
-d3d12 pipeline
+   GPU
 ```
