@@ -1,7 +1,7 @@
 #include "Application.h"
 #include <frame_metrics.h>
 #include <Win32Window.h>
-// #include "save_windowplacement.h"
+#include "save_windowplacement.h"
 #include <filesystem>
 #include <iostream>
 
@@ -21,11 +21,11 @@ int main(int argc, char **argv)
 
     Application app(argc, argv);
 
-    // auto windowconf = std::filesystem::current_path().append("FunnelPipe.window.json").u16string();
-    // windowplacement::Restore(hwnd, SW_SHOW, (const wchar_t *)windowconf.c_str());
-    // window.OnDestroy = [hwnd, conf = windowconf]() {
-    //     windowplacement::Save(hwnd, (const wchar_t *)conf.c_str());
-    // };
+    auto windowconf = std::filesystem::current_path().append("FunnelPipe.window.json").u16string();
+    windowplacement::Restore(hwnd, SW_SHOW, (const wchar_t *)windowconf.c_str());
+    window.OnDestroy = [hwnd, conf = windowconf]() {
+        windowplacement::Save(hwnd, (const wchar_t *)conf.c_str());
+    };
 
     {
         screenstate::ScreenState state;
