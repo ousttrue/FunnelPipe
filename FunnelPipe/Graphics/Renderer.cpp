@@ -129,7 +129,7 @@ public:
         return texture;
     }
 
-    void View(const hierarchy::SceneViewPtr &sceneView)
+    void View(const hierarchy::SceneViewPtr &sceneView, const hierarchy::DrawList &drawlist)
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreate(sceneView);
 
@@ -320,7 +320,7 @@ size_t Renderer::ViewTextureID(const std::shared_ptr<hierarchy::SceneView> &view
     return m_impl->ViewTextureID(view);
 }
 
-void Renderer::View(const hierarchy::SceneViewPtr &view)
+void Renderer::View(const hierarchy::SceneViewPtr &view, const hierarchy::DrawList &drawlist)
 {
-    m_impl->View(view);
+    m_impl->View(view, drawlist);
 }

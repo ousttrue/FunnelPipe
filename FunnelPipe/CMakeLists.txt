@@ -13,6 +13,7 @@ add_executable(${TARGET_NAME}
     View/CameraView.cpp
     View/Gizmo.cpp
     View/GuiView.cpp
+    SceneManager.cpp
     Application.cpp
     main.cpp
     )

@@ -4,7 +4,7 @@
 #include <hierarchy.h>
 #include <frame_metrics.h>
 
-CameraView::CameraView(int argc, char **argv)
+CameraView::CameraView()
     : m_sceneView(new hierarchy::SceneView)
 {
     m_camera.zNear = 0.01f;
@@ -14,40 +14,22 @@ CameraView::CameraView(int argc, char **argv)
         0.5f,
         1.0f,
     };
-
-    auto path = std::filesystem::current_path();
-    if (argc > 1)
-    {
-        path = argv[1];
-    }
-    hierarchy::ShaderManager::Instance().watch(path);
-
-    {
-        auto node = hierarchy::SceneNode::Create("grid");
-        node->Mesh(hierarchy::CreateGrid());
-        m_scene.gizmoNodes.push_back(node);
-    }
-
-    if (argc > 2)
-    {
-        auto model = hierarchy::SceneModel::LoadFromPath(argv[2]);
-        if (model)
-        {
-            m_scene.sceneNodes.push_back(model->root);
-        }
-    }
 }
 
-bool CameraView::OnFrame(const screenstate::ScreenState &state, size_t textureID,
-                         screenstate::ScreenState *viewState)
+bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID)
 {
     // view
     // imgui window for rendertarget. convert screenState for view
-    return ::gui::View(m_sceneView.get(), state, textureID, viewState);
-}
+    screenstate::ScreenState viewState;
+    bool isShowView = ::gui::View(m_sceneView.get(), state, textureID, &viewState);
 
-void CameraView::Update3DView(const screenstate::ScreenState &viewState)
-{
+    m_sceneView->Width = viewState.Width;
+    m_sceneView->Height = viewState.Height;
+    m_sceneView->Projection = m_camera.state.projection;
+    m_sceneView->View = m_camera.state.view;
+    m_sceneView->CameraPosition = m_camera.state.position;
+    m_sceneView->CameraFovYRadians = m_camera.state.fovYRadians;
+
     //
     // update camera
     //
@@ -80,4 +62,6 @@ void CameraView::Update3DView(const screenstate::ScreenState &viewState)
     //                           parent ? parent->World() : falg::Transform{});
     //     }
     // }
+
+    return isShowView;
 }

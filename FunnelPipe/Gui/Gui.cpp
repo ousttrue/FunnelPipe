@@ -1,5 +1,4 @@
 #include "Gui.h"
-// #include "GuiView.h"
 #include <frame_metrics.h>
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -7,6 +6,7 @@
 #include "ImGuiImplScreenState.h"
 #include <plog/Log.h>
 #include <mutex>
+#include <functional>
 // #include <IconsFontAwesome4.h>
 
 static uint32_t s_colors[] = {
@@ -254,7 +254,7 @@ static void ImGui_Impl_Win32_UpdateMouseCursor()
 // Note that you already dock windows into each others _without_ a DockSpace() by just moving windows
 // from their title bar (or by holding SHIFT if io.ConfigDockingWithShift is set).
 // DockSpace() is only useful to construct to a central location for your application.
-static void DockSpace(/*hierarchy::Scene *scene*/)
+static void DockSpace(const std::function<void(const std::filesystem::path)> &open)
 {
     static bool opt_fullscreen_persistant = true;
     bool opt_fullscreen = opt_fullscreen_persistant;
@@ -306,22 +306,15 @@ static void DockSpace(/*hierarchy::Scene *scene*/)
 
     if (ImGui::BeginMenuBar())
     {
-        // if (ImGui::BeginMenu("File"))
-        // {
-        //     if (ImGui::MenuItem("open"))
-        //     {
-        //         auto path = OpenFileDialog(L"");
-
-        //         auto model = hierarchy::SceneModel::LoadFromPath(path);
-
-        //         if (model)
-        //         {
-        //             scene->sceneNodes.clear();
-        //             scene->sceneNodes.push_back(model->root);
-        //         }
-        //     }
-        //     ImGui::EndMenu();
-        // }
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("open"))
+            {
+                auto path = OpenFileDialog(L"");
+                open(path);
+            }
+            ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("Docking"))
         {
             // Disabling fullscreen would allow the window to be moved to the front of other windows,
@@ -444,7 +437,8 @@ public:
         m_logger->AddLog(msg);
     }
 
-    void NewFrame(const screenstate::ScreenState &state/*, hierarchy::Scene *scene*/)
+    void NewFrame(const screenstate::ScreenState &state,
+                  const FileOpenFunc &open)
     {
         // Start the Dear ImGui frame
         ImGui_Impl_ScreenState_NewFrame(state);
@@ -455,47 +449,13 @@ public:
 
         ImGui::NewFrame();
 
-        DockSpace();
+        DockSpace(open);
 
         Update();
     }
 
 private:
-    // void DrawNode(const hierarchy::SceneNodePtr &node, hierarchy::Scene *scene)
-    // {
-    //     int childCount;
-    //     auto children = node->GetChildren(&childCount);
-    //     ImGui::PushID(node->ID());
-    //     auto flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-    //     flags |= ImGuiTreeNodeFlags_DefaultOpen;
-    //     if (childCount == 0)
-    //     {
-    //         flags |= ImGuiTreeNodeFlags_Leaf;
-    //     }
-    //     if (node == scene->selected.lock())
-    //     {
-    //         flags |= ImGuiTreeNodeFlags_Selected;
-    //     }
-    //     auto isOpen = ImGui::TreeNodeEx(node->Name().c_str(), flags);
-    //     if (ImGui::IsItemClicked())
-    //     {
-    //         scene->selected = node;
-    //     }
-
-    //     if (isOpen)
-    //     {
-    //         // children
-    //         for (int i = 0; i < childCount; ++i)
-    //         {
-    //             DrawNode(children[i], scene);
-    //         }
-    //         ImGui::TreePop();
-    //     }
-
-    //     ImGui::PopID();
-    // }
-
-    void Update(/*hierarchy::Scene *scene*/)
+    void Update()
     {
         ImGui::Begin("Performance");
         {
@@ -562,19 +522,6 @@ private:
 
             ImGui::End();
         }
-
-        // {
-        //     // scene tree
-        //     ImGui::Begin("scene graph");
-        //     ImGui::SetWindowSize(ImVec2(256, 512), ImGuiCond_FirstUseEver);
-
-        //     for (auto &node : scene->sceneNodes)
-        //     {
-        //         DrawNode(node, scene);
-        //     }
-
-        //     ImGui::End();
-        // }
     }
 };
 
@@ -596,9 +543,10 @@ void Gui::Log(const char *msg)
     m_impl->Log(msg);
 }
 
-void Gui::OnFrame(const screenstate::ScreenState &state)
+void Gui::OnFrame(const screenstate::ScreenState &state,
+                  const FileOpenFunc &open)
 {
-    m_impl->NewFrame(state);
+    m_impl->NewFrame(state, open);
 }
 
 } // namespace gui
