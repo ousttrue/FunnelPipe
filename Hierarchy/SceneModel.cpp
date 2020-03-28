@@ -78,7 +78,7 @@ class GltfLoader
             const gltfformat::Mesh &gltfMesh,
             const gltfformat::MeshPrimitive &gltfPrimitive)
         {
-            mesh = SceneMesh::Create();
+            mesh = SceneMesh::Create(L"gltf");
             mesh->name = Utf8ToUnicode(gltfMesh.name);
 
             std::vector<GltfVertex> vertices;

@@ -10,9 +10,9 @@ add_library(${TARGET_NAME}
     Heap.cpp
     Texture.cpp
     ConstantBuffer.cpp
+    RootSignature.cpp
+    Material.cpp
     #
-    # Material.cpp
-    # RootSignature.cpp
     # SceneMapper.cpp
     )
 set_property(TARGET ${TARGET_NAME} 

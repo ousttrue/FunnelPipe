@@ -19,12 +19,16 @@ struct SceneSubmesh
 class SceneMesh
 {
 public:
-    static std::shared_ptr<SceneMesh> Create();
-    static std::shared_ptr<SceneMesh> CreateDynamic(
-        uint32_t vertexReserve, uint32_t vertexStride,
-        uint32_t indexReserve, uint32_t indexStride);
-
     std::wstring name;
+    SceneMesh(const std::wstring &n)
+        : name(n)
+    {
+    }
+
+    static std::shared_ptr<SceneMesh> Create(const std::wstring &name);
+    static std::shared_ptr<SceneMesh> CreateDynamic(const std::wstring &name,
+                                                    uint32_t vertexReserve, uint32_t vertexStride,
+                                                    uint32_t indexReserve, uint32_t indexStride);
 
     std::shared_ptr<class VertexBuffer> vertices;
     std::shared_ptr<class VertexBuffer> indices;

@@ -47,6 +47,7 @@ struct DrawList
     void Clear()
     {
         CB.clear();
+        CBRanges.clear();
         Items.clear();
     }
     // void Traverse(const std::shared_ptr<SceneNode> &node);

@@ -25,7 +25,7 @@ static std::shared_ptr<hierarchy::SceneMesh> CreateGrid()
         0, 1, 2, //
         2, 3, 0, //
     };
-    auto mesh = hierarchy::SceneMesh::Create();
+    auto mesh = hierarchy::SceneMesh::Create(L"grid");
     mesh->vertices = hierarchy::VertexBuffer::CreateStatic(
         hierarchy::Semantics::Vertex,
         sizeof(vertices[0]), vertices, sizeof(vertices));

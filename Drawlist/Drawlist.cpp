@@ -30,10 +30,12 @@ std::pair<uint32_t, uint32_t> DrawList::PushCB(const ConstantBuffer *cb, const C
     }
     else
     {
+        // 空の場合
         CBRanges.push_back({offset, 256});
+        CB.resize(CB.size() + CBRanges.back().second);
     }
 
     return CBRanges.back();
-} // namespace hierarchy
+}
 
 } // namespace hierarchy

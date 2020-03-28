@@ -6,16 +6,17 @@
 namespace hierarchy
 {
 
-SceneMeshPtr SceneMesh::Create()
+SceneMeshPtr SceneMesh::Create(const std::wstring &name)
 {
-    return SceneMeshPtr(new SceneMesh);
+    return SceneMeshPtr(new SceneMesh(name));
 }
 
 std::shared_ptr<SceneMesh> SceneMesh::CreateDynamic(
+    const std::wstring &name,
     uint32_t vertexReserve, uint32_t vertexStride,
     uint32_t indexReserve, uint32_t indexStride)
 {
-    auto mesh = SceneMeshPtr(new SceneMesh);
+    auto mesh = SceneMeshPtr(new SceneMesh(name));
 
     mesh->vertices = VertexBuffer::CreateDynamic(
         Semantics::Vertex,

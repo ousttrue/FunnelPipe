@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/FunnelPipe/FunnelPipe.exe",
             "args": [
-                
+                "${workspaceFolder}\\shaders",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

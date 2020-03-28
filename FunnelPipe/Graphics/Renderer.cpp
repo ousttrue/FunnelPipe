@@ -3,9 +3,6 @@
 #include "SceneMapper.h"
 #include <Gpu.h>
 
-// #include <DrawList.h>
-// #include <SceneView.h>
-
 #include <plog/Log.h>
 #include <wrl/client.h>
 
@@ -23,14 +20,14 @@ class Impl
 
     Microsoft::WRL::ComPtr<ID3D12Device> m_device;
     std::unique_ptr<Gpu::dx12::CommandQueue> m_queue;
-    // std::unique_ptr<Gpu::dx12::RootSignature> m_rootSignature;
     std::unique_ptr<Gpu::dx12::CommandList> m_commandlist;
     std::unique_ptr<Gpu::dx12::SceneMapper> m_sceneMapper;
+    std::unique_ptr<Gpu::dx12::RootSignature> m_rootSignature;
 
     ImGuiDX12 m_imguiDX12;
 
     // scene
-    // std::unique_ptr<hierarchy::SceneLight> m_light;
+    std::unique_ptr<hierarchy::SceneLight> m_light;
 
 public:
     Impl(int maxModelCount)
@@ -38,9 +35,9 @@ public:
           m_swapchain(new Gpu::dx12::SwapChain),
           m_backbuffer(new Gpu::dx12::RenderTargetChain),
           m_commandlist(new Gpu::dx12::CommandList),
-          m_sceneMapper(new Gpu::dx12::SceneMapper)
-    //   m_rootSignature(new Gpu::dx12::RootSignature),
-    //   m_light(new hierarchy::SceneLight)
+          m_sceneMapper(new Gpu::dx12::SceneMapper),
+          m_rootSignature(new Gpu::dx12::RootSignature),
+          m_light(new hierarchy::SceneLight)
     {
     }
 
@@ -60,9 +57,9 @@ public:
         m_queue->Initialize(m_device);
         m_swapchain->Initialize(factory, m_queue->Get(), hwnd, BACKBUFFER_COUNT);
         m_backbuffer->Initialize(m_swapchain->Get(), m_device, BACKBUFFER_COUNT);
-        // m_sceneMapper->Initialize(m_device);
+        m_sceneMapper->Initialize(m_device);
         m_commandlist->InitializeDirect(m_device);
-        // m_rootSignature->Initialize(m_device);
+        m_rootSignature->Initialize(m_device);
 
         m_imguiDX12.Initialize(m_device.Get(), BACKBUFFER_COUNT);
 
@@ -93,7 +90,7 @@ public:
     {
         UpdateBackbuffer(hwnd, width, height);
         m_sceneMapper->Update(m_device);
-        // m_rootSignature->Update(m_device);
+        m_rootSignature->Update(m_device);
 
         // new frame
         m_commandlist->Reset(nullptr);
@@ -132,12 +129,11 @@ public:
     void View(const hierarchy::SceneViewPtr &sceneView, const hierarchy::DrawList &drawlist)
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreate(sceneView);
-
-        // UpdateNodes(sceneView->Drawlist);
-
         UpdateView(viewRenderTarget, sceneView);
 
-        // DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget, sceneView);
+        UpdateNodes(drawlist);
+        DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget,
+                 sceneView->ClearColor.data(), drawlist);
     }
 
 private:
@@ -157,53 +153,53 @@ private:
         }
     }
 
-    // void UpdateNodes(const hierarchy::DrawList &drawlist)
-    // {
-    //     // skins
-    //     for (auto &drawMesh : drawlist.Items)
-    //     {
-    //         auto mesh = drawMesh.Mesh;
-    //         auto drawable = m_sceneMapper->GetOrCreate(m_device, drawMesh.Mesh, nullptr);
-    //         if (drawable)
-    //         {
-    //             auto skin = mesh->skin;
-    //             if (skin)
-    //             {
-    //                 drawable->VertexBuffer()->MapCopyUnmap(
-    //                     skin->cpuSkiningBuffer.data(), (uint32_t)skin->cpuSkiningBuffer.size(), mesh->vertices->stride);
-    //             }
-    //             if (drawMesh.Vertices.Ptr)
-    //             {
-    //                 drawable->VertexBuffer()->MapCopyUnmap(drawMesh.Vertices.Ptr, drawMesh.Vertices.Size, drawMesh.Vertices.Stride);
-    //             }
-    //             if (drawMesh.Indices.Ptr)
-    //             {
-    //                 drawable->IndexBuffer()->MapCopyUnmap(drawMesh.Indices.Ptr, drawMesh.Indices.Size, drawMesh.Indices.Stride);
-    //             }
-    //         }
-    //     }
+    void UpdateNodes(const hierarchy::DrawList &drawlist)
+    {
+        // skins
+        for (auto &drawMesh : drawlist.Items)
+        {
+            auto mesh = drawMesh.Mesh;
+            auto drawable = m_sceneMapper->GetOrCreate(m_device, drawMesh.Mesh, m_rootSignature.get());
+            if (drawable)
+            {
+                auto skin = mesh->skin;
+                if (skin)
+                {
+                    drawable->VertexBuffer()->MapCopyUnmap(
+                        skin->cpuSkiningBuffer.data(), (uint32_t)skin->cpuSkiningBuffer.size(), mesh->vertices->stride);
+                }
+                if (drawMesh.Vertices.Ptr)
+                {
+                    drawable->VertexBuffer()->MapCopyUnmap(drawMesh.Vertices.Ptr, drawMesh.Vertices.Size, drawMesh.Vertices.Stride);
+                }
+                if (drawMesh.Indices.Ptr)
+                {
+                    drawable->IndexBuffer()->MapCopyUnmap(drawMesh.Indices.Ptr, drawMesh.Indices.Size, drawMesh.Indices.Stride);
+                }
+            }
+        }
 
-    //     // CB
-    //     m_rootSignature->m_drawConstantsBuffer.Assign(drawlist.CB.data(),
-    //                                                   (const std::pair<UINT, UINT> *)drawlist.CBRanges.data(),
-    //                                                   (uint32_t)drawlist.CBRanges.size());
-    //     m_rootSignature->m_drawConstantsBuffer.CopyToGpu();
-    // }
+        // CB
+        m_rootSignature->m_drawConstantsBuffer.Assign(drawlist.CB.data(),
+                                                      (const std::pair<UINT, UINT> *)drawlist.CBRanges.data(),
+                                                      (uint32_t)drawlist.CBRanges.size());
+        m_rootSignature->m_drawConstantsBuffer.CopyToGpu();
+    }
 
     void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
                     const hierarchy::SceneViewPtr &sceneView)
     {
         {
             // auto a = sizeof(Gpu::dx12::RootSignature::ViewConstants);
-            // auto buffer = m_rootSignature->GetViewConstantsBuffer(0);
-            // buffer->b0Projection = sceneView->Projection;
-            // buffer->b0View = sceneView->View;
-            // buffer->b0LightDir = m_light->LightDirection;
-            // buffer->b0LightColor = m_light->LightColor;
-            // buffer->b0CameraPosition = sceneView->CameraPosition;
-            // buffer->fovY = sceneView->CameraFovYRadians;
-            // buffer->b0ScreenSize = {(float)sceneView->Width, (float)sceneView->Height};
-            // m_rootSignature->m_viewConstantsBuffer.CopyToGpu();
+            auto buffer = m_rootSignature->GetViewConstantsBuffer(0);
+            buffer->b0Projection = sceneView->Projection;
+            buffer->b0View = sceneView->View;
+            buffer->b0LightDir = m_light->LightDirection;
+            buffer->b0LightColor = m_light->LightColor;
+            buffer->b0CameraPosition = sceneView->CameraPosition;
+            buffer->fovY = sceneView->CameraFovYRadians;
+            buffer->b0ScreenSize = {(float)sceneView->Width, (float)sceneView->Height};
+            m_rootSignature->m_viewConstantsBuffer.CopyToGpu();
         }
 
         if (viewRenderTarget->Resize(sceneView->Width, sceneView->Height))
@@ -221,73 +217,73 @@ private:
         }
     }
 
-    // void DrawView(const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
-    //               const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
-    //               const hierarchy::SceneViewPtr &sceneView)
-    // {
-    //     // clear
-    //     if (viewRenderTarget->Resource(frameIndex))
-    //     {
-    //         viewRenderTarget->Begin(frameIndex, commandList, sceneView->ClearColor.data());
+    void DrawView(const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
+                  const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
+                  const float *clearColor,
+                  const hierarchy::DrawList &drawlist)
+    {
+        // clear
+        if (viewRenderTarget->Resource(frameIndex))
+        {
+            viewRenderTarget->Begin(frameIndex, commandList, clearColor);
 
-    //         // global settings
-    //         m_rootSignature->Begin(m_device, commandList);
+            // global settings
+            m_rootSignature->Begin(m_device, commandList);
 
-    //         auto &drawlist = sceneView->Drawlist.Items;
-    //         for (size_t i = 0; i < drawlist.size(); ++i)
-    //         {
-    //             DrawMesh(commandList, (UINT)i, drawlist[i]);
-    //         }
+            for (size_t i = 0; i < drawlist.Items.size(); ++i)
+            {
+                DrawMesh(commandList, (UINT)i, drawlist.Items[i]);
+            }
 
-    //         viewRenderTarget->End(frameIndex, commandList);
-    //     }
-    // }
+            viewRenderTarget->End(frameIndex, commandList);
+        }
+    }
 
-    // void DrawMesh(const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT i, const hierarchy::DrawList::DrawItem &info)
-    // {
-    //     auto &mesh = info.Mesh;
-    //     if (!mesh)
-    //     {
-    //         return;
-    //     }
+    void DrawMesh(const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT i, const hierarchy::DrawList::DrawItem &info)
+    {
+        auto &mesh = info.Mesh;
+        if (!mesh)
+        {
+            return;
+        }
 
-    //     auto drawable = m_sceneMapper->GetOrCreate(m_device, mesh, m_rootSignature.get());
-    //     if (!drawable)
-    //     {
-    //         return;
-    //     }
-    //     if (!drawable->IsDrawable(m_commandlist.get()))
-    //     {
-    //         return;
-    //     }
+        auto drawable = m_sceneMapper->GetOrCreate(m_device, mesh, m_rootSignature.get());
+        if (!drawable)
+        {
+            return;
+        }
+        if (!drawable->IsDrawable(m_commandlist.get()))
+        {
+            return;
+        }
 
-    //     // for (auto &submesh : mesh->submeshes)
-    //     {
-    //         m_rootSignature->SetDrawDescriptorTable(m_device, commandList, i);
+        // for (auto &submesh : mesh->submeshes)
+        {
+            m_rootSignature->SetDrawDescriptorTable(m_device, commandList, i);
 
-    //         auto &submesh = mesh->submeshes[info.SubmeshIndex];
-    //         auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
+            auto &submesh = mesh->submeshes[info.SubmeshIndex];
+            auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
 
-    //         // texture setup
-    //         if (submesh.material->colorImage)
-    //         {
-    //             auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->colorImage,
-    //                                                                        m_sceneMapper->GetUploader());
-    //             if (texture)
-    //             {
-    //                 if (texture->IsDrawable(m_commandlist.get(), 0))
-    //                 {
-    //                     m_rootSignature->SetTextureDescriptorTable(m_device, commandList, textureSlot);
-    //                 }
-    //             }
-    //         }
+            // texture setup
+            if (submesh.material->colorImage)
+            {
+                auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->colorImage,
+                                                                           m_sceneMapper->GetUploader());
+                if (texture)
+                {
+                    if (texture->IsDrawable(m_commandlist.get(), 0))
+                    {
+                        m_rootSignature->SetTextureDescriptorTable(m_device, commandList, textureSlot);
+                    }
+                }
+            }
 
-    //         if (material->Set(commandList))
-    //         {
-    //             m_commandlist->Get()->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
-    //         }
-    //     }
-    // }
+            if (material->Set(commandList))
+            {
+                m_commandlist->Get()->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
+            }
+        }
+    }
 };
 
 Renderer::Renderer(int maxModelCount)

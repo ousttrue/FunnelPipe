@@ -21,6 +21,7 @@ class ResourceItem : public std::enable_shared_from_this<ResourceItem>
     template <class T>
     using ComPtr = Microsoft::WRL::ComPtr<T>;
 
+    std::string m_name;
     ComPtr<ID3D12Resource> m_resource;
 
     struct ItemState

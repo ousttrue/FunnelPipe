@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include <array>
-#include "DrawList.h"
 
 namespace hierarchy
 {
@@ -19,10 +18,6 @@ struct SceneView
     bool ShowGrid = true;
     bool ShowGizmo = true;
     bool ShowVR = false;
-
-    hierarchy::DrawList Drawlist;
-
-    void UpdateDrawList(const class Scene *scene);
 };
 using SceneViewPtr = std::shared_ptr<SceneView>;
 

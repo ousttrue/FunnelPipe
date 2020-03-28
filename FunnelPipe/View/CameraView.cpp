@@ -92,8 +92,8 @@ void CameraView::UpdateDrawlist(hierarchy::DrawList *drawlist)
                             .p = &matrix,
                             .size = sizeof(matrix),
                         }};
-                m_sceneView->Drawlist.PushCB(shader->VS.DrawCB(), values, _countof(values));
-                m_sceneView->Drawlist.Items.push_back({
+                drawlist->PushCB(shader->VS.DrawCB(), values, _countof(values));
+                drawlist->Items.push_back({
                     .Mesh = mesh,
                     .Vertices = {
                         .Ptr = m_gizmoBuffer.pVertices,

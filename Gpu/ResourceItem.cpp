@@ -1,6 +1,20 @@
 #include "ResourceItem.h"
-// #include "d3dx12.h"
 #include "CommandList.h"
+
+#include <system_error>
+
+std::string ToUtf8(std::wstring const &src)
+{
+    auto const dest_size = ::WideCharToMultiByte(CP_UTF8, 0U, src.data(), -1, nullptr, 0, nullptr, nullptr);
+    std::vector<char> dest(dest_size, '\0');
+    if (::WideCharToMultiByte(CP_UTF8, 0U, src.data(), -1, dest.data(), dest.size(), nullptr, nullptr) == 0)
+    {
+        throw std::system_error{static_cast<int>(::GetLastError()), std::system_category()};
+    }
+    dest.resize(std::char_traits<char>::length(dest.data()));
+    dest.shrink_to_fit();
+    return std::string(dest.begin(), dest.end());
+}
 
 namespace Gpu::dx12
 {
@@ -13,6 +27,8 @@ ResourceItem::ResourceItem(
     m_state.State = state;
     m_state.Upload = UploadStates::None;
     resource->SetName(name);
+
+    m_name = ToUtf8(name);
 }
 
 void ResourceItem::MapCopyUnmap(const void *p, UINT byteLength, UINT stride)

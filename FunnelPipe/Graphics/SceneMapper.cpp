@@ -72,6 +72,11 @@ std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &devic
     {
         // first material's shader for input layout
         auto shader = sceneMesh->submeshes[0].material->shader->Compiled();
+        if (shader->Generation() < 0)
+        {
+            return nullptr;
+        }
+
         // auto resource = CreateResourceItem(device, m_uploader, sceneMesh, shader->inputLayout(), shader->inputLayoutCount());
         auto dstStride = 0;
         int inputLayoutCount;
