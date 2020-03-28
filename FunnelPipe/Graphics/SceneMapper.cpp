@@ -1,11 +1,13 @@
 #include "SceneMapper.h"
-#include "ResourceItem.h"
-#include "Mesh.h"
-#include "Texture.h"
-#include "Uploader.h"
-#include "RootSignature.h"
-#include "RenderTarget.h"
+#include <Gpu.h>
+// #include "ResourceItem.h"
+// #include "Mesh.h"
+// #include "Texture.h"
+// #include "Uploader.h"
+// #include "RootSignature.h"
+// #include "RenderTarget.h"
 #include <hierarchy.h>
+#include <FrameData.h>
 #include <DirectXMath.h>
 #include <plog/Log.h>
 

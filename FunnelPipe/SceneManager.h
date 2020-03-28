@@ -1,5 +1,6 @@
 #pragma once
 #include <hierarchy.h>
+#include <FrameData.h>
 #include <filesystem>
 
 class SceneManager

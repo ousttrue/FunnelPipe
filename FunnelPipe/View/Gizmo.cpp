@@ -1,6 +1,7 @@
 #include "Gizmo.h"
 #include <gizmesh.h>
 #include <hierarchy.h>
+#include <FrameData.h>
 
 Gizmo::Gizmo()
     : m_gizmoMesh(hierarchy::SceneMesh::CreateDynamic(

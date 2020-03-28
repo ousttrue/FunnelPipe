@@ -1,8 +1,8 @@
 #include "CameraView.h"
 #include "GuiView.h"
 #include <ScreenState.h>
-#include <hierarchy.h>
 #include <frame_metrics.h>
+
 
 CameraView::CameraView()
     : m_sceneView(new hierarchy::SceneView)

@@ -5,6 +5,7 @@
 #include "View/CameraView.h"
 #include <ScreenState.h>
 #include <frame_metrics.h>
+#include <FrameData.h>
 
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>

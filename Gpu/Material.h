@@ -1,7 +1,6 @@
 #include "Helper.h"
 #include <memory>
-#include <Drawlist.h>
-#include <SceneMaterial.h>
+#include <FrameData.h>
 
 namespace Gpu::dx12
 {

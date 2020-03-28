@@ -1,5 +1,4 @@
 #include "SceneMesh.h"
-#include "SceneNode.h"
 #include "VertexBuffer.h"
 #include <algorithm>
 

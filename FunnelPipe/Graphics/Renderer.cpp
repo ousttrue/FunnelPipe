@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "ImGuiDX12.h"
 #include "SceneMapper.h"
+#include <FrameData.h>
 #include <Gpu.h>
 
 #include <plog/Log.h>

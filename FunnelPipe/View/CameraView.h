@@ -2,6 +2,7 @@
 #include "Gizmo.h"
 #include <OrbitCamera.h>
 #include <hierarchy.h>
+#include <FrameData.h>
 
 ///
 /// * 3D View

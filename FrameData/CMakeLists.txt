@@ -1,8 +1,10 @@
-set(TARGET_NAME Drawlist)
+set(TARGET_NAME FrameData)
 add_library(${TARGET_NAME}
     DrawList.cpp
     SceneImage.cpp
     SceneMaterial.cpp
+    SceneMesh.cpp
+    VertexBuffer.cpp
     Shader.cpp
     ShaderManager.cpp
     ShaderWatcher.cpp
@@ -17,4 +19,8 @@ target_include_directories(${TARGET_NAME}
     PRIVATE 
     ${EXTERNAL_DIR}/stb
     ${EXTERNAL_DIR}/plog/include
+    )
+target_link_libraries(${TARGET_NAME}
+    PUBLIC
+    falg
     )

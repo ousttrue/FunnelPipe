@@ -13,7 +13,7 @@ scene+
   \   /
    | |
    v v
- Drawlist
+ FrameData
    v v
    GPU
 ```

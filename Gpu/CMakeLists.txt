@@ -24,6 +24,6 @@ target_include_directories(${TARGET_NAME} PUBLIC
     ${EXTERNAL_DIR}/plog/include
     )
 target_link_libraries(${TARGET_NAME} PUBLIC
-    Drawlist
+    FrameData
     d3d12
     )

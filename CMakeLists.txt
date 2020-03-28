@@ -10,7 +10,7 @@ subdirs(
     ${EXTERNAL_DIR}/gizmesh/gizmesh
     ${EXTERNAL_DIR}/gizmesh/example/window_example
     ${EXTERNAL_DIR}/gizmesh/example/camera_example    
-    Drawlist
+    FrameData
     Hierarchy
     Gpu
     FrameMetrics

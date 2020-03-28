@@ -1,14 +1,12 @@
 set(TARGET_NAME Hierarchy)
 add_library(${TARGET_NAME}
-    SceneMesh.cpp
     SceneNode.cpp
     Scene.cpp
     ParseGltf.cpp
     SceneModel.cpp
-    SceneMeshSkin.cpp
-    VertexBuffer.cpp
     ToUnicode.cpp
     SceneView.cpp
+    SceneMeshSkin.cpp
     )
 set_property(TARGET ${TARGET_NAME} 
     PROPERTY CXX_STANDARD 20
@@ -26,7 +24,5 @@ target_compile_definitions(${TARGET_NAME} PUBLIC
     NOMINMAX
     )
 target_link_libraries(${TARGET_NAME} PUBLIC
-    # window_example
-    # camera_example
-    Drawlist
+    FrameData
     )
