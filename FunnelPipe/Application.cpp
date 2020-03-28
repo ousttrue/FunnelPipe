@@ -1,6 +1,6 @@
 #include "Application.h"
 #include "Gui/Gui.h"
-#include "Renderer.h"
+#include "Graphics/Renderer.h"
 #include "View/CameraView.h"
 #include <ScreenState.h>
 #include <frame_metrics.h>
@@ -38,32 +38,36 @@ public:
         }
 
         // imgui
-        frame_metrics::scoped s("imgui");
-        m_imgui.OnFrame(state);
+        bool isShowView = false;
+        screenstate::ScreenState viewState;
+        {
+            frame_metrics::scoped s("imgui");
+            m_imgui.OnFrame(state);
 
-        // view
-        // auto viewTextureID = m_renderer.ViewTextureID(this);
-
-        m_view.OnFrame();
+            // view
+            auto viewTextureID = m_renderer.ViewTextureID(m_view.SceneView());
+            isShowView = m_view.OnFrame(state, viewTextureID, &viewState);
+        }
 
         // renderering
         {
             frame_metrics::scoped s("render");
             m_renderer.BeginFrame(hwnd, state.Width, state.Height);
-            // if (isShowView)
-            // {
-            //     frame_metrics::scoped ss("view");
-            //     m_view.Update3DView(viewState, m_scene.selected.lock());
-            //     m_sceneView->Width = viewState.Width;
-            //     m_sceneView->Height = viewState.Height;
-            //     m_sceneView->Projection = m_view.Camera()->state.projection;
-            //     m_sceneView->View = m_view.Camera()->state.view;
-            //     m_sceneView->CameraPosition = m_view.Camera()->state.position;
-            //     m_sceneView->CameraFovYRadians = m_view.Camera()->state.fovYRadians;
-            //     m_scene.Update();
-            //     UpdateDrawList();
-            //     m_renderer.View(m_sceneView);
-            // }
+            if (isShowView)
+            {
+                frame_metrics::scoped ss("view");
+                // m_view.Update3DView(viewState); //, m_scene.selected.lock());
+                auto sceneView = m_view.SceneView();
+                sceneView->Width = viewState.Width;
+                sceneView->Height = viewState.Height;
+                sceneView->Projection = m_view.Camera()->state.projection;
+                sceneView->View = m_view.Camera()->state.view;
+                sceneView->CameraPosition = m_view.Camera()->state.position;
+                sceneView->CameraFovYRadians = m_view.Camera()->state.fovYRadians;
+                // m_scene.Update();
+                // UpdateDrawList();
+                m_renderer.View(sceneView);
+            }
             m_renderer.EndFrame();
         }
     }

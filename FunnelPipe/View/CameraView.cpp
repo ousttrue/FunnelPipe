@@ -1,4 +1,5 @@
 #include "CameraView.h"
+#include "GuiView.h"
 #include <ScreenState.h>
 #include <hierarchy.h>
 #include <frame_metrics.h>
@@ -37,51 +38,46 @@ CameraView::CameraView(int argc, char **argv)
     }
 }
 
-void CameraView::OnFrame()
+bool CameraView::OnFrame(const screenstate::ScreenState &state, size_t textureID,
+                         screenstate::ScreenState *viewState)
 {
-    // bool isShowView = false;
-    screenstate::ScreenState viewState;
-    {
-
-        // // view
-        // // imgui window for rendertarget. convert screenState for view
-        // isShowView = m_imgui.View(m_sceneView.get(), state, viewTextureID,
-        //                           &viewState);
-    }
+    // view
+    // imgui window for rendertarget. convert screenState for view
+    return ::gui::View(m_sceneView.get(), state, textureID, viewState);
 }
 
-void CameraView::Update3DView(const screenstate::ScreenState &viewState, const hierarchy::SceneNodePtr &selected)
+void CameraView::Update3DView(const screenstate::ScreenState &viewState)
 {
     //
     // update camera
     //
-    if (selected != m_selected)
-    {
-        if (selected)
-        {
-            m_camera.gaze = -selected->World().translation;
-        }
-        else
-        {
-            // m_camera->gaze = {0, 0, 0};
-        }
+    // if (selected != m_selected)
+    // {
+    //     if (selected)
+    //     {
+    //         m_camera.gaze = -selected->World().translation;
+    //     }
+    //     else
+    //     {
+    //         // m_camera->gaze = {0, 0, 0};
+    //     }
 
-        m_selected = selected;
-    }
+    //     m_selected = selected;
+    // }
     m_camera.Update(viewState);
 
-    //
-    // update gizmo
-    //
-    m_gizmo.Begin(viewState, m_camera.state);
-    if (selected)
-    {
-        // if (selected->EnableGizmo())
-        {
-            auto parent = selected->Parent();
-            m_gizmo.Transform(selected->ID(),
-                              selected->Local(),
-                              parent ? parent->World() : falg::Transform{});
-        }
-    }
+    // //
+    // // update gizmo
+    // //
+    // m_gizmo.Begin(viewState, m_camera.state);
+    // if (selected)
+    // {
+    //     // if (selected->EnableGizmo())
+    //     {
+    //         auto parent = selected->Parent();
+    //         m_gizmo.Transform(selected->ID(),
+    //                           selected->Local(),
+    //                           parent ? parent->World() : falg::Transform{});
+    //     }
+    // }
 }

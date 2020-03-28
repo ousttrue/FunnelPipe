@@ -19,6 +19,6 @@ public:
     void BeginFrame(void *hwnd, int width, int height);
     void EndFrame();
 
-    size_t ViewTextureID(void *p);
-    // void View(const std::shared_ptr<hierarchy::SceneView> &view);
+    size_t ViewTextureID(const std::shared_ptr<hierarchy::SceneView> &view);
+    void View(const std::shared_ptr<hierarchy::SceneView> &view);
 };

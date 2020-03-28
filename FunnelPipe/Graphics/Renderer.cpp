@@ -1,5 +1,6 @@
 #include "Renderer.h"
-#include "Gui/ImGuiDX12.h"
+#include "ImGuiDX12.h"
+#include "SceneMapper.h"
 #include <Gpu.h>
 
 // #include <DrawList.h>
@@ -24,7 +25,7 @@ class Impl
     std::unique_ptr<Gpu::dx12::CommandQueue> m_queue;
     // std::unique_ptr<Gpu::dx12::RootSignature> m_rootSignature;
     std::unique_ptr<Gpu::dx12::CommandList> m_commandlist;
-    // std::unique_ptr<Gpu::dx12::SceneMapper> m_sceneMapper;
+    std::unique_ptr<Gpu::dx12::SceneMapper> m_sceneMapper;
 
     ImGuiDX12 m_imguiDX12;
 
@@ -36,9 +37,9 @@ public:
         : m_queue(new Gpu::dx12::CommandQueue),
           m_swapchain(new Gpu::dx12::SwapChain),
           m_backbuffer(new Gpu::dx12::RenderTargetChain),
-          m_commandlist(new Gpu::dx12::CommandList)
+          m_commandlist(new Gpu::dx12::CommandList),
+          m_sceneMapper(new Gpu::dx12::SceneMapper)
     //   m_rootSignature(new Gpu::dx12::RootSignature),
-    //   m_sceneMapper(new Gpu::dx12::SceneMapper),
     //   m_light(new hierarchy::SceneLight)
     {
     }
@@ -91,7 +92,7 @@ public:
     void BeginFrame(HWND hwnd, int width, int height)
     {
         UpdateBackbuffer(hwnd, width, height);
-        // m_sceneMapper->Update(m_device);
+        m_sceneMapper->Update(m_device);
         // m_rootSignature->Update(m_device);
 
         // new frame
@@ -119,25 +120,25 @@ public:
         m_queue->SyncFence(callbacks);
     }
 
-    // size_t ViewTextureID(const hierarchy::SceneViewPtr &sceneView)
-    // {
-    //     // view texture for current frame
-    //     auto viewRenderTarget = m_sceneMapper->GetOrCreate(sceneView);
-    //     auto resource = viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
-    //     size_t texture = resource ? m_imguiDX12.GetOrCreateTexture(m_device.Get(), resource->renderTarget.Get()) : -1;
-    //     return texture;
-    // }
+    size_t ViewTextureID(const hierarchy::SceneViewPtr &sceneView)
+    {
+        // view texture for current frame
+        auto viewRenderTarget = m_sceneMapper->GetOrCreate(sceneView);
+        auto resource = viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
+        size_t texture = resource ? m_imguiDX12.GetOrCreateTexture(m_device.Get(), resource->renderTarget.Get()) : -1;
+        return texture;
+    }
 
-    // void View(const hierarchy::SceneViewPtr &sceneView)
-    // {
-    //     auto viewRenderTarget = m_sceneMapper->GetOrCreate(sceneView);
+    void View(const hierarchy::SceneViewPtr &sceneView)
+    {
+        auto viewRenderTarget = m_sceneMapper->GetOrCreate(sceneView);
 
-    //     UpdateNodes(sceneView->Drawlist);
+        // UpdateNodes(sceneView->Drawlist);
 
-    //     UpdateView(viewRenderTarget, sceneView);
+        UpdateView(viewRenderTarget, sceneView);
 
-    //     DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget, sceneView);
-    // }
+        // DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget, sceneView);
+    }
 
 private:
     void UpdateBackbuffer(HWND hwnd, int width, int height)
@@ -189,36 +190,36 @@ private:
     //     m_rootSignature->m_drawConstantsBuffer.CopyToGpu();
     // }
 
-    // void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
-    //                 const hierarchy::SceneViewPtr &sceneView)
-    // {
-    //     {
-    //         // auto a = sizeof(Gpu::dx12::RootSignature::ViewConstants);
-    //         auto buffer = m_rootSignature->GetViewConstantsBuffer(0);
-    //         buffer->b0Projection = sceneView->Projection;
-    //         buffer->b0View = sceneView->View;
-    //         buffer->b0LightDir = m_light->LightDirection;
-    //         buffer->b0LightColor = m_light->LightColor;
-    //         buffer->b0CameraPosition = sceneView->CameraPosition;
-    //         buffer->fovY = sceneView->CameraFovYRadians;
-    //         buffer->b0ScreenSize = {(float)sceneView->Width, (float)sceneView->Height};
-    //         m_rootSignature->m_viewConstantsBuffer.CopyToGpu();
-    //     }
+    void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
+                    const hierarchy::SceneViewPtr &sceneView)
+    {
+        {
+            // auto a = sizeof(Gpu::dx12::RootSignature::ViewConstants);
+            // auto buffer = m_rootSignature->GetViewConstantsBuffer(0);
+            // buffer->b0Projection = sceneView->Projection;
+            // buffer->b0View = sceneView->View;
+            // buffer->b0LightDir = m_light->LightDirection;
+            // buffer->b0LightColor = m_light->LightColor;
+            // buffer->b0CameraPosition = sceneView->CameraPosition;
+            // buffer->fovY = sceneView->CameraFovYRadians;
+            // buffer->b0ScreenSize = {(float)sceneView->Width, (float)sceneView->Height};
+            // m_rootSignature->m_viewConstantsBuffer.CopyToGpu();
+        }
 
-    //     if (viewRenderTarget->Resize(sceneView->Width, sceneView->Height))
-    //     {
-    //         // clear all
-    //         for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
-    //         {
-    //             auto resource = viewRenderTarget->Resource(i);
-    //             if (resource)
-    //             {
-    //                 m_imguiDX12.Remove(resource->renderTarget.Get());
-    //             }
-    //         }
-    //         viewRenderTarget->Initialize(sceneView->Width, sceneView->Height, m_device, BACKBUFFER_COUNT);
-    //     }
-    // }
+        if (viewRenderTarget->Resize(sceneView->Width, sceneView->Height))
+        {
+            // clear all
+            for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
+            {
+                auto resource = viewRenderTarget->Resource(i);
+                if (resource)
+                {
+                    m_imguiDX12.Remove(resource->renderTarget.Get());
+                }
+            }
+            viewRenderTarget->Initialize(sceneView->Width, sceneView->Height, m_device, BACKBUFFER_COUNT);
+        }
+    }
 
     // void DrawView(const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
     //               const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
@@ -314,12 +315,12 @@ void Renderer::EndFrame()
     m_impl->EndFrame();
 }
 
-// size_t Renderer::ViewTextureID(const std::shared_ptr<hierarchy::SceneView> &view)
-// {
-//     return m_impl->ViewTextureID(view);
-// }
+size_t Renderer::ViewTextureID(const std::shared_ptr<hierarchy::SceneView> &view)
+{
+    return m_impl->ViewTextureID(view);
+}
 
-// void Renderer::View(const hierarchy::SceneViewPtr &view)
-// {
-//     m_impl->View(view);
-// }
+void Renderer::View(const hierarchy::SceneViewPtr &view)
+{
+    m_impl->View(view);
+}

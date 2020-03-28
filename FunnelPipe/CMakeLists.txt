@@ -1,16 +1,18 @@
 set(TARGET_NAME FunnelPipe)
 add_executable(${TARGET_NAME}
-    Renderer.cpp
     ${EXTERNAL_DIR}/imgui/imgui.cpp
     ${EXTERNAL_DIR}/imgui/imgui_draw.cpp
     ${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
     ${EXTERNAL_DIR}/imgui/imgui_demo.cpp
+    Graphics/Renderer.cpp
+    Graphics/ImGuiDX12.cpp
+    Graphics/ImGuiDX12FrameResources.cpp
+    Graphics/SceneMapper.cpp
     Gui/Gui.cpp
-    Gui/ImGuiDX12.cpp
-    Gui/ImGuiDX12FrameResources.cpp
     Gui/ImGuiImplScreenState.cpp
     View/CameraView.cpp
     View/Gizmo.cpp
+    View/GuiView.cpp
     Application.cpp
     main.cpp
     )

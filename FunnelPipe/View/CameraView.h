@@ -17,27 +17,30 @@ class CameraView
 public:
     CameraView(int argc, char **argv);
 
+    const std::shared_ptr<hierarchy::SceneView> &SceneView() const { return m_sceneView; }
+
     const OrbitCamera *Camera() const
     {
         return &m_camera;
     }
 
-    int GizmoNodeID() const
-    {
-        return m_gizmo.GetNodeID();
-    }
+    // int GizmoNodeID() const
+    // {
+    //     return m_gizmo.GetNodeID();
+    // }
 
-    hierarchy::SceneMeshPtr GizmoMesh() const
-    {
-        return m_gizmo.GetMesh();
-    }
+    // hierarchy::SceneMeshPtr GizmoMesh() const
+    // {
+    //     return m_gizmo.GetMesh();
+    // }
 
-    gizmesh::GizmoSystem::Buffer GizmoBuffer()
-    {
-        return m_gizmo.End();
-    }
+    // gizmesh::GizmoSystem::Buffer GizmoBuffer()
+    // {
+    //     return m_gizmo.End();
+    // }
 
-    void OnFrame();
+    bool OnFrame(const screenstate::ScreenState &state, size_t textureID,
+                 screenstate::ScreenState *viewState);
 
-    void Update3DView(const screenstate::ScreenState &viewState, const hierarchy::SceneNodePtr &selected);
+    void Update3DView(const screenstate::ScreenState &viewState);
 };
