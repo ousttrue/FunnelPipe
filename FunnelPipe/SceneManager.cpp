@@ -1,6 +1,31 @@
 #include "SceneManager.h"
 #include <imgui.h>
 
+SceneManager::SceneManager(int argc, char **argv)
+{
+    auto path = std::filesystem::current_path();
+    if (argc > 1)
+    {
+        path = argv[1];
+    }
+    hierarchy::ShaderManager::Instance().watch(path);
+
+    {
+        auto node = hierarchy::SceneNode::Create("grid");
+        node->Mesh(hierarchy::CreateGrid());
+        m_scene.gizmoNodes.push_back(node);
+    }
+
+    if (argc > 2)
+    {
+        auto model = hierarchy::SceneModel::LoadFromPath(argv[2]);
+        if (model)
+        {
+            m_scene.sceneNodes.push_back(model->root);
+        }
+    }
+}
+
 static void DrawNode(const hierarchy::SceneNodePtr &node, hierarchy::Scene *scene)
 {
     int childCount;
@@ -58,4 +83,8 @@ void SceneManager::OpenFile(const std::filesystem::path &path)
         m_scene.sceneNodes.clear();
         m_scene.sceneNodes.push_back(model->root);
     }
+}
+
+void SceneManager::UpdateDrawlist(hierarchy::DrawList *drawlist)
+{
 }

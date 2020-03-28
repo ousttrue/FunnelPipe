@@ -21,7 +21,6 @@ public:
     std::weak_ptr<hierarchy::SceneNode> selected;
 
     Scene();
-
     void Update();
 };
 

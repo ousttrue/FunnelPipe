@@ -16,11 +16,10 @@ class ApplicationImpl
     plog::MyAppender<plog::MyFormatter> m_imGuiAppender;
 
     SceneManager m_scene;
-
-    Renderer m_renderer;
-    gui::Gui m_imgui;
-
     CameraView m_view;
+    hierarchy::DrawList m_drawlist;
+    gui::Gui m_imgui;
+    Renderer m_renderer;
 
     bool m_initialized = false;
 
@@ -49,7 +48,7 @@ public:
 
             // view
             auto viewTextureID = m_renderer.ViewTextureID(m_view.SceneView());
-            isShowView = m_view.ImGui(state, viewTextureID);
+            isShowView = m_view.ImGui(state, viewTextureID, m_scene.Selected());
 
             // model panel
             m_scene.ImGui();
@@ -62,61 +61,14 @@ public:
             if (isShowView)
             {
                 frame_metrics::scoped ss("view");
-                auto sceneView = m_view.SceneView();
-                // m_scene.Update();
-                // UpdateDrawList();
-                m_renderer.View(sceneView, m_scene.Drawlist());
+                m_drawlist.Clear();
+                m_scene.UpdateDrawlist(&m_drawlist);
+                m_view.UpdateDrawlist(&m_drawlist);
+                m_renderer.View(m_view.SceneView(), m_drawlist);
             }
             m_renderer.EndFrame();
         }
     }
-
-    // void UpdateDrawList()
-    // {
-    //     m_sceneView->UpdateDrawList(&m_scene);
-
-    //     // gizmo
-    //     if (m_sceneView->ShowGizmo)
-    //     {
-    //         auto mesh = m_view.GizmoMesh();
-    //         if (mesh)
-    //         {
-    //             auto shader = mesh->submeshes[0].material->shader->Compiled();
-    //             if (shader)
-    //             {
-    //                 m_gizmoBuffer = m_view.GizmoBuffer();
-    //                 std::array<float, 16> matrix{
-    //                     1, 0, 0, 0, //
-    //                     0, 1, 0, 0, //
-    //                     0, 0, 1, 0, //
-    //                     0, 0, 0, 1, //
-    //                 };
-    //                 hierarchy::CBValue values[] =
-    //                     {
-    //                         {
-    //                             .semantic = hierarchy::ConstantSemantics::NODE_WORLD,
-    //                             .p = &matrix,
-    //                             .size = sizeof(matrix),
-    //                         }};
-    //                 m_sceneView->Drawlist.PushCB(shader->VS.DrawCB(), values, _countof(values));
-    //                 m_sceneView->Drawlist.Items.push_back({
-    //                     .Mesh = m_view.GizmoMesh(),
-    //                     .Vertices = {
-    //                         .Ptr = m_gizmoBuffer.pVertices,
-    //                         .Size = m_gizmoBuffer.verticesBytes,
-    //                         .Stride = m_gizmoBuffer.vertexStride,
-    //                     },
-    //                     .Indices = {
-    //                         .Ptr = m_gizmoBuffer.pIndices,
-    //                         .Size = m_gizmoBuffer.indicesBytes,
-    //                         .Stride = m_gizmoBuffer.indexStride,
-    //                     },
-    //                     .SubmeshIndex = 0,
-    //                 });
-    //             }
-    //         }
-    //     }
-    // }
 };
 
 Application::Application(int argc, char **argv)
