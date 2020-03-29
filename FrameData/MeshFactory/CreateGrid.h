@@ -2,6 +2,7 @@
 #include "VertexBuffer.h"
 #include "ShaderManager.h"
 #include "SceneMesh.h"
+#include <array>
 
 namespace hierarchy
 {

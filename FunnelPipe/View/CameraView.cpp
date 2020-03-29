@@ -10,7 +10,7 @@ CameraView::CameraView()
 
 bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
                        const hierarchy::SceneNodePtr &selected,
-                       hierarchy::DrawList *drawlist)
+                       framedata::FrameData *drawlist)
 {
     // view
     // imgui window for rendertarget. convert screenState for view
@@ -59,7 +59,7 @@ bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
     return isShowView;
 }
 
-void CameraView::UpdateDrawlist(hierarchy::DrawList *drawlist)
+void CameraView::UpdateDrawlist(framedata::FrameData *drawlist)
 {
     // gizmo
     if (drawlist->ShowGizmo)
@@ -77,7 +77,7 @@ void CameraView::UpdateDrawlist(hierarchy::DrawList *drawlist)
                     0, 0, 1, 0, //
                     0, 0, 0, 1, //
                 };
-                hierarchy::CBValue values[] =
+                framedata::CBValue values[] =
                     {
                         {
                             .semantic = hierarchy::ConstantSemantics::NODE_WORLD,

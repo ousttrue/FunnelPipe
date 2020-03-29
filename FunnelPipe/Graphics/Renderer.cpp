@@ -127,7 +127,7 @@ public:
         return texture;
     }
 
-    void View(const hierarchy::DrawList &drawlist)
+    void View(const framedata::FrameData &drawlist)
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&drawlist);
         UpdateView(viewRenderTarget, drawlist);
@@ -161,7 +161,7 @@ private:
     };
     std::vector<DrawInfo> m_drawables;
 
-    void UpdateNodes(const hierarchy::DrawList &drawlist)
+    void UpdateNodes(const framedata::FrameData &drawlist)
     {
         m_drawables.clear();
         m_drawables.resize(drawlist.Items.size());
@@ -202,7 +202,7 @@ private:
     }
 
     void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
-                    const hierarchy::DrawList &drawlist)
+                    const framedata::FrameData &drawlist)
     {
         m_rootSignature->m_viewConstantsBuffer.CopyToGpu(drawlist.ViewConstantBuffer);
 
@@ -224,7 +224,7 @@ private:
     void DrawView(const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
                   const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
                   const float *clearColor,
-                  const hierarchy::DrawList &drawlist)
+                  const framedata::FrameData &drawlist)
     {
         // begin, clear
         if (viewRenderTarget->Begin(frameIndex, commandList, clearColor))
@@ -321,7 +321,7 @@ size_t Renderer::ViewTextureID(size_t view)
     return m_impl->ViewTextureID(view);
 }
 
-void Renderer::View(const hierarchy::DrawList &drawlist)
+void Renderer::View(const framedata::FrameData &drawlist)
 {
     m_impl->View(drawlist);
 }

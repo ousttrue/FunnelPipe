@@ -1,13 +1,9 @@
-#include "Drawlist.h"
-// #include "SceneNode.h"
-// #include "SceneMesh.h"
-// #include "SceneMeshSkin.h"
-// #include "VertexBuffer.h"
+#include "FrameData.h"
 
-namespace hierarchy
+namespace framedata
 {
 
-std::pair<uint32_t, uint32_t> DrawList::PushCB(const ConstantBuffer *cb, const CBValue *value, int count)
+std::pair<uint32_t, uint32_t> FrameData::PushCB(const ConstantBuffer *cb, const CBValue *value, int count)
 {
     auto offset = (uint32_t)CB.size();
     if (cb)
@@ -38,4 +34,4 @@ std::pair<uint32_t, uint32_t> DrawList::PushCB(const ConstantBuffer *cb, const C
     return CBRanges.back();
 }
 
-} // namespace hierarchy
+} // namespace framedata

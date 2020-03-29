@@ -1,10 +1,6 @@
 #pragma once
 #include <memory>
-
-namespace hierarchy
-{
-struct DrawList;
-} // namespace hierarchy
+#include <FrameData.h>
 
 class Renderer
 {
@@ -19,5 +15,5 @@ public:
     void EndFrame();
 
     size_t ViewTextureID(size_t view);
-    void View(const hierarchy::DrawList &drawlist);
+    void View(const framedata::FrameData &drawlist);
 };

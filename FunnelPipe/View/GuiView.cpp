@@ -49,7 +49,7 @@ static bool ViewButton(void *p, ImTextureID user_texture_id, const ImVec2 &size,
 namespace gui
 {
 
-bool View(hierarchy::DrawList *view, const screenstate::ScreenState &state, size_t textureID,
+bool View(framedata::FrameData *view, const screenstate::ScreenState &state, size_t textureID,
           screenstate::ScreenState *viewState)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));

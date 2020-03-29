@@ -18,7 +18,7 @@ class ApplicationImpl
 
     SceneManager m_scene;
     CameraView m_view;
-    hierarchy::DrawList m_drawlist;
+    framedata::FrameData m_frameData;
     gui::Gui m_imgui;
     Renderer m_renderer;
 
@@ -31,7 +31,7 @@ public:
         m_imGuiAppender.onWrite(std::bind(&gui::Gui::Log, &m_imgui, std::placeholders::_1));
         plog::init(plog::debug, &m_consoleAppender).addAppender(&m_imGuiAppender);
 
-        m_drawlist.ViewClearColor = {
+        m_frameData.ViewClearColor = {
             0.3f,
             0.4f,
             0.5f,
@@ -55,8 +55,8 @@ public:
             m_imgui.OnFrame(state, std::bind(&SceneManager::OpenFile, &m_scene, std::placeholders::_1));
 
             // view
-            auto viewTextureID = m_renderer.ViewTextureID((size_t)&m_drawlist);
-            isShowView = m_view.ImGui(state, viewTextureID, m_scene.Selected(), &m_drawlist);
+            auto viewTextureID = m_renderer.ViewTextureID((size_t)&m_frameData);
+            isShowView = m_view.ImGui(state, viewTextureID, m_scene.Selected(), &m_frameData);
 
             // model panel
             m_scene.ImGui();
@@ -69,10 +69,10 @@ public:
             if (isShowView)
             {
                 frame_metrics::scoped ss("view");
-                m_drawlist.Clear();
-                m_scene.UpdateDrawlist(&m_drawlist, m_drawlist.ShowGrid);
-                m_view.UpdateDrawlist(&m_drawlist);
-                // LOGD << m_drawlist.CBRanges.size() << ", " << m_drawlist.Items.size();
+                m_frameData.Clear();
+                m_scene.UpdateDrawlist(&m_frameData, m_frameData.ShowGrid);
+                m_view.UpdateDrawlist(&m_frameData);
+                // LOGD << m_frameData.CBRanges.size() << ", " << m_frameData.Items.size();
 
                 // buffer.b0Projection = drawlist.Projection;
                 // buffer.b0View = drawlist.View;
@@ -82,7 +82,7 @@ public:
                 // buffer.fovY = drawlist.CameraFovYRadians;
                 // buffer.b0ScreenSize = {(float)drawlist.ViewWidth, (float)drawlist.ViewHeight};
 
-                m_renderer.View(m_drawlist);
+                m_renderer.View(m_frameData);
             }
             m_renderer.EndFrame();
         }

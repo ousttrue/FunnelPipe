@@ -6,8 +6,6 @@ namespace Gpu::dx12
 void ConstantBuffer::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device> &device,
                                 uint32_t size)
 {
-    // m_bytes.resize(m_allocSizePerItem * count);
-
     D3D12_HEAP_PROPERTIES prop{
         .Type = D3D12_HEAP_TYPE_UPLOAD,
     };

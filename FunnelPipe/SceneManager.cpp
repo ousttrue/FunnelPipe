@@ -91,7 +91,7 @@ namespace hierarchy
 
 using FilterFunc = std::function<bool(const SceneMaterialPtr &)>;
 
-void TraverseMesh(DrawList *drawlist, const std::shared_ptr<SceneNode> &node, const FilterFunc &filter)
+void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNode> &node, const FilterFunc &filter)
 {
     auto mesh = node->Mesh();
     if (mesh)
@@ -107,7 +107,7 @@ void TraverseMesh(DrawList *drawlist, const std::shared_ptr<SceneNode> &node, co
                 if (shader)
                 {
                     auto m = node->World().RowMatrix();
-                    CBValue values[] = {
+                    framedata::CBValue values[] = {
                         {.semantic = ConstantSemantics::NODE_WORLD,
                          .p = &m,
                          .size = sizeof(m)}};
@@ -129,7 +129,7 @@ void TraverseMesh(DrawList *drawlist, const std::shared_ptr<SceneNode> &node, co
     }
 }
 
-static void UpdateDrawListIf(DrawList *drawlist, const Scene *scene, bool showGrid, const FilterFunc &filter)
+static void UpdateDrawListIf(framedata::FrameData *drawlist, const Scene *scene, bool showGrid, const FilterFunc &filter)
 {
     if (showGrid)
     {
@@ -152,7 +152,7 @@ static void UpdateDrawListIf(DrawList *drawlist, const Scene *scene, bool showGr
 }
 } // namespace hierarchy
 
-void SceneManager::UpdateDrawlist(hierarchy::DrawList *drawlist,
+void SceneManager::UpdateDrawlist(framedata::FrameData *drawlist,
                                   bool showGrid)
 {
     m_scene.Update();

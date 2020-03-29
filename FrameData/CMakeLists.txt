@@ -1,6 +1,6 @@
 set(TARGET_NAME FrameData)
 add_library(${TARGET_NAME}
-    DrawList.cpp
+    FrameData.cpp
     SceneImage.cpp
     SceneMaterial.cpp
     SceneMesh.cpp

@@ -11,6 +11,6 @@ public:
     SceneManager(int argc, char **argv);
     void ImGui();
     void OpenFile(const std::filesystem::path &path);
-    void UpdateDrawlist(hierarchy::DrawList *drawlist, bool showGrid);
+    void UpdateDrawlist(framedata::FrameData *drawlist, bool showGrid);
     hierarchy::SceneNodePtr Selected() const { return m_scene.selected.lock(); }
 };

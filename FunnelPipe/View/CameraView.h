@@ -22,6 +22,6 @@ public:
     CameraView();
     bool ImGui(const screenstate::ScreenState &state, size_t textureID,
                const hierarchy::SceneNodePtr &selected,
-               hierarchy::DrawList *drawlist);
-    void UpdateDrawlist(hierarchy::DrawList *drawlist);
+               framedata::FrameData *drawlist);
+    void UpdateDrawlist(framedata::FrameData *drawlist);
 };
