@@ -105,7 +105,7 @@ void CameraView::UpdateDrawlist(hierarchy::DrawList *drawlist)
                         .Size = m_gizmoBuffer.indicesBytes,
                         .Stride = m_gizmoBuffer.indexStride,
                     },
-                    .SubmeshIndex = 0,
+                    .Submesh = mesh->submeshes[0],
                 });
             }
         }

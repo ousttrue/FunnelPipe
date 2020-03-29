@@ -97,10 +97,10 @@ void TraverseMesh(DrawList *drawlist, const std::shared_ptr<SceneNode> &node, co
     if (mesh)
     {
 
-        auto &submeshes = mesh->submeshes;
-        for (int i = 0; i < (int)submeshes.size(); ++i)
+        // auto &submeshes = mesh->submeshes;
+        for (auto &submesh: mesh->submeshes)
         {
-            auto &material = submeshes[i].material;
+            auto &material = submesh.material;
             if (filter(material))
             {
                 auto shader = material->shader->Compiled();
@@ -114,7 +114,7 @@ void TraverseMesh(DrawList *drawlist, const std::shared_ptr<SceneNode> &node, co
                     drawlist->PushCB(shader->VS.DrawCB(), values, _countof(values));
                     drawlist->Items.push_back({
                         .Mesh = mesh,
-                        .SubmeshIndex = i,
+                        .Submesh = submesh,
                     });
                 }
             }

@@ -3,12 +3,10 @@
 #include <vector>
 #include <memory>
 #include "ShaderConstantVariable.h"
+#include "SceneMesh.h"
 
 namespace hierarchy
 {
-
-class SceneMesh;
-class SceneNode;
 
 struct CBValue
 {
@@ -40,7 +38,7 @@ struct DrawList
         std::shared_ptr<SceneMesh> Mesh;
         Buffer Vertices{};
         Buffer Indices{};
-        int SubmeshIndex;
+        hierarchy::SceneSubmesh Submesh;
     };
     std::vector<DrawItem> Items;
 
@@ -50,7 +48,6 @@ struct DrawList
         CBRanges.clear();
         Items.clear();
     }
-    // void Traverse(const std::shared_ptr<SceneNode> &node);
 };
 
 } // namespace hierarchy

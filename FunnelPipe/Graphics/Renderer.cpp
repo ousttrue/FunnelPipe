@@ -169,9 +169,9 @@ private:
         // skins
         for (size_t i = 0; i < drawlist.Items.size(); ++i)
         {
-            auto &drawMesh = drawlist.Items[i];
-            auto mesh = drawMesh.Mesh;
-            auto drawable = m_sceneMapper->GetOrCreate(m_device, drawMesh.Mesh);
+            auto &item = drawlist.Items[i];
+            auto mesh = item.Mesh;
+            auto drawable = m_sceneMapper->GetOrCreate(m_device, item.Mesh);
             if (drawable)
             {
                 auto skin = mesh->skin;
@@ -180,17 +180,17 @@ private:
                     drawable->VertexBuffer()->MapCopyUnmap(
                         skin->cpuSkiningBuffer.data(), (uint32_t)skin->cpuSkiningBuffer.size(), mesh->vertices->stride);
                 }
-                if (drawMesh.Vertices.Ptr)
+                if (item.Vertices.Ptr)
                 {
-                    drawable->VertexBuffer()->MapCopyUnmap(drawMesh.Vertices.Ptr, drawMesh.Vertices.Size, drawMesh.Vertices.Stride);
+                    drawable->VertexBuffer()->MapCopyUnmap(item.Vertices.Ptr, item.Vertices.Size, item.Vertices.Stride);
                 }
-                if (drawMesh.Indices.Ptr)
+                if (item.Indices.Ptr)
                 {
-                    drawable->IndexBuffer()->MapCopyUnmap(drawMesh.Indices.Ptr, drawMesh.Indices.Size, drawMesh.Indices.Stride);
+                    drawable->IndexBuffer()->MapCopyUnmap(item.Indices.Ptr, item.Indices.Size, item.Indices.Stride);
                 }
                 m_drawables[i] = {
                     drawable,
-                    mesh->submeshes[drawMesh.SubmeshIndex],
+                    item.Submesh,
                 };
             }
         }
