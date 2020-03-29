@@ -85,7 +85,7 @@ void CameraView::UpdateDrawlist(framedata::FrameData *drawlist)
                             .size = sizeof(matrix),
                         }};
                 drawlist->PushCB(shader->VS.DrawCB(), values, _countof(values));
-                drawlist->Items.push_back({
+                drawlist->Meshlist.push_back({
                     .Mesh = mesh,
                     .Vertices = {
                         .Ptr = m_gizmoBuffer.pVertices,
@@ -97,6 +97,9 @@ void CameraView::UpdateDrawlist(framedata::FrameData *drawlist)
                         .Size = m_gizmoBuffer.indicesBytes,
                         .Stride = m_gizmoBuffer.indexStride,
                     },
+                });
+                drawlist->Drawlist.push_back({
+                    .Mesh = mesh,
                     .Submesh = mesh->submeshes[0],
                 });
             }

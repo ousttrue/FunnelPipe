@@ -39,7 +39,6 @@ struct ViewConstants
     std::array<float, 2> b0ScreenSize;
     float fovY;
     float _padding3;
-    // DirectX::XMFLOAT4X4 b0ViewInv;
 };
 #pragma pack(pop)
 static_assert(sizeof(ViewConstants) == 16 * 12, "sizeof ViewConstantsSize");
@@ -47,21 +46,13 @@ static_assert(sizeof(ViewConstants) == 16 * 12, "sizeof ViewConstantsSize");
 struct FrameData
 {
     size_t ViewID;
+    ViewConstants ViewConstantBuffer;
     uint32_t ViewWidth() const { return (uint32_t)ViewConstantBuffer.b0ScreenSize[0]; }
     uint32_t ViewHeight() const { return (uint32_t)ViewConstantBuffer.b0ScreenSize[1]; }
-    // std::vector<uint8_t> ViewConstantBuffer;
-    // int Width = 0;
-    // int Height = 0;
-    // std::array<float, 16> Projection = {};
-    // std::array<float, 16> View = {};
-    // std::array<float, 3> CameraPosition = {0, 0, 0};
-    // float CameraFovYRadians = 1.0f;
     std::array<float, 4> ViewClearColor = {0, 0, 0, 1};
     bool ShowGrid = true;
     bool ShowGizmo = true;
     bool ShowVR = false;
-
-    ViewConstants ViewConstantBuffer;
 
     //
     // 可変サイズのCBバッファの配列
@@ -78,20 +69,27 @@ struct FrameData
         uint32_t Size;
         uint32_t Stride;
     };
-    struct DrawItem
+    struct MeshItem
     {
         std::shared_ptr<SceneMesh> Mesh;
         Buffer Vertices{};
         Buffer Indices{};
+        Buffer Skin{};
+    };
+    std::vector<MeshItem> Meshlist;
+    struct DrawItem
+    {
+        std::shared_ptr<SceneMesh> Mesh;
         hierarchy::SceneSubmesh Submesh;
     };
-    std::vector<DrawItem> Items;
+    std::vector<DrawItem> Drawlist;
 
     void Clear()
     {
         CB.clear();
         CBRanges.clear();
-        Items.clear();
+        Meshlist.clear();
+        Drawlist.clear();
     }
 };
 

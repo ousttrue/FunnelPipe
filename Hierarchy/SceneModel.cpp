@@ -481,9 +481,10 @@ public:
                 if (gltfNode.skin.has_value())
                 {
                     auto &gltfSkin = m_gltf.skins[gltfNode.skin.value()];
-                    mesh->skin = CreateSkin(gltfSkin, meshGroup);
+                    node->skin = CreateSkin(gltfSkin, meshGroup);
+                    mesh->vertices->isDynamic = true;
 
-                    if (mesh->skin->vertexSkiningArray.size() != mesh->vertices->Count())
+                    if (node->skin->vertexSkiningArray.size() != mesh->vertices->Count())
                     {
                         throw;
                     }

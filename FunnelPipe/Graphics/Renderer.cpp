@@ -131,8 +131,7 @@ public:
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&drawlist);
         UpdateView(viewRenderTarget, drawlist);
-
-        UpdateNodes(drawlist);
+        UpdateMeshes(drawlist);
         DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget,
                  drawlist.ViewClearColor.data(), drawlist);
     }
@@ -154,44 +153,28 @@ private:
         }
     }
 
-    struct DrawInfo
+    void UpdateMeshes(const framedata::FrameData &drawlist)
     {
-        std::shared_ptr<Gpu::dx12::Mesh> drawable;
-        hierarchy::SceneSubmesh submesh;
-    };
-    std::vector<DrawInfo> m_drawables;
-
-    void UpdateNodes(const framedata::FrameData &drawlist)
-    {
-        m_drawables.clear();
-        m_drawables.resize(drawlist.Items.size());
-
-        // skins
-        for (size_t i = 0; i < drawlist.Items.size(); ++i)
+        for (size_t i = 0; i < drawlist.Meshlist.size(); ++i)
         {
-            auto &item = drawlist.Items[i];
+            auto &item = drawlist.Meshlist[i];
             auto mesh = item.Mesh;
             auto drawable = m_sceneMapper->GetOrCreate(m_device, item.Mesh);
             if (drawable)
             {
-                auto skin = mesh->skin;
-                if (skin)
+                if (item.Skin.Ptr)
                 {
-                    drawable->VertexBuffer()->MapCopyUnmap(
-                        skin->cpuSkiningBuffer.data(), (uint32_t)skin->cpuSkiningBuffer.size(), mesh->vertices->stride);
+                    drawable->VertexBuffer()->MapCopyUnmap(item.Skin.Ptr, item.Skin.Size, item.Skin.Stride);
                 }
-                if (item.Vertices.Ptr)
+                else if (item.Vertices.Ptr)
                 {
                     drawable->VertexBuffer()->MapCopyUnmap(item.Vertices.Ptr, item.Vertices.Size, item.Vertices.Stride);
                 }
+
                 if (item.Indices.Ptr)
                 {
                     drawable->IndexBuffer()->MapCopyUnmap(item.Indices.Ptr, item.Indices.Size, item.Indices.Stride);
                 }
-                m_drawables[i] = {
-                    drawable,
-                    item.Submesh,
-                };
             }
         }
 
@@ -233,9 +216,9 @@ private:
             // all shader use same root signature
             m_rootSignature->Begin(m_device, commandList);
 
-            for (size_t i = 0; i < drawlist.Items.size(); ++i)
+            for (size_t i = 0; i < drawlist.Drawlist.size(); ++i)
             {
-                DrawMesh(commandList, (UINT)i, m_drawables[i]);
+                DrawMesh(commandList, (UINT)i, drawlist.Drawlist[i]);
             }
 
             // finish rendering
@@ -244,13 +227,14 @@ private:
     }
 
     void DrawMesh(const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT i,
-                  const DrawInfo &info)
+                  const framedata::FrameData::DrawItem &info)
     {
-        if (!info.drawable)
+        auto drawable = m_sceneMapper->GetOrCreate(m_device, info.Mesh);
+        if (!drawable)
         {
             return;
         }
-        auto [isDrawable, callback] = info.drawable->IsDrawable(commandList);
+        auto [isDrawable, callback] = drawable->IsDrawable(commandList);
         if (callback)
         {
             m_commandlist->AddOnCompleted(callback);
@@ -262,7 +246,7 @@ private:
 
         m_rootSignature->SetDrawDescriptorTable(m_device, commandList, i);
 
-        auto &submesh = info.submesh;
+        auto &submesh = info.Submesh;
         auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
 
         // texture setup

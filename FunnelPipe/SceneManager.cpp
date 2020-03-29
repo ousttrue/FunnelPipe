@@ -96,9 +96,19 @@ void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNod
     auto mesh = node->Mesh();
     if (mesh)
     {
+        drawlist->Meshlist.push_back({
+            .Mesh = mesh,
+        });
+        if (node->skin)
+        {
+            drawlist->Meshlist.back().Skin = {
+                node->skin->cpuSkiningBuffer.data(),
+                (uint32_t)node->skin->cpuSkiningBuffer.size(),
+                mesh->vertices->stride,
+            };
+        }
 
-        // auto &submeshes = mesh->submeshes;
-        for (auto &submesh: mesh->submeshes)
+        for (auto &submesh : mesh->submeshes)
         {
             auto &material = submesh.material;
             if (filter(material))
@@ -112,7 +122,7 @@ void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNod
                          .p = &m,
                          .size = sizeof(m)}};
                     drawlist->PushCB(shader->VS.DrawCB(), values, _countof(values));
-                    drawlist->Items.push_back({
+                    drawlist->Drawlist.push_back({
                         .Mesh = mesh,
                         .Submesh = submesh,
                     });

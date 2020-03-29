@@ -16,7 +16,7 @@ static void UpdateRecursive(const SceneNodePtr &node)
     auto mesh = node->Mesh();
     if (mesh)
     {
-        auto skin = mesh->skin;
+        auto skin = node->skin;
         if (skin)
         {
             // update matrix

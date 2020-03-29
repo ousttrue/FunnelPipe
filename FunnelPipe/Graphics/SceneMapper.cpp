@@ -43,11 +43,11 @@ std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &devic
             resource = ResourceItem::CreateUpload(device, (UINT)vertices->buffer.size(), sceneMesh->name.c_str());
             // not enqueue
         }
-        else if (sceneMesh->skin)
-        {
-            resource = ResourceItem::CreateUpload(device, (UINT)vertices->buffer.size(), sceneMesh->name.c_str());
-            // not enqueue
-        }
+        // else if (sceneMesh->skin)
+        // {
+        //     resource = ResourceItem::CreateUpload(device, (UINT)vertices->buffer.size(), sceneMesh->name.c_str());
+        //     // not enqueue
+        // }
         else
         {
             resource = ResourceItem::CreateDefault(device, (UINT)vertices->buffer.size(), sceneMesh->name.c_str());

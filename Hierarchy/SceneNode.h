@@ -34,6 +34,9 @@ class SceneNode : public std::enable_shared_from_this<SceneNode>
 public:
     const SceneMeshPtr &Mesh() const { return m_mesh; }
     void Mesh(const SceneMeshPtr &mesh) { m_mesh = mesh; }
+
+    std::shared_ptr<class SceneMeshSkin> skin;
+
     falg::Transform &World() { return m_world; }
     void World(const falg::Transform &world, bool updateChildren = true)
     {
