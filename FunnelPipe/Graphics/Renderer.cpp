@@ -118,14 +118,25 @@ public:
         m_queue->SyncFence(callbacks);
     }
 
-    size_t ViewTextureID(size_t id)
+    ComPtr<ID3D12Resource> ViewTexture(size_t id)
     {
-        // view texture for current frame
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget(id);
         auto resource = viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
-        size_t texture = resource ? m_imguiDX12.GetOrCreateTexture(m_device.Get(), resource->renderTarget.Get()) : -1;
-        return texture;
+        if(!resource)
+        {
+            return nullptr;
+        }
+        return resource->renderTarget;
     }
+
+    // size_t ViewTextureID(size_t id)
+    // {
+    //     // view texture for current frame
+    //     auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget(id);
+    //     auto resource = viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
+    //     size_t texture = resource ? m_imguiDX12.GetOrCreateTexture(m_device.Get(), resource->renderTarget.Get()) : -1;
+    //     return texture;
+    // }
 
     void View(const framedata::FrameData &framedata)
     {
@@ -192,14 +203,14 @@ private:
         if (viewRenderTarget->Resize(framedata.ViewWidth(), framedata.ViewHeight()))
         {
             // clear all
-            for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
-            {
-                auto resource = viewRenderTarget->Resource(i);
-                if (resource)
-                {
-                    m_imguiDX12.Remove(resource->renderTarget.Get());
-                }
-            }
+            // for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
+            // {
+            //     auto resource = viewRenderTarget->Resource(i);
+            //     if (resource)
+            //     {
+            //         m_imguiDX12.Remove(resource->renderTarget.Get());
+            //     }
+            // }
             viewRenderTarget->Initialize(framedata.ViewWidth(), framedata.ViewHeight(), m_device, BACKBUFFER_COUNT);
         }
     }
@@ -300,9 +311,14 @@ void Renderer::EndFrame()
     m_impl->EndFrame();
 }
 
-size_t Renderer::ViewTextureID(size_t view)
+// size_t Renderer::ViewTextureID(size_t view)
+// {
+//     return m_impl->ViewTextureID(view);
+// }
+
+ComPtr<ID3D12Resource> Renderer::ViewTexture(size_t view)
 {
-    return m_impl->ViewTextureID(view);
+    return m_impl->ViewTexture(view);
 }
 
 void Renderer::View(const framedata::FrameData &framedata)

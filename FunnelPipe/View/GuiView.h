@@ -6,7 +6,8 @@
 namespace gui
 {
 
-bool View(framedata::FrameData *view, const screenstate::ScreenState &state, size_t textureID,
+bool View(framedata::FrameData *view, const screenstate::ScreenState &state,
+          const Microsoft::WRL::ComPtr<ID3D12Resource> &texture,
           screenstate::ScreenState *viewState);
 
 } // namespace gui

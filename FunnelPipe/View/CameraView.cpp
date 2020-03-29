@@ -8,14 +8,15 @@ CameraView::CameraView()
     m_camera.zNear = 0.01f;
 }
 
-bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
+bool CameraView::ImGui(const screenstate::ScreenState &state,
+                       const Microsoft::WRL::ComPtr<ID3D12Resource> &texture,
                        const hierarchy::SceneNodePtr &selected,
                        framedata::FrameData *framedata)
 {
     // view
     // imgui window for rendertarget. convert screenState for view
     screenstate::ScreenState viewState;
-    bool isShowView = ::gui::View(framedata, state, textureID, &viewState);
+    bool isShowView = ::gui::View(framedata, state, texture, &viewState);
 
     framedata->ViewConstantBuffer.b0ScreenSize = {(float)viewState.Width, (float)viewState.Height};
     framedata->ViewConstantBuffer.b0Projection = m_camera.state.projection;
@@ -65,7 +66,7 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
     if (framedata->ShowGizmo)
     {
         auto mesh = m_gizmo.GetMesh();
-        if (mesh)
+        if (mesh && !mesh->submeshes.empty())
         {
             auto shader = mesh->submeshes[0].material->shaderSource->Compiled();
             if (shader)

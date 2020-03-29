@@ -18,8 +18,10 @@ class ApplicationImpl
 
     SceneManager m_scene;
     CameraView m_view;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_viewTexture;
     framedata::FrameData m_frameData;
     gui::Gui m_imgui;
+    
     Renderer m_renderer;
 
     bool m_initialized = false;
@@ -56,8 +58,8 @@ public:
             m_imgui.OnFrame(state, std::bind(&SceneManager::OpenFile, &m_scene, std::placeholders::_1));
 
             // view
-            auto viewTextureID = m_renderer.ViewTextureID((size_t)&m_frameData);
-            isShowView = m_view.ImGui(state, viewTextureID, m_scene.Selected(), &m_frameData);
+            m_viewTexture = m_renderer.ViewTexture((size_t)&m_frameData);
+            isShowView = m_view.ImGui(state, m_viewTexture, m_scene.Selected(), &m_frameData);
 
             // model panel
             m_scene.ImGui();

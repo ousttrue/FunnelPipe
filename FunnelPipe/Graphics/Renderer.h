@@ -14,6 +14,7 @@ public:
     void BeginFrame(void *hwnd, int width, int height);
     void EndFrame();
 
-    size_t ViewTextureID(size_t view);
+    // size_t ViewTextureID(size_t view);
+    Microsoft::WRL::ComPtr<ID3D12Resource> ViewTexture(size_t view);
     void View(const framedata::FrameData &framedata);
 };

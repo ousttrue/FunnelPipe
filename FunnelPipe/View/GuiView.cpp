@@ -49,7 +49,8 @@ static bool ViewButton(void *p, ImTextureID user_texture_id, const ImVec2 &size,
 namespace gui
 {
 
-bool View(framedata::FrameData *view, const screenstate::ScreenState &state, size_t textureID,
+bool View(framedata::FrameData *view, const screenstate::ScreenState &state,
+          const Microsoft::WRL::ComPtr<ID3D12Resource> &texture,
           screenstate::ScreenState *viewState)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -79,23 +80,26 @@ bool View(framedata::FrameData *view, const screenstate::ScreenState &state, siz
         viewState->MouseX = state.MouseX - (int)pos.x;
         viewState->MouseY = state.MouseY - (int)pos.y - (int)cursor.y;
 
-        ViewButton(view, (ImTextureID)textureID, size, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 0);
-        // update camera
-        if (!ImGui::IsWindowHovered())
+        if (texture)
         {
-            viewState->Unset(screenstate::MouseButtonFlags::WheelMinus);
-            viewState->Unset(screenstate::MouseButtonFlags::WheelPlus);
-        }
+            ViewButton(view, (ImTextureID)texture.Get(), size, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 0);
+            // update camera
+            if (!ImGui::IsWindowHovered())
+            {
+                viewState->Unset(screenstate::MouseButtonFlags::WheelMinus);
+                viewState->Unset(screenstate::MouseButtonFlags::WheelPlus);
+            }
 
-        if (ImGui::IsItemActive())
-        {
-            // LOGD << "active";
-        }
-        else
-        {
-            // viewState->Unset(screenstate::MouseButtonFlags::LeftDown);
-            viewState->Unset(screenstate::MouseButtonFlags::RightDown);
-            viewState->Unset(screenstate::MouseButtonFlags::MiddleDown);
+            if (ImGui::IsItemActive())
+            {
+                // LOGD << "active";
+            }
+            else
+            {
+                // viewState->Unset(screenstate::MouseButtonFlags::LeftDown);
+                viewState->Unset(screenstate::MouseButtonFlags::RightDown);
+                viewState->Unset(screenstate::MouseButtonFlags::MiddleDown);
+            }
         }
     }
     ImGui::End();

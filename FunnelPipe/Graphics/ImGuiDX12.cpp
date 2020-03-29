@@ -27,7 +27,7 @@ class ImGuiDX12Impl
     ComPtr<ID3D12PipelineState> m_pPipelineState;
     ComPtr<ID3D12DescriptorHeap> m_pHeap;
     UINT m_increment = 0;
-    // ComPtr<ID3D12Resource> m_pFontTextureResource;
+    ComPtr<ID3D12Resource> m_pFontTextureResource;
     // D3D12_CPU_DESCRIPTOR_HANDLE m_hFontSrvCpuDescHandle = {};
     // D3D12_GPU_DESCRIPTOR_HANDLE m_hFontSrvGpuDescHandle = {};
 
@@ -37,31 +37,18 @@ class ImGuiDX12Impl
     std::unordered_map<ID3D12Resource *, size_t> m_textureDescriptorMap;
     std::vector<ComPtr<ID3D12Resource>> m_descriptors;
 
-    D3D12_GPU_DESCRIPTOR_HANDLE GetHandle(ImTextureID index)
-    {
-        auto handle = m_pHeap->GetGPUDescriptorHandleForHeapStart();
-        handle.ptr += (size_t)index * m_increment;
-        return handle;
-    }
-
-public:
-    ImGuiDX12Impl(int bufferCount)
-        : m_frames(bufferCount)
-    {
-    }
-
-    void Remove(ID3D12Resource *resource)
-    {
-        m_textureDescriptorMap.erase(resource);
-    }
-
-    size_t GetOrCreateTexture(ID3D12Device *device,
-                              ID3D12Resource *resource)
+    size_t GetOrCreateTexture(ID3D12Resource *resource)
     {
         auto found = m_textureDescriptorMap.find(resource);
         if (found != m_textureDescriptorMap.end())
         {
             return found->second;
+        }
+
+        ComPtr<ID3D12Device> device;
+        if (FAILED(resource->GetDevice(IID_PPV_ARGS(&device))))
+        {
+            throw;
         }
 
         // Create texture view
@@ -87,6 +74,25 @@ public:
         m_textureDescriptorMap.insert(std::make_pair(resource, index));
 
         return index;
+    }
+
+    D3D12_GPU_DESCRIPTOR_HANDLE GetHandle(ID3D12Resource *texture)
+    {
+        auto index = GetOrCreateTexture(texture);
+        auto handle = m_pHeap->GetGPUDescriptorHandleForHeapStart();
+        handle.ptr += (size_t)index * m_increment;
+        return handle;
+    }
+
+public:
+    ImGuiDX12Impl(int bufferCount)
+        : m_frames(bufferCount)
+    {
+    }
+
+    void Remove(ID3D12Resource *resource)
+    {
+        m_textureDescriptorMap.erase(resource);
     }
 
     void Initialize(ID3D12Device *device)
@@ -126,10 +132,10 @@ public:
 
         {
             // font texture
-            auto pFontTextureResource = CreateFontsTexture(device);
-            auto viewIndex = GetOrCreateTexture(device, pFontTextureResource.Get());
+            m_pFontTextureResource = CreateFontsTexture(device);
+            // auto viewIndex = GetOrCreateTexture(m_pFontTextureResource.Get());
             // Store our identifier
-            io.Fonts->TexID = (ImTextureID)viewIndex;
+            io.Fonts->TexID = (ImTextureID)m_pFontTextureResource.Get();
         }
     }
 
@@ -200,7 +206,10 @@ public:
                 {
                     // Apply Scissor, Bind texture, Draw
                     const D3D12_RECT r = {(LONG)(pcmd->ClipRect.x - clip_off.x), (LONG)(pcmd->ClipRect.y - clip_off.y), (LONG)(pcmd->ClipRect.z - clip_off.x), (LONG)(pcmd->ClipRect.w - clip_off.y)};
-                    ctx->SetGraphicsRootDescriptorTable(1, GetHandle(pcmd->TextureId));
+                    if (pcmd->TextureId)
+                    {
+                        ctx->SetGraphicsRootDescriptorTable(1, GetHandle((ID3D12Resource *)pcmd->TextureId));
+                    }
                     ctx->RSSetScissorRects(1, &r);
                     ctx->DrawIndexedInstanced(pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
                 }
@@ -240,13 +249,13 @@ void ImGuiDX12::RenderDrawData(ID3D12GraphicsCommandList *ctx, struct ImDrawData
     m_impl->RenderDrawData(ctx, draw_data);
 }
 
-size_t ImGuiDX12::GetOrCreateTexture(struct ID3D12Device *device,
-                                     struct ID3D12Resource *resource)
-{
-    return m_impl->GetOrCreateTexture(device, resource);
-}
+// size_t ImGuiDX12::GetOrCreateTexture(struct ID3D12Device *device,
+//                                      struct ID3D12Resource *resource)
+// {
+//     return m_impl->GetOrCreateTexture(resource);
+// }
 
-void ImGuiDX12::Remove(ID3D12Resource *resource)
-{
-    m_impl->Remove(resource);
-}
+// void ImGuiDX12::Remove(ID3D12Resource *resource)
+// {
+//     m_impl->Remove(resource);
+// }
