@@ -301,7 +301,12 @@ public:
             }
             for (auto [k, v] : current)
             {
-                if (first.find(k) == first.end())
+                auto found = first.find(k);
+                if (found == first.end())
+                {
+                    return false;
+                }
+                if (found->second != v)
                 {
                     return false;
                 }
