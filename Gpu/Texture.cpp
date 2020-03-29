@@ -10,13 +10,13 @@ const Microsoft::WRL::ComPtr<ID3D12Resource> &Texture::Resource() const
     return m_imageBuffer->Resource();
 }
 
-bool Texture::IsDrawable(class CommandList *commandList, UINT rootParameterIndex)
+std::pair<bool, std::function<void()>> Texture::IsDrawable(const ComPtr<ID3D12GraphicsCommandList> &commandList)
 {
-    auto _commandList = commandList->Get();
+    std::function<void()> callback;
 
     if (!m_imageBuffer)
     {
-        return false;
+        return {false, callback};
     }
 
     auto state = m_imageBuffer->State();
@@ -24,16 +24,16 @@ bool Texture::IsDrawable(class CommandList *commandList, UINT rootParameterIndex
     {
         if (state.Upload == UploadStates::Uploaded)
         {
-            m_imageBuffer->EnqueueTransition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            callback = m_imageBuffer->EnqueueTransition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         }
     }
 
     if (!state.Drawable())
     {
-        return false;
+        return {false, callback};
     }
 
-    return true;
+    return {true, callback};
 }
 
 } // namespace Gpu::dx12

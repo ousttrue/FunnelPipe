@@ -6,23 +6,23 @@
 namespace Gpu::dx12
 {
 
-bool Mesh::IsDrawable(class CommandList *commandList)
+std::pair<bool, std::function<void()>> Mesh::IsDrawable(const ComPtr<ID3D12GraphicsCommandList> &commandList)
 {
-    auto _commandList = commandList->Get();
-
     //
     // vertexState
     //
     if (!m_vertexBuffer)
     {
-        return false;
+        return {false, std::function<void()>()};
     }
     auto vertexState = m_vertexBuffer->State();
+
+    std::function<void()> verticesCallback;
     if (vertexState.State == D3D12_RESOURCE_STATE_COPY_DEST)
     {
         if (vertexState.Upload == UploadStates::Uploaded)
         {
-            m_vertexBuffer->EnqueueTransition(commandList, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            verticesCallback = m_vertexBuffer->EnqueueTransition(commandList, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
         }
     }
 
@@ -31,23 +31,16 @@ bool Mesh::IsDrawable(class CommandList *commandList)
     //
     if (!m_indexBuffer)
     {
-        // //
-        // // draw non indexed: deprecated
-        // //
-        // if (vertexState.Drawable())
-        // {
-        //     _commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        //     _commandList->IASetVertexBuffers(0, 1, &m_vertexBuffer->VertexBufferView());
-        //     _commandList->DrawInstanced(m_vertexBuffer->Count(), 1, 0, 0);
-        // }
-        return false;
+        throw;
     }
+
+    std::function<void()> indicesCallback;
     auto indexState = m_indexBuffer->State();
     if (indexState.State == D3D12_RESOURCE_STATE_COPY_DEST)
     {
         if (indexState.Upload == UploadStates::Uploaded)
         {
-            m_indexBuffer->EnqueueTransition(commandList, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+            indicesCallback = m_indexBuffer->EnqueueTransition(commandList, D3D12_RESOURCE_STATE_INDEX_BUFFER);
         }
     }
 
@@ -56,30 +49,23 @@ bool Mesh::IsDrawable(class CommandList *commandList)
     //
     if (!vertexState.Drawable() || !indexState.Drawable())
     {
-        return false;
+        return {false, [verticesCallback, indicesCallback]() {
+                    if (verticesCallback)
+                    {
+                        verticesCallback();
+                    }
+                    if (indicesCallback)
+                    {
+                        indicesCallback();
+                    }
+                }};
     }
 
-    _commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    _commandList->IASetVertexBuffers(0, 1, &m_vertexBuffer->VertexBufferView());
-    _commandList->IASetIndexBuffer(&m_indexBuffer->IndexBufferView());
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    commandList->IASetVertexBuffers(0, 1, &m_vertexBuffer->VertexBufferView());
+    commandList->IASetIndexBuffer(&m_indexBuffer->IndexBufferView());
 
-    // // draw
-    // if (submeshes.empty())
-    // {
-    //     _commandList->DrawIndexedInstanced(m_indexBuffer->Count(), 1, 0, 0, 0);
-    // }
-    // else
-    // {
-    //     int offset = 0;
-    //     for (auto &submesh : submeshes)
-    //     {
-    //         submesh.material->Set(_commandList);
-    //         _commandList->DrawIndexedInstanced(submesh.draw_count, 1, 0, 0, 0);
-    //         offset += submesh.draw_count;
-    //     }
-    // }}
-
-    return true;
+    return {true, std::function<void()>()};
 }
 
 } // namespace Gpu::dx12

@@ -1,6 +1,7 @@
 #pragma once
 #include "Helper.h"
 #include <memory>
+#include <functional>
 
 namespace Gpu::dx12
 {
@@ -104,7 +105,7 @@ public:
     }
 
     void MapCopyUnmap(const void *p, UINT byteLength, UINT stride);
-    void EnqueueTransition(class CommandList *commandList, D3D12_RESOURCE_STATES state);
+    std::function<void()> EnqueueTransition(const ComPtr<ID3D12GraphicsCommandList> &commandList, D3D12_RESOURCE_STATES state);
     void EnqueueUpload(class CommandList *commandList, const std::shared_ptr<class ResourceItem> &upload,
                        const void *p, UINT byteLength, UINT stride);
     // dynamic

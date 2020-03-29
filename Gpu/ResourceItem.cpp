@@ -46,7 +46,7 @@ void ResourceItem::MapCopyUnmap(const void *p, UINT byteLength, UINT stride)
     m_state.Upload = UploadStates::Uploaded;
 }
 
-void ResourceItem::EnqueueTransition(CommandList *commandList, D3D12_RESOURCE_STATES state)
+std::function<void()> ResourceItem::EnqueueTransition(const ComPtr<ID3D12GraphicsCommandList> &commandList, D3D12_RESOURCE_STATES state)
 {
     m_state.Upload = UploadStates::Enqueued;
     D3D12_RESOURCE_BARRIER barrier{
@@ -57,7 +57,7 @@ void ResourceItem::EnqueueTransition(CommandList *commandList, D3D12_RESOURCE_ST
             .StateAfter = state,
         },
     };
-    commandList->Get()->ResourceBarrier(1, &barrier);
+    commandList->ResourceBarrier(1, &barrier);
 
     std::weak_ptr weak = shared_from_this();
     auto callback = [weak, state]() {
@@ -69,7 +69,7 @@ void ResourceItem::EnqueueTransition(CommandList *commandList, D3D12_RESOURCE_ST
         }
     };
 
-    commandList->AddOnCompleted(callback);
+    return callback;
 }
 
 void ResourceItem::EnqueueUpload(CommandList *commandList,

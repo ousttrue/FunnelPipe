@@ -2,6 +2,7 @@
 #include "Helper.h"
 #include <memory>
 #include <vector>
+#include <functional>
 
 namespace Gpu::dx12
 {
@@ -19,7 +20,7 @@ public:
     const std::shared_ptr<class ResourceItem> &VertexBuffer() const { return m_vertexBuffer; }
     void IndexBuffer(const std::shared_ptr<class ResourceItem> &item) { m_indexBuffer = item; }
     const std::shared_ptr<class ResourceItem> &IndexBuffer() const { return m_indexBuffer; }
-    bool IsDrawable(class CommandList *commandList);
+    std::pair<bool, std::function<void()>> IsDrawable(const ComPtr<ID3D12GraphicsCommandList> &commandList);
 };
 
 } // namespace Gpu::dx12

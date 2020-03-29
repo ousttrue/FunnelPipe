@@ -262,7 +262,12 @@ private:
         {
             return;
         }
-        if (!info.drawable->IsDrawable(m_commandlist.get()))
+        auto [isDrawable, callback] = info.drawable->IsDrawable(commandList);
+        if (callback)
+        {
+            m_commandlist->AddOnCompleted(callback);
+        }
+        if (!isDrawable)
         {
             return;
         }
@@ -279,7 +284,12 @@ private:
                                                                        m_sceneMapper->GetUploader());
             if (texture)
             {
-                if (texture->IsDrawable(m_commandlist.get(), 0))
+                auto [isDrawable, callback] = texture->IsDrawable(commandList);
+                if (callback)
+                {
+                    m_commandlist->AddOnCompleted(callback);
+                }
+                if (isDrawable)
                 {
                     m_rootSignature->SetTextureDescriptorTable(m_device, commandList, textureSlot);
                 }

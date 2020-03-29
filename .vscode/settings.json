@@ -2,6 +2,7 @@
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
     "cSpell.words": [
         "Drawlist",
+        "Gltf",
         "gizmesh",
         "hwnd",
         "imgui"

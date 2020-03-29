@@ -17,3 +17,11 @@ scene+
    v v
    GPU
 ```
+
+## TODO
+
+* imgui
+  * [ ] ModelInfo
+  * [ ] ResourceInfo
+* shader
+  * [ ] Gltf PBR
