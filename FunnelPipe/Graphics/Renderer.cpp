@@ -127,13 +127,13 @@ public:
         return texture;
     }
 
-    void View(const framedata::FrameData &drawlist)
+    void View(const framedata::FrameData &framedata)
     {
-        auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&drawlist);
-        UpdateView(viewRenderTarget, drawlist);
-        UpdateMeshes(drawlist);
+        auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&framedata);
+        UpdateView(viewRenderTarget, framedata);
+        UpdateMeshes(framedata);
         DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget,
-                 drawlist.ViewClearColor.data(), drawlist);
+                 framedata.ViewClearColor.data(), framedata);
     }
 
 private:
@@ -153,11 +153,11 @@ private:
         }
     }
 
-    void UpdateMeshes(const framedata::FrameData &drawlist)
+    void UpdateMeshes(const framedata::FrameData &framedata)
     {
-        for (size_t i = 0; i < drawlist.Meshlist.size(); ++i)
+        for (size_t i = 0; i < framedata.Meshlist.size(); ++i)
         {
-            auto &item = drawlist.Meshlist[i];
+            auto &item = framedata.Meshlist[i];
             auto mesh = item.Mesh;
             auto drawable = m_sceneMapper->GetOrCreate(m_device, item.Mesh);
             if (drawable)
@@ -179,17 +179,17 @@ private:
         }
 
         // CB
-        m_rootSignature->m_drawConstantsBuffer.Assign((const std::pair<UINT, UINT> *)drawlist.CBRanges.data(),
-                                                      (uint32_t)drawlist.CBRanges.size());
-        m_rootSignature->m_drawConstantsBuffer.CopyToGpu(drawlist.CB.data(), drawlist.CB.size());
+        m_rootSignature->m_drawConstantsBuffer.Assign((const std::pair<UINT, UINT> *)framedata.CBRanges.data(),
+                                                      (uint32_t)framedata.CBRanges.size());
+        m_rootSignature->m_drawConstantsBuffer.CopyToGpu(framedata.CB.data(), framedata.CB.size());
     }
 
     void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
-                    const framedata::FrameData &drawlist)
+                    const framedata::FrameData &framedata)
     {
-        m_rootSignature->m_viewConstantsBuffer.CopyToGpu(drawlist.ViewConstantBuffer);
+        m_rootSignature->m_viewConstantsBuffer.CopyToGpu(framedata.ViewConstantBuffer);
 
-        if (viewRenderTarget->Resize(drawlist.ViewWidth(), drawlist.ViewHeight()))
+        if (viewRenderTarget->Resize(framedata.ViewWidth(), framedata.ViewHeight()))
         {
             // clear all
             for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
@@ -200,14 +200,14 @@ private:
                     m_imguiDX12.Remove(resource->renderTarget.Get());
                 }
             }
-            viewRenderTarget->Initialize(drawlist.ViewWidth(), drawlist.ViewHeight(), m_device, BACKBUFFER_COUNT);
+            viewRenderTarget->Initialize(framedata.ViewWidth(), framedata.ViewHeight(), m_device, BACKBUFFER_COUNT);
         }
     }
 
     void DrawView(const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
                   const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
                   const float *clearColor,
-                  const framedata::FrameData &drawlist)
+                  const framedata::FrameData &framedata)
     {
         // begin, clear
         if (viewRenderTarget->Begin(frameIndex, commandList, clearColor))
@@ -216,9 +216,9 @@ private:
             // all shader use same root signature
             m_rootSignature->Begin(m_device, commandList);
 
-            for (size_t i = 0; i < drawlist.Drawlist.size(); ++i)
+            for (size_t i = 0; i < framedata.Drawlist.size(); ++i)
             {
-                DrawMesh(commandList, (UINT)i, drawlist.Drawlist[i]);
+                DrawMesh(commandList, (UINT)i, framedata.Drawlist[i]);
             }
 
             // finish rendering
@@ -305,7 +305,7 @@ size_t Renderer::ViewTextureID(size_t view)
     return m_impl->ViewTextureID(view);
 }
 
-void Renderer::View(const framedata::FrameData &drawlist)
+void Renderer::View(const framedata::FrameData &framedata)
 {
-    m_impl->View(drawlist);
+    m_impl->View(framedata);
 }

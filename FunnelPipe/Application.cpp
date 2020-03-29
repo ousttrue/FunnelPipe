@@ -70,8 +70,8 @@ public:
             {
                 frame_metrics::scoped ss("view");
                 m_frameData.Clear();
-                m_scene.UpdateDrawlist(&m_frameData);
-                m_view.UpdateDrawlist(&m_frameData);
+                m_scene.UpdateFrameData(&m_frameData);
+                m_view.UpdateFrameData(&m_frameData);
                 // LOGD << m_frameData.CBRanges.size() << ", " << m_frameData.Items.size();
 
                 m_renderer.View(m_frameData);

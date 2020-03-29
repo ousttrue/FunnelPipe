@@ -10,18 +10,18 @@ CameraView::CameraView()
 
 bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
                        const hierarchy::SceneNodePtr &selected,
-                       framedata::FrameData *drawlist)
+                       framedata::FrameData *framedata)
 {
     // view
     // imgui window for rendertarget. convert screenState for view
     screenstate::ScreenState viewState;
-    bool isShowView = ::gui::View(drawlist, state, textureID, &viewState);
+    bool isShowView = ::gui::View(framedata, state, textureID, &viewState);
 
-    drawlist->ViewConstantBuffer.b0ScreenSize = {(float)viewState.Width, (float)viewState.Height};
-    drawlist->ViewConstantBuffer.b0Projection = m_camera.state.projection;
-    drawlist->ViewConstantBuffer.b0View = m_camera.state.view;
-    drawlist->ViewConstantBuffer.b0CameraPosition = m_camera.state.position;
-    drawlist->ViewConstantBuffer.fovY = m_camera.state.fovYRadians;
+    framedata->ViewConstantBuffer.b0ScreenSize = {(float)viewState.Width, (float)viewState.Height};
+    framedata->ViewConstantBuffer.b0Projection = m_camera.state.projection;
+    framedata->ViewConstantBuffer.b0View = m_camera.state.view;
+    framedata->ViewConstantBuffer.b0CameraPosition = m_camera.state.position;
+    framedata->ViewConstantBuffer.fovY = m_camera.state.fovYRadians;
 
     //
     // update camera
@@ -59,10 +59,10 @@ bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
     return isShowView;
 }
 
-void CameraView::UpdateDrawlist(framedata::FrameData *drawlist)
+void CameraView::UpdateFrameData(framedata::FrameData *framedata)
 {
     // gizmo
-    if (drawlist->ShowGizmo)
+    if (framedata->ShowGizmo)
     {
         auto mesh = m_gizmo.GetMesh();
         if (mesh)
@@ -84,8 +84,8 @@ void CameraView::UpdateDrawlist(framedata::FrameData *drawlist)
                             .p = &matrix,
                             .size = sizeof(matrix),
                         }};
-                drawlist->PushCB(shader->VS.DrawCB(), values, _countof(values));
-                drawlist->Meshlist.push_back({
+                framedata->PushCB(shader->VS.DrawCB(), values, _countof(values));
+                framedata->Meshlist.push_back({
                     .Mesh = mesh,
                     .Vertices = {
                         .Ptr = m_gizmoBuffer.pVertices,
@@ -98,7 +98,7 @@ void CameraView::UpdateDrawlist(framedata::FrameData *drawlist)
                         .Stride = m_gizmoBuffer.indexStride,
                     },
                 });
-                drawlist->Drawlist.push_back({
+                framedata->Drawlist.push_back({
                     .Mesh = mesh,
                     .Submesh = mesh->submeshes[0],
                 });

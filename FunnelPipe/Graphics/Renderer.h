@@ -15,5 +15,5 @@ public:
     void EndFrame();
 
     size_t ViewTextureID(size_t view);
-    void View(const framedata::FrameData &drawlist);
+    void View(const framedata::FrameData &framedata);
 };

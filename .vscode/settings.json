@@ -2,7 +2,6 @@
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
     "cSpell.words": [
         "DXGI",
-        "Drawlist",
         "Gltf",
         "countof",
         "falg",

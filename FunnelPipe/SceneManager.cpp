@@ -91,17 +91,17 @@ namespace hierarchy
 
 using FilterFunc = std::function<bool(const framedata::FrameMaterialPtr &)>;
 
-void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNode> &node, const FilterFunc &filter)
+void TraverseMesh(framedata::FrameData *framedata, const std::shared_ptr<SceneNode> &node, const FilterFunc &filter)
 {
     auto mesh = node->Mesh();
     if (mesh)
     {
-        drawlist->Meshlist.push_back({
+        framedata->Meshlist.push_back({
             .Mesh = mesh,
         });
         if (node->skin)
         {
-            drawlist->Meshlist.back().Skin = {
+            framedata->Meshlist.back().Skin = {
                 node->skin->cpuSkiningBuffer.data(),
                 (uint32_t)node->skin->cpuSkiningBuffer.size(),
                 mesh->vertices->stride,
@@ -121,8 +121,8 @@ void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNod
                         {.semantic = framedata::ConstantSemantics::NODE_WORLD,
                          .p = &m,
                          .size = sizeof(m)}};
-                    drawlist->PushCB(shader->VS.DrawCB(), values, _countof(values));
-                    drawlist->Drawlist.push_back({
+                    framedata->PushCB(shader->VS.DrawCB(), values, _countof(values));
+                    framedata->Drawlist.push_back({
                         .Mesh = mesh,
                         .Submesh = submesh,
                     });
@@ -135,17 +135,17 @@ void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNod
     auto child = node->GetChildren(&count);
     for (int i = 0; i < count; ++i, ++child)
     {
-        TraverseMesh(drawlist, *child, filter);
+        TraverseMesh(framedata, *child, filter);
     }
 }
 
-static void UpdateDrawListIf(framedata::FrameData *drawlist, const Scene *scene, const FilterFunc &filter)
+static void UpdateFrameDataIf(framedata::FrameData *framedata, const Scene *scene, const FilterFunc &filter)
 {
-    if (drawlist->ShowGrid)
+    if (framedata->ShowGrid)
     {
         for (auto &node : scene->gizmoNodes)
         {
-            TraverseMesh(drawlist, node, filter);
+            TraverseMesh(framedata, node, filter);
         }
     }
     // if (view->ShowVR)
@@ -157,12 +157,12 @@ static void UpdateDrawListIf(framedata::FrameData *drawlist, const Scene *scene,
     // }
     for (auto &node : scene->sceneNodes)
     {
-        TraverseMesh(drawlist, node, filter);
+        TraverseMesh(framedata, node, filter);
     }
 }
 } // namespace hierarchy
 
-void SceneManager::UpdateDrawlist(framedata::FrameData *drawlist)
+void SceneManager::UpdateFrameData(framedata::FrameData *framedata)
 {
     m_scene.Update();
 
@@ -170,11 +170,11 @@ void SceneManager::UpdateDrawlist(framedata::FrameData *drawlist)
     // mesh
     //
     // Opaque
-    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const framedata::FrameMaterialPtr &m) {
+    hierarchy::UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
         return m->alphaMode != framedata::AlphaMode::Blend;
     });
     // AlphaBlend
-    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const framedata::FrameMaterialPtr &m) {
+    hierarchy::UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
         return m->alphaMode == framedata::AlphaMode::Blend;
     });
 }
