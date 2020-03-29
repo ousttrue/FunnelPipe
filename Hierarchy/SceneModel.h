@@ -1,7 +1,5 @@
 #pragma once
-#include "SceneImage.h"
-#include "SceneMaterial.h"
-#include "SceneMesh.h"
+#include <FrameData.h>
 #include "SceneMeshSkin.h"
 #include "SceneNode.h"
 #include <vector>
@@ -12,9 +10,9 @@ namespace hierarchy
 struct SceneModel
 {
     std::string name;
-    std::vector<SceneImagePtr> images;
-    std::vector<SceneMaterialPtr> materials;
-    std::vector<SceneMeshPtr> meshes;
+    std::vector<framedata::SceneImagePtr> images;
+    std::vector<framedata::SceneMaterialPtr> materials;
+    std::vector<framedata::SceneMeshPtr> meshes;
     std::vector<SceneMeshSkinPtr> skins;
     std::vector<SceneNodePtr> nodes;
 

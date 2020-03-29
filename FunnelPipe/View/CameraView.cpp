@@ -80,7 +80,7 @@ void CameraView::UpdateDrawlist(framedata::FrameData *drawlist)
                 framedata::CBValue values[] =
                     {
                         {
-                            .semantic = hierarchy::ConstantSemantics::NODE_WORLD,
+                            .semantic = framedata::ConstantSemantics::NODE_WORLD,
                             .p = &matrix,
                             .size = sizeof(matrix),
                         }};

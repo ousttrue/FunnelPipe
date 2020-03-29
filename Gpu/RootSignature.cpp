@@ -160,7 +160,7 @@ void RootSignature::Begin(const ComPtr<ID3D12Device> &device, const ComPtr<ID3D1
     commandList->SetGraphicsRootDescriptorTable(0, m_heap->GpuHandle(0));
 }
 
-std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> &device, const std::shared_ptr<hierarchy::SceneMaterial> &sceneMaterial)
+std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> &device, const std::shared_ptr<framedata::SceneMaterial> &sceneMaterial)
 {
     auto found = m_materialMap.find(sceneMaterial);
     if (found != m_materialMap.end())
@@ -178,8 +178,10 @@ std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> 
     return gpuMaterial;
 }
 
-std::pair<std::shared_ptr<class Texture>, UINT> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> &device, const hierarchy::SceneImagePtr &image,
-                                                                           Uploader *uploader)
+std::pair<std::shared_ptr<class Texture>, UINT> RootSignature::GetOrCreate(
+    const ComPtr<ID3D12Device> &device,
+    const framedata::SceneImagePtr &image,
+    Uploader *uploader)
 {
     auto found = m_textureMap.find(image);
     if (found != m_textureMap.end())

@@ -4,7 +4,7 @@
 #include <FrameData.h>
 
 Gizmo::Gizmo()
-    : m_gizmoMesh(hierarchy::SceneMesh::CreateDynamic(
+    : m_gizmoMesh(framedata::SceneMesh::CreateDynamic(
           L"gizmo",
           65535, 40, // GizmoVertex
           65535, 2)),
@@ -22,8 +22,8 @@ void Gizmo::Begin(const screenstate::ScreenState &state, const camera::CameraSta
     if (!m_gizmo)
     {
         m_gizmo = new gizmesh::GizmoSystem;
-        auto material = hierarchy::SceneMaterial::Create();
-        material->shader = hierarchy::ShaderManager::Instance().get("gizmo");
+        auto material = framedata::SceneMaterial::Create();
+        material->shader = framedata::ShaderManager::Instance().get("gizmo");
         m_gizmoMesh->submeshes.push_back({
             .material = material,
         });

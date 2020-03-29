@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <filesystem>
 
-namespace hierarchy
+namespace framedata
 {
 
 class Shader;
@@ -29,4 +29,4 @@ public:
 };
 using ShaderWatcherPtr = std::shared_ptr<ShaderWatcher>;
 
-} // namespace hierarchy
+} // namespace framedata

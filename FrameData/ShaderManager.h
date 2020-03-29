@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <mutex>
 
-namespace hierarchy
+namespace framedata
 {
 
 class ShaderManager
@@ -38,4 +38,4 @@ public:
     void onFile(const std::wstring &fileName, int action);
 };
 
-} // namespace hierarchy
+} // namespace framedata

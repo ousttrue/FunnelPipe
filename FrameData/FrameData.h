@@ -13,7 +13,6 @@
 
 namespace framedata
 {
-using namespace hierarchy;
 
 struct CBValue
 {
@@ -80,7 +79,7 @@ struct FrameData
     struct DrawItem
     {
         std::shared_ptr<SceneMesh> Mesh;
-        hierarchy::SceneSubmesh Submesh;
+        SceneSubmesh Submesh;
     };
     std::vector<DrawItem> Drawlist;
 

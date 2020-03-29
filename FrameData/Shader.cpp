@@ -1,7 +1,7 @@
 #include "Shader.h"
 #include <plog/log.h>
 
-namespace hierarchy
+namespace framedata
 {
 
 static std::string ToString(const Microsoft::WRL::ComPtr<ID3DBlob> &blob)
@@ -177,4 +177,4 @@ bool Shader::Initialize(const ComPtr<ID3D12Device> &device,
     return true;
 }
 
-} // namespace hierarchy
+} // namespace framedata

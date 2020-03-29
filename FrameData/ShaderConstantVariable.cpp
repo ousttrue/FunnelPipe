@@ -1,6 +1,6 @@
 #include "ShaderConstantVariable.h"
 
-namespace hierarchy
+namespace framedata
 {
 
 static bool IsMatch(const std::string &src, const std::string &name, ConstantSemantics semantic)
@@ -114,4 +114,4 @@ void ConstantBuffer::GetVariables(ID3D12ShaderReflection *pReflection,
     reg = bindDesc.BindPoint;
 }
 
-} // namespace hierarchy
+} // namespace framedata

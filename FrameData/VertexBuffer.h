@@ -3,7 +3,7 @@
 #include <memory>
 #include <stdint.h>
 
-namespace hierarchy
+namespace framedata
 {
 
 enum class Semantics
@@ -48,4 +48,4 @@ public:
     void Append(const std::shared_ptr<VertexBuffer> &buffer);
 };
 
-} // namespace hierarchy
+} // namespace framedata

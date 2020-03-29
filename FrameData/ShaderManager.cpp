@@ -4,7 +4,7 @@
 #include <fstream>
 #include <windows.h>
 
-namespace hierarchy
+namespace framedata
 {
 
 static std::string ReadAllText(const std::filesystem::path &path)
@@ -238,4 +238,4 @@ void ShaderManager::onFile(const std::wstring &fileName, int action)
     }
 }
 
-} // namespace hierarchy
+} // namespace framedata

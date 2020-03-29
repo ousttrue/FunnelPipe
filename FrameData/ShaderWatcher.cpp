@@ -4,7 +4,7 @@
 #include <fstream>
 #include "Shader.h"
 
-namespace hierarchy
+namespace framedata
 {
 ShaderWatcher::ShaderWatcher(const std::string &name)
     : m_name(name), m_compiled(new Shader(name))
@@ -24,4 +24,4 @@ void ShaderWatcher::source(const std::string &source)
     m_compiled->Initialize(nullptr, source, m_generation);
 }
 
-} // namespace hierarchy
+} // namespace framedata

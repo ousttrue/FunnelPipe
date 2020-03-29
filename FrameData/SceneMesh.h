@@ -6,7 +6,7 @@
 #include <ranges>
 #include "SceneMaterial.h"
 
-namespace hierarchy
+namespace framedata
 {
 
 struct SceneSubmesh
@@ -39,4 +39,4 @@ public:
 };
 using SceneMeshPtr = std::shared_ptr<SceneMesh>;
 
-} // namespace hierarchy
+} // namespace framedata

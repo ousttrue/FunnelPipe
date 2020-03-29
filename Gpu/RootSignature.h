@@ -22,10 +22,9 @@ class RootSignature : NonCopyable
     std::unique_ptr<Heap> m_heap;
     std::vector<std::pair<uint32_t, uint32_t>> m_viewList;
 
-    // std::unordered_map<hierarchy::ShaderWatcherPtr, std::shared_ptr<class Shader>> m_shaderMap;
-    std::unordered_map<hierarchy::SceneMaterialPtr, std::shared_ptr<class Material>> m_materialMap;
+    std::unordered_map<framedata::SceneMaterialPtr, std::shared_ptr<class Material>> m_materialMap;
     std::vector<std::shared_ptr<class Texture>> m_textures;
-    std::unordered_map<hierarchy::SceneImagePtr, uint32_t> m_textureMap;
+    std::unordered_map<framedata::SceneImagePtr, uint32_t> m_textureMap;
 
 public:
     RootSignature();
@@ -33,9 +32,8 @@ public:
     // polling shader update
     void Update(const ComPtr<ID3D12Device> &device);
     void Begin(const ComPtr<ID3D12Device> &device, const ComPtr<ID3D12GraphicsCommandList> &commandList);
-    // std::shared_ptr<class Shader> GetOrCreate(const ComPtr<ID3D12Device> &device, const hierarchy::ShaderWatcherPtr &shader);
-    std::shared_ptr<class Material> GetOrCreate(const ComPtr<ID3D12Device> &device, const hierarchy::SceneMaterialPtr &material);
-    std::pair<std::shared_ptr<class Texture>, UINT> GetOrCreate(const ComPtr<ID3D12Device> &device, const hierarchy::SceneImagePtr &image, class Uploader *uploader);
+    std::shared_ptr<class Material> GetOrCreate(const ComPtr<ID3D12Device> &device, const framedata::SceneMaterialPtr &material);
+    std::pair<std::shared_ptr<class Texture>, UINT> GetOrCreate(const ComPtr<ID3D12Device> &device, const framedata::SceneImagePtr &image, class Uploader *uploader);
 
     // each Frame
     Gpu::dx12::ConstantBuffer m_viewConstantsBuffer;

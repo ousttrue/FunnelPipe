@@ -4,13 +4,13 @@
 #include "SceneMesh.h"
 #include <array>
 
-namespace hierarchy
+namespace framedata
 {
-    
+
 ///
 /// 無限グリッド
 ///
-static std::shared_ptr<hierarchy::SceneMesh> CreateGrid()
+static std::shared_ptr<SceneMesh> CreateGrid()
 {
     struct GridVertex
     {
@@ -27,20 +27,20 @@ static std::shared_ptr<hierarchy::SceneMesh> CreateGrid()
         0, 1, 2, //
         2, 3, 0, //
     };
-    auto mesh = hierarchy::SceneMesh::Create(L"grid");
-    mesh->vertices = hierarchy::VertexBuffer::CreateStatic(
-        hierarchy::Semantics::Vertex,
+    auto mesh = SceneMesh::Create(L"grid");
+    mesh->vertices = VertexBuffer::CreateStatic(
+        Semantics::Vertex,
         sizeof(vertices[0]), vertices, sizeof(vertices));
-    mesh->indices = hierarchy::VertexBuffer::CreateStatic(
-        hierarchy::Semantics::Index,
+    mesh->indices = VertexBuffer::CreateStatic(
+        Semantics::Index,
         2, indices, sizeof(indices));
     {
-        auto material = hierarchy::SceneMaterial::Create();
-        material->shader = hierarchy::ShaderManager::Instance().get("grid");
+        auto material = SceneMaterial::Create();
+        material->shader = ShaderManager::Instance().get("grid");
         mesh->submeshes.push_back({.drawCount = _countof(indices),
                                    .material = material});
     }
     return mesh;
 }
 
-} // namespace hierarchy
+} // namespace framedata

@@ -1,4 +1,7 @@
 #include "SceneModel.h"
+#undef OPAQUE // wingdi.h
+#include <gltfformat/glb.h>
+#include <gltfformat/bin.h>
 #include "ParseGltf.h"
 #include "ShaderManager.h"
 #include "VertexBuffer.h"
@@ -8,9 +11,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <gltfformat/glb.h>
-#include <gltfformat/bin.h>
-// #include <Windows.h>
 #include <plog/Log.h>
 
 struct GltfVertex
@@ -69,7 +69,7 @@ class GltfLoader
 
     struct GltfPrimitive
     {
-        SceneMeshPtr mesh;
+        framedata::SceneMeshPtr mesh;
         std::vector<VertexSkining> skining;
 
         void LoadVertices(
@@ -78,7 +78,7 @@ class GltfLoader
             const gltfformat::Mesh &gltfMesh,
             const gltfformat::MeshPrimitive &gltfPrimitive)
         {
-            mesh = SceneMesh::Create(L"gltf");
+            mesh = framedata::SceneMesh::Create(L"gltf");
             mesh->name = Utf8ToUnicode(gltfMesh.name);
 
             std::vector<GltfVertex> vertices;
@@ -159,8 +159,8 @@ class GltfLoader
                 }
             }
             assert(vertices.size() == vertexCount);
-            mesh->vertices = VertexBuffer::CreateStatic(
-                Semantics::Vertex,
+            mesh->vertices = framedata::VertexBuffer::CreateStatic(
+                framedata::Semantics::Vertex,
                 sizeof(GltfVertex), vertices.data(), (uint32_t)(vertices.size() * sizeof(GltfVertex)));
         }
     };
@@ -185,7 +185,7 @@ public:
             auto bytes = m_bin.get_bytes(bufferView);
 
             // TO_PNG
-            auto image = SceneImage::Load(bytes.p, bytes.size);
+            auto image = framedata::SceneImage::Load(bytes.p, bytes.size);
             image->name = Utf8ToUnicode(gltfImage.name);
             m_model->images.push_back(image);
         }
@@ -196,25 +196,25 @@ public:
         m_model->materials.reserve(m_gltf.materials.size());
         for (auto &gltfMaterial : m_gltf.materials)
         {
-            auto material = SceneMaterial::Create();
+            auto material = framedata::SceneMaterial::Create();
             auto shader = IsUnlit(gltfMaterial) ? "gltf_unlit" : "gltf_standard";
 
             switch (gltfMaterial.alphaMode.value_or(gltfformat::MaterialAlphaMode::OPAQUE))
             {
             case gltfformat::MaterialAlphaMode::OPAQUE:
-                material->alphaMode = AlphaMode::Opaque;
+                material->alphaMode = framedata::AlphaMode::Opaque;
                 break;
             case gltfformat::MaterialAlphaMode::MASK:
-                material->alphaMode = AlphaMode::Mask;
+                material->alphaMode = framedata::AlphaMode::Mask;
                 break;
             case gltfformat::MaterialAlphaMode::BLEND:
-                material->alphaMode = AlphaMode::Blend;
+                material->alphaMode = framedata::AlphaMode::Blend;
                 break;
             default:
                 throw "unknown";
             }
 
-            material->shader = ShaderManager::Instance().get(shader);
+            material->shader = framedata::ShaderManager::Instance().get(shader);
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();
@@ -327,7 +327,7 @@ public:
         }
     }
 
-    std::shared_ptr<VertexBuffer> LoadIndices(const gltfformat::glTF &gltf,
+    std::shared_ptr<framedata::VertexBuffer> LoadIndices(const gltfformat::glTF &gltf,
                                               const gltfformat::bin &bin,
                                               const gltfformat::MeshPrimitive &gltfPrimitive)
     {
@@ -355,8 +355,8 @@ public:
             throw;
         }
 
-        return VertexBuffer::CreateStatic(
-            Semantics::Index, stride, p, size);
+        return framedata::VertexBuffer::CreateStatic(
+            framedata::Semantics::Index, stride, p, size);
     }
 
     std::shared_ptr<GltfMeshGroup> LoadSharedPrimitives(const gltfformat::Mesh &gltfMesh)
@@ -462,7 +462,7 @@ public:
             {
                 auto meshGroup = m_meshes[gltfNode.mesh.value()];
 
-                SceneMeshPtr mesh; // = SceneMesh::Create();
+                framedata::SceneMeshPtr mesh; // = SceneMesh::Create();
                 auto sum = 0;
                 for (auto &primitive : meshGroup->primitives)
                 {

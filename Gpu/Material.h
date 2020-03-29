@@ -12,14 +12,15 @@ class Material : NonCopyable
     int m_lastGeneration = -1;
 
 public:
-    bool Initialize(const ComPtr<ID3D12Device> &device, const hierarchy::SceneMaterialPtr &material)
+    bool Initialize(const ComPtr<ID3D12Device> &device,
+                    const framedata::SceneMaterialPtr &material)
     {
         return Initialize(device, m_rootSignature, material);
     }
 
     bool Initialize(const ComPtr<ID3D12Device> &device,
                     const ComPtr<ID3D12RootSignature> &rootSignature,
-                    const hierarchy::SceneMaterialPtr &material);
+                    const framedata::SceneMaterialPtr &material);
     bool Set(const ComPtr<ID3D12GraphicsCommandList> &commandList);
 };
 

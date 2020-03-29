@@ -4,6 +4,8 @@
         "DXGI",
         "Drawlist",
         "Gltf",
+        "countof",
+        "falg",
         "gizmesh",
         "hwnd",
         "imgui",

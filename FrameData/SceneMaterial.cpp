@@ -1,7 +1,7 @@
 #include "SceneMaterial.h"
 #include "ShaderManager.h"
 
-namespace hierarchy
+namespace framedata
 {
 
 std::shared_ptr<SceneMaterial> SceneMaterial::Create()
@@ -11,4 +11,4 @@ std::shared_ptr<SceneMaterial> SceneMaterial::Create()
     return material;
 }
 
-} // namespace hierarchy
+} // namespace framedata

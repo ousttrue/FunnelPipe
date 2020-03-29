@@ -2,7 +2,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-namespace hierarchy
+namespace framedata
 {
 
 std::shared_ptr<SceneImage> SceneImage::Create()
@@ -27,4 +27,4 @@ std::shared_ptr<SceneImage> SceneImage::Load(const uint8_t *p, int size)
     return image;
 }
 
-} // namespace hierarchy
+} // namespace framedata

@@ -7,7 +7,7 @@
 #include <memory>
 #include "ShaderConstantVariable.h"
 
-namespace hierarchy
+namespace framedata
 {
 
 class Shader
@@ -81,4 +81,4 @@ public:
 };
 using ShaderPtr = std::shared_ptr<Shader>;
 
-} // namespace hierarchy
+} // namespace framedata

@@ -7,7 +7,7 @@ namespace Gpu::dx12
 
 bool Material::Initialize(const ComPtr<ID3D12Device> &device,
                           const ComPtr<ID3D12RootSignature> &rootSignature,
-                          const hierarchy::SceneMaterialPtr &material)
+                          const framedata::SceneMaterialPtr &material)
 {
     auto &shader = material->shader->Compiled();
 
@@ -66,14 +66,14 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
 
     switch (material->alphaMode)
     {
-    case hierarchy::AlphaMode::Opaque:
+    case framedata::AlphaMode::Opaque:
         break;
 
-    case hierarchy::AlphaMode::Mask:
+    case framedata::AlphaMode::Mask:
         // depth.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
         break;
 
-    case hierarchy::AlphaMode::Blend:
+    case framedata::AlphaMode::Blend:
         blend.RenderTarget[0] = {
             .BlendEnable = TRUE,
             .LogicOpEnable = FALSE,

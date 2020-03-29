@@ -4,7 +4,7 @@
 #include <string>
 #include <stdint.h>
 
-namespace hierarchy
+namespace framedata
 {
 
 enum class ImageType
@@ -43,4 +43,4 @@ public:
 };
 using SceneImagePtr = std::shared_ptr<SceneImage>;
 
-} // namespace hierarchy
+} // namespace framedata

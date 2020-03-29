@@ -1,6 +1,6 @@
 #include "VertexBuffer.h"
 
-namespace hierarchy
+namespace framedata
 {
 
 void VertexBuffer::Append(const std::shared_ptr<VertexBuffer> &vb)
@@ -17,4 +17,4 @@ void VertexBuffer::Append(const std::shared_ptr<VertexBuffer> &vb)
     std::copy(vb->buffer.begin(), vb->buffer.end(), std::back_inserter(buffer));
 }
 
-} // namespace hierarchy
+} // namespace framedata

@@ -5,7 +5,7 @@
 #include <d3d12.h>
 #include <d3dcompiler.h>
 
-namespace hierarchy
+namespace framedata
 {
 
 enum class ConstantSemantics
@@ -54,4 +54,4 @@ struct ConstantBuffer
     }
 };
 
-} // namespace hierarchy
+} // namespace framedata

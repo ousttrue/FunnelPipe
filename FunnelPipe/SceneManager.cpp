@@ -9,11 +9,11 @@ SceneManager::SceneManager(int argc, char **argv)
     {
         path = argv[1];
     }
-    hierarchy::ShaderManager::Instance().watch(path);
+    framedata::ShaderManager::Instance().watch(path);
 
     {
         auto node = hierarchy::SceneNode::Create("grid");
-        node->Mesh(hierarchy::CreateGrid());
+        node->Mesh(framedata::CreateGrid());
         m_scene.gizmoNodes.push_back(node);
     }
 
@@ -89,7 +89,7 @@ void SceneManager::OpenFile(const std::filesystem::path &path)
 namespace hierarchy
 {
 
-using FilterFunc = std::function<bool(const SceneMaterialPtr &)>;
+using FilterFunc = std::function<bool(const framedata::SceneMaterialPtr &)>;
 
 void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNode> &node, const FilterFunc &filter)
 {
@@ -118,7 +118,7 @@ void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNod
                 {
                     auto m = node->World().RowMatrix();
                     framedata::CBValue values[] = {
-                        {.semantic = ConstantSemantics::NODE_WORLD,
+                        {.semantic = framedata::ConstantSemantics::NODE_WORLD,
                          .p = &m,
                          .size = sizeof(m)}};
                     drawlist->PushCB(shader->VS.DrawCB(), values, _countof(values));
@@ -170,11 +170,11 @@ void SceneManager::UpdateDrawlist(framedata::FrameData *drawlist)
     // mesh
     //
     // Opaque
-    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const hierarchy::SceneMaterialPtr &m) {
-        return m->alphaMode != hierarchy::AlphaMode::Blend;
+    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const framedata::SceneMaterialPtr &m) {
+        return m->alphaMode != framedata::AlphaMode::Blend;
     });
     // AlphaBlend
-    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const hierarchy::SceneMaterialPtr &m) {
-        return m->alphaMode == hierarchy::AlphaMode::Blend;
+    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const framedata::SceneMaterialPtr &m) {
+        return m->alphaMode == framedata::AlphaMode::Blend;
     });
 }

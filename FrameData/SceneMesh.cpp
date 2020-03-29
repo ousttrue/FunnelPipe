@@ -3,7 +3,7 @@
 #include "Shader.h"
 #include <algorithm>
 
-namespace hierarchy
+namespace framedata
 {
 
 SceneMeshPtr SceneMesh::Create(const std::wstring &name)
@@ -145,4 +145,4 @@ bool SceneMesh::Validate()
     return true;
 }
 
-} // namespace hierarchy
+} // namespace framedata

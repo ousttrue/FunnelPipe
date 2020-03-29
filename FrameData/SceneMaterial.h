@@ -5,7 +5,7 @@
 #include "SceneImage.h"
 #include "ShaderWatcher.h"
 
-namespace hierarchy
+namespace framedata
 {
 
 enum class AlphaMode
@@ -29,4 +29,4 @@ public:
 };
 using SceneMaterialPtr = std::shared_ptr<SceneMaterial>;
 
-} // namespace hierarchy
+} // namespace framedata
