@@ -1,6 +1,7 @@
 #include "SceneManager.h"
 #include <imgui.h>
 #include <functional>
+#include <sstream>
 #include <nameof.hpp>
 
 SceneManager::SceneManager(int argc, char **argv)
@@ -67,37 +68,36 @@ static void MaterialList(const hierarchy::SceneModelPtr &model)
     int i = 0;
     for (auto &material : model->materials)
     {
-        if (i)
+        std::stringstream ss;
+        ss << "[" << i++ << "] " << material->name;
+        if (ImGui::TreeNode(ss.str().c_str()))
         {
-            ImGui::Separator();
-        }
-        ImGui::Text("%d %s", i, material->name.c_str());
+            auto shader = material->shaderSource->Compiled();
+            if (shader)
+            {
+                ImGui::Text("shader: %s", material->shaderSource->name().c_str());
+            }
 
-        auto shader = material->shaderSource->Compiled();
-        if (shader)
-        {
-            ImGui::Text("shader: %s", material->shaderSource->name().c_str());
-        }
+            ImGui::Text("alphaMode: %s", nameof::nameof_enum(material->alphaMode).data());
+            // if (material->alphaMode == framedata::AlphaMode::Mask)
+            {
+                ImGui::Text("alphaCutoff: %f", material->alphaCutoff);
+            }
 
-        ImGui::Text("alphaMode: %s", nameof::nameof_enum(material->alphaMode).data());
-        // if (material->alphaMode == framedata::AlphaMode::Mask)
-        {
-            ImGui::Text("alphaCutoff: %f", material->alphaCutoff);
-        }
+            if (material->colorImage)
+            {
+                ImGui::Text("colorImage: %s: %d x %d",
+                            material->colorImage->name.c_str(),
+                            material->colorImage->width, material->colorImage->height);
+            }
+            else
+            {
+                ImGui::Text("colorImage: null");
+            }
+            ImGui::ColorEdit4("color", material->color.data());
 
-        if (material->colorImage)
-        {
-            ImGui::Text("colorImage: %s: %d x %d",
-                        material->colorImage->name.c_str(),
-                        material->colorImage->width, material->colorImage->height);
+            ImGui::TreePop();
         }
-        else
-        {
-            ImGui::Text("colorImage: null");
-        }
-        ImGui::ColorEdit4("color", material->color.data());
-
-        ++i;
     }
 }
 
@@ -211,7 +211,11 @@ void TraverseMesh(framedata::FrameData *framedata, const std::shared_ptr<SceneNo
                     framedata::CBValue values[] = {
                         {.semantic = framedata::ConstantSemantics::NODE_WORLD,
                          .p = &m,
-                         .size = sizeof(m)}};
+                         .size = sizeof(m)},
+                        {.semantic = framedata::ConstantSemantics::MATERIAL_COLOR,
+                         .p = material->color.data(),
+                         .size = sizeof(material->color)},
+                    };
                     framedata->PushCB(shader->VS.DrawCB(), values, _countof(values));
                     framedata->Drawlist.push_back({
                         .Mesh = mesh,

@@ -42,7 +42,8 @@ static ConstantSemantics GetSemanticAfterColon(const std::string &src)
     MATCH(LIGHT_DIRECTION);
     MATCH(LIGHT_COLOR);
     MATCH(NODE_WORLD);
-
+    MATCH(MATERIAL_COLOR);
+    
     return ConstantSemantics::UNKNOWN;
 }
 

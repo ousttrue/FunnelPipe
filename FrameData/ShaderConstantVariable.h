@@ -20,6 +20,7 @@ enum class ConstantSemantics
     LIGHT_DIRECTION,
     LIGHT_COLOR,
     NODE_WORLD,
+    MATERIAL_COLOR,
 };
 
 struct ConstantVariable

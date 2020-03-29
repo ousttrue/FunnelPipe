@@ -10,13 +10,8 @@ cbuffer SceneConstantBuffer : register(b0)
 cbuffer NodeConstantBuffer : register(b1)
 {
     float4x4 b1World : NODE_WORLD;
+	float4 b1Color :MATERIAL_COLOR;
 };
-// cbuffer MaterialConstantBuffer: register(b2)
-// {
-// 	float4 b2Diffuse;
-// 	float3 b2Ambient;
-// 	float3 b2Specular;
-// };
 
 struct VSInput
 {
@@ -44,12 +39,11 @@ PSInput VSMain(VSInput vs)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    // float3 P = input.position.xyz;
     float4 vColor = t0.Sample(s0, input.uv);
     float3 N = input.normal;
     float3 L = normalize(-b0LightDirection);
     float3 Shading = vColor.xyz * (saturate(dot(N, L)) + float3(0.2, 0.2, 0.2));
-    return float4(Shading, 1);
+    return float4(Shading, 1) * b1Color;
 }
 
 technique MainTec0
