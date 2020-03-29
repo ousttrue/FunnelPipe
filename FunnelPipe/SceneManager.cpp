@@ -1,4 +1,5 @@
 #include "SceneManager.h"
+#include <Gpu.h>
 #include <imgui.h>
 #include <functional>
 #include <sstream>
@@ -63,7 +64,8 @@ void SceneManager::DrawNode(const hierarchy::SceneNodePtr &node)
     ImGui::PopID();
 }
 
-static void MaterialList(const hierarchy::SceneModelPtr &model)
+static void MaterialList(const hierarchy::SceneModelPtr &model,
+                         const SceneManager::GetTextureFunc &getTexture)
 {
     int i = 0;
     for (auto &material : model->materials)
@@ -89,6 +91,8 @@ static void MaterialList(const hierarchy::SceneModelPtr &model)
                 ImGui::Text("colorImage: %s: %d x %d",
                             material->colorImage->name.c_str(),
                             material->colorImage->width, material->colorImage->height);
+                auto texture = getTexture(material->colorImage);
+                ImGui::Image((ImTextureID)texture.Get(), ImVec2(150, 150));
             }
             else
             {
@@ -142,7 +146,7 @@ static void MeshList(const hierarchy::SceneModelPtr &model)
     ImGui::Separator();
 }
 
-void SceneManager::ImGui()
+void SceneManager::ImGui(const GetTextureFunc& getTexture)
 {
     // scene tree
     ImGui::Begin("Model");
@@ -152,7 +156,7 @@ void SceneManager::ImGui()
     {
         if (ImGui::CollapsingHeader("Materials"))
         {
-            MaterialList(m_scene.model);
+            MaterialList(m_scene.model, getTexture);
         }
         if (ImGui::CollapsingHeader("Meshes"))
         {

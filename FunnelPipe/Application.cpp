@@ -62,7 +62,7 @@ public:
             isShowView = m_view.ImGui(state, m_viewTexture, m_scene.Selected(), &m_frameData);
 
             // model panel
-            m_scene.ImGui();
+            m_scene.ImGui(std::bind(&Renderer::GetTexture, &m_renderer, std::placeholders::_1));
 
             // update framedata
             m_frameData.Clear();

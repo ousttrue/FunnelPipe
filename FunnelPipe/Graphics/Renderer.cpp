@@ -122,7 +122,7 @@ public:
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget(id);
         auto resource = viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
-        if(!resource)
+        if (!resource)
         {
             return nullptr;
         }
@@ -145,6 +145,12 @@ public:
         UpdateMeshes(framedata);
         DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget,
                  framedata.ViewClearColor.data(), framedata);
+    }
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> GetTexture(const framedata::FrameImagePtr &image)
+    {
+        auto [texture, slot] = m_rootSignature->GetOrCreate(m_device, image, m_sceneMapper->GetUploader());
+        return texture->Resource();
     }
 
 private:
@@ -202,15 +208,6 @@ private:
 
         if (viewRenderTarget->Resize(framedata.ViewWidth(), framedata.ViewHeight()))
         {
-            // clear all
-            // for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
-            // {
-            //     auto resource = viewRenderTarget->Resource(i);
-            //     if (resource)
-            //     {
-            //         m_imguiDX12.Remove(resource->renderTarget.Get());
-            //     }
-            // }
             viewRenderTarget->Initialize(framedata.ViewWidth(), framedata.ViewHeight(), m_device, BACKBUFFER_COUNT);
         }
     }
@@ -324,4 +321,9 @@ ComPtr<ID3D12Resource> Renderer::ViewTexture(size_t view)
 void Renderer::View(const framedata::FrameData &framedata)
 {
     m_impl->View(framedata);
+}
+
+Microsoft::WRL::ComPtr<ID3D12Resource> Renderer::GetTexture(const framedata::FrameImagePtr &image)
+{
+    return m_impl->GetTexture(image);
 }
