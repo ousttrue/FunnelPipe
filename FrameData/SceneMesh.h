@@ -35,6 +35,7 @@ public:
 
     std::vector<SceneSubmesh> submeshes;
     void AddSubmesh(const std::shared_ptr<SceneMesh> &mesh);
+    bool Validate();
 
     std::shared_ptr<class SceneMeshSkin> skin;
 };

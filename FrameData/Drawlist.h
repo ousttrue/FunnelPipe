@@ -40,7 +40,6 @@ struct DrawList
     struct DrawItem
     {
         std::shared_ptr<SceneMesh> Mesh;
-        bool isDynamic = false;
         Buffer Vertices{};
         Buffer Indices{};
         hierarchy::SceneSubmesh Submesh;

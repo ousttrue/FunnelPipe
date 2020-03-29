@@ -1,11 +1,5 @@
 #include "SceneMapper.h"
 #include <Gpu.h>
-// #include "ResourceItem.h"
-// #include "Mesh.h"
-// #include "Texture.h"
-// #include "Uploader.h"
-// #include "RootSignature.h"
-// #include "RenderTarget.h"
 #include <hierarchy.h>
 #include <FrameData.h>
 #include <DirectXMath.h>
@@ -28,26 +22,6 @@ void SceneMapper::Update(const ComPtr<ID3D12Device> &device)
     m_uploader->Update(device);
 }
 
-static int GetStride(DXGI_FORMAT format)
-{
-    switch (format)
-    {
-    case DXGI_FORMAT_B8G8R8A8_UNORM:
-        return 4;
-
-    case DXGI_FORMAT_R32G32_FLOAT:
-        return 8;
-
-    case DXGI_FORMAT_R32G32B32_FLOAT:
-        return 12;
-
-    case DXGI_FORMAT_R32G32B32A32_FLOAT:
-        return 16;
-    }
-
-    throw;
-}
-
 std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &device,
                                                const std::shared_ptr<hierarchy::SceneMesh> &sceneMesh)
 {
@@ -57,38 +31,11 @@ std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &devic
         return found->second;
     }
 
-    if (sceneMesh->submeshes.empty())
-    {
-        return nullptr;
-    }
-
     auto gpuMesh = std::make_shared<Mesh>();
 
     // vertices
     {
-        // first material's shader for input layout
-        auto shader = sceneMesh->submeshes[0].material->shader->Compiled();
-        if (shader->Generation() < 0)
-        {
-            return nullptr;
-        }
-
-        // auto resource = CreateResourceItem(device, m_uploader, sceneMesh, shader->inputLayout(), shader->inputLayoutCount());
-        auto dstStride = 0;
-        int inputLayoutCount;
-        auto inputLayout = shader->inputLayout(&inputLayoutCount);
-        for (int i = 0; i < inputLayoutCount; ++i)
-        {
-            dstStride += GetStride(inputLayout[i].Format);
-        }
-
-        // vertices
         auto vertices = sceneMesh->vertices;
-        if (vertices->stride != dstStride)
-        {
-            LOGE << "buffer stride difference with shader stride";
-            return nullptr;
-        }
 
         std::shared_ptr<ResourceItem> resource;
         if (vertices->isDynamic)

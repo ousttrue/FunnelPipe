@@ -1,5 +1,6 @@
 #include "SceneMesh.h"
 #include "VertexBuffer.h"
+#include "Shader.h"
 #include <algorithm>
 
 namespace hierarchy
@@ -94,6 +95,54 @@ void SceneMesh::AddSubmesh(const std::shared_ptr<SceneMesh> &mesh)
         throw;
     }
     submeshes.push_back(mesh->submeshes.front());
+}
+
+static int GetStride(DXGI_FORMAT format)
+{
+    switch (format)
+    {
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+        return 4;
+
+    case DXGI_FORMAT_R32G32_FLOAT:
+        return 8;
+
+    case DXGI_FORMAT_R32G32B32_FLOAT:
+        return 12;
+
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+        return 16;
+    }
+
+    throw;
+}
+
+bool SceneMesh::Validate()
+{
+    for (auto &submesh : submeshes)
+    {
+        auto shader = submesh.material->shader->Compiled();
+        if (shader->Generation() < 0)
+        {
+            return false;
+        }
+
+        // auto resource = CreateResourceItem(device, m_uploader, sceneMesh, shader->inputLayout(), shader->inputLayoutCount());
+        auto dstStride = 0;
+        int inputLayoutCount;
+        auto inputLayout = shader->inputLayout(&inputLayoutCount);
+        for (int i = 0; i < inputLayoutCount; ++i)
+        {
+            dstStride += GetStride(inputLayout[i].Format);
+        }
+
+        if (vertices->stride != dstStride)
+        {
+            // LOGE << "buffer stride difference with shader stride";
+            return false;
+        }
+    }
+    return true;
 }
 
 } // namespace hierarchy
