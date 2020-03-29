@@ -166,9 +166,10 @@ class GltfLoader
     };
     struct GltfMeshGroup
     {
+        std::string name;
         std::vector<GltfPrimitive> primitives;
     };
-    std::vector<std::shared_ptr<GltfMeshGroup>> m_meshes;
+    std::vector<std::shared_ptr<GltfMeshGroup>> m_groups;
 
 public:
     GltfLoader(const gltfformat::glTF &gltf, const uint8_t *p, int size)
@@ -186,7 +187,7 @@ public:
 
             // TO_PNG
             auto image = framedata::FrameImage::Load(bytes.p, bytes.size);
-            image->name = Utf8ToUnicode(gltfImage.name);
+            image->name = gltfImage.name;
             m_model->images.push_back(image);
         }
     }
@@ -197,6 +198,9 @@ public:
         for (auto &gltfMaterial : m_gltf.materials)
         {
             auto material = framedata::FrameMaterial::Create();
+            material->name = gltfMaterial.name;
+            material->colorImage = framedata::FrameImage::White();
+
             auto shader = IsUnlit(gltfMaterial) ? "gltf_unlit" : "gltf_standard";
 
             switch (gltfMaterial.alphaMode.value_or(gltfformat::MaterialAlphaMode::OPAQUE))
@@ -214,7 +218,7 @@ public:
                 throw "unknown";
             }
 
-            material->shader = framedata::ShaderManager::Instance().get(shader);
+            material->shaderSource = framedata::ShaderManager::Instance().get(shader);
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();
@@ -225,9 +229,14 @@ public:
                     material->colorImage = image;
                 }
 
-                //material->SetColor(pbr.baseColorFactor.value());
+                if (pbr.baseColorFactor.size() == 4)
+                {
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        material->color[i] = pbr.baseColorFactor[i];
+                    }
+                }
             }
-            material->name = gltfMaterial.name;
 
             m_model->materials.push_back(material);
         }
@@ -317,22 +326,17 @@ public:
 
     void LoadMeshes()
     {
-        m_meshes.reserve(m_gltf.meshes.size());
+        m_groups.reserve(m_gltf.meshes.size());
         for (auto &gltfMesh : m_gltf.meshes)
         {
             auto shared = HasSharedAccessorAttributes(gltfMesh);
             if (shared)
             {
-                m_meshes.push_back(LoadSharedPrimitives(gltfMesh));
+                m_groups.push_back(LoadSharedPrimitives(gltfMesh));
             }
             else
             {
-                m_meshes.push_back(LoadIsolatedPrimitives(gltfMesh));
-            }
-
-            for (auto &prim : m_meshes.back()->primitives)
-            {
-                m_model->meshes.push_back(prim.mesh);
+                m_groups.push_back(LoadIsolatedPrimitives(gltfMesh));
             }
         }
     }
@@ -372,6 +376,7 @@ public:
     std::shared_ptr<GltfMeshGroup> LoadSharedPrimitives(const gltfformat::Mesh &gltfMesh)
     {
         auto group = std::make_shared<GltfMeshGroup>();
+        group->name = gltfMesh.name;
         group->primitives.push_back({});
         auto &prim = group->primitives.back();
 
@@ -410,6 +415,7 @@ public:
     std::shared_ptr<GltfMeshGroup> LoadIsolatedPrimitives(const gltfformat::Mesh &gltfMesh)
     {
         auto group = std::make_shared<GltfMeshGroup>();
+        group->name = gltfMesh.name;
         for (auto &gltfPrimitive : gltfMesh.primitives)
         {
             group->primitives.push_back({});
@@ -464,34 +470,40 @@ public:
     void BuildHierarchy()
     {
         // build node hierarchy
+        for (auto &meshGroup : m_groups)
+        {
+            // auto mesh = framedata::FrameMesh::Create(group->name);
+            framedata::FrameMeshPtr mesh;
+            auto sum = 0;
+            for (auto &primitive : meshGroup->primitives)
+            {
+                sum += primitive.mesh->vertices->Count();
+                if (!mesh)
+                {
+                    mesh = primitive.mesh;
+                }
+                else
+                {
+                    mesh->AddSubmesh(primitive.mesh);
+                }
+            }
+            assert(mesh->vertices->Count() == sum);
+            m_model->meshes.push_back(mesh);
+        }
+
         for (int i = 0; i < m_model->nodes.size(); ++i)
         {
             auto &gltfNode = m_gltf.nodes[i];
             auto node = m_model->nodes[i];
             if (gltfNode.mesh.has_value())
             {
-                auto meshGroup = m_meshes[gltfNode.mesh.value()];
-
-                framedata::FrameMeshPtr mesh; // = FrameMesh::Create();
-                auto sum = 0;
-                for (auto &primitive : meshGroup->primitives)
-                {
-                    sum += primitive.mesh->vertices->Count();
-                    if (!mesh)
-                    {
-                        mesh = primitive.mesh;
-                    }
-                    else
-                    {
-                        mesh->AddSubmesh(primitive.mesh);
-                    }
-                }
-                assert(mesh->vertices->Count() == sum);
+                auto mesh = m_model->meshes[gltfNode.mesh.value()];
+                auto group = m_groups[gltfNode.mesh.value()];
 
                 if (gltfNode.skin.has_value())
                 {
                     auto &gltfSkin = m_gltf.skins[gltfNode.skin.value()];
-                    node->skin = CreateSkin(gltfSkin, meshGroup);
+                    node->skin = CreateSkin(gltfSkin, group);
                     m_model->skins.push_back(node->skin);
                     mesh->vertices->isDynamic = true;
 

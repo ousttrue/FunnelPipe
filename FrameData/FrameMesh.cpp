@@ -94,7 +94,11 @@ void FrameMesh::AddSubmesh(const std::shared_ptr<FrameMesh> &mesh)
     {
         throw;
     }
+    auto offset = submeshes.empty()
+                      ? 0
+                      : submeshes.back().drawOffset + submeshes.back().drawCount;
     submeshes.push_back(mesh->submeshes.front());
+    submeshes.back().drawOffset = offset;
 }
 
 static int GetStride(DXGI_FORMAT format)
@@ -121,7 +125,7 @@ bool FrameMesh::Validate()
 {
     for (auto &submesh : submeshes)
     {
-        auto shader = submesh.material->shader->Compiled();
+        auto shader = submesh.material->shaderSource->Compiled();
         if (shader->Generation() < 0)
         {
             return false;

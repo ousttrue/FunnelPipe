@@ -1,6 +1,7 @@
 #include "SceneManager.h"
 #include <imgui.h>
 #include <functional>
+#include <nameof.hpp>
 
 SceneManager::SceneManager(int argc, char **argv)
 {
@@ -61,6 +62,45 @@ void SceneManager::DrawNode(const hierarchy::SceneNodePtr &node)
     ImGui::PopID();
 }
 
+static void MaterialList(const hierarchy::SceneModelPtr &model)
+{
+    int i = 0;
+    for (auto &material : model->materials)
+    {
+        if (i)
+        {
+            ImGui::Separator();
+        }
+        ImGui::Text("%d %s", i, material->name.c_str());
+
+        auto shader = material->shaderSource->Compiled();
+        if (shader)
+        {
+            ImGui::Text("shader: %s", material->shaderSource->name().c_str());
+        }
+
+        ImGui::Text("alphaMode: %s", nameof::nameof_enum(material->alphaMode).data());
+        // if (material->alphaMode == framedata::AlphaMode::Mask)
+        {
+            ImGui::Text("alphaCutoff: %f", material->alphaCutoff);
+        }
+
+        if (material->colorImage)
+        {
+            ImGui::Text("colorImage: %s: %d x %d",
+                        material->colorImage->name.c_str(),
+                        material->colorImage->width, material->colorImage->height);
+        }
+        else
+        {
+            ImGui::Text("colorImage: null");
+        }
+        ImGui::ColorEdit4("color", material->color.data());
+
+        ++i;
+    }
+}
+
 static void MeshList(const hierarchy::SceneModelPtr &model)
 {
     // ImGui::Text("With border:");
@@ -110,9 +150,18 @@ void SceneManager::ImGui()
 
     if (m_scene.model)
     {
-        MeshList(m_scene.model);
-
-        DrawNode(m_scene.model->root);
+        if (ImGui::CollapsingHeader("Materials"))
+        {
+            MaterialList(m_scene.model);
+        }
+        if (ImGui::CollapsingHeader("Meshes"))
+        {
+            MeshList(m_scene.model);
+        }
+        if (ImGui::CollapsingHeader("Scene"))
+        {
+            DrawNode(m_scene.model->root);
+        }
     }
 
     ImGui::End();
@@ -155,7 +204,7 @@ void TraverseMesh(framedata::FrameData *framedata, const std::shared_ptr<SceneNo
             auto &material = submesh.material;
             if (filter(material))
             {
-                auto shader = material->shader->Compiled();
+                auto shader = material->shaderSource->Compiled();
                 if (shader)
                 {
                     auto m = node->World().RowMatrix();

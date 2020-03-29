@@ -25,6 +25,7 @@ target_include_directories(${TARGET_NAME} PRIVATE
     ${EXTERNAL_DIR}/nlohmann_json/include
     ${EXTERNAL_DIR}/imgui
     ${EXTERNAL_DIR}/gizmesh/example/camera_example
+    ${EXTERNAL_DIR}/nameof/include
     )
 target_link_libraries(${TARGET_NAME} PRIVATE
     # falg

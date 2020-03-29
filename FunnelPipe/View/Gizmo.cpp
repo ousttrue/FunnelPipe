@@ -23,7 +23,7 @@ void Gizmo::Begin(const screenstate::ScreenState &state, const camera::CameraSta
     {
         m_gizmo = new gizmesh::GizmoSystem;
         auto material = framedata::FrameMaterial::Create();
-        material->shader = framedata::ShaderManager::Instance().get("gizmo");
+        material->shaderSource = framedata::ShaderManager::Instance().get("gizmo");
         m_gizmoMesh->submeshes.push_back({
             .material = material,
         });
