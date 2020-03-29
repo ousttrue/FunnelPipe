@@ -4,7 +4,6 @@
 namespace hierarchy
 {
 struct DrawList;
-struct SceneView;
 } // namespace hierarchy
 
 class Renderer
@@ -19,7 +18,6 @@ public:
     void BeginFrame(void *hwnd, int width, int height);
     void EndFrame();
 
-    size_t ViewTextureID(const std::shared_ptr<hierarchy::SceneView> &view);
-    void View(const std::shared_ptr<hierarchy::SceneView> &view,
-              const hierarchy::DrawList &drawlist);
+    size_t ViewTextureID(size_t view);
+    void View(const hierarchy::DrawList &drawlist);
 };

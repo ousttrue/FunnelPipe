@@ -38,6 +38,11 @@ void SemanticsConstantBuffer::Initialize(const Microsoft::WRL::ComPtr<ID3D12Devi
 
 void SemanticsConstantBuffer::Assign(const std::uint8_t *p, const std::pair<UINT, UINT> *range, uint32_t count)
 {
+    if (count == 0)
+    {
+        m_ranges.clear();
+        return;
+    }
     m_ranges.assign(range, range + count);
     auto &back = m_ranges.back();
     memcpy(m_bytes.data(), p, back.first + back.second);

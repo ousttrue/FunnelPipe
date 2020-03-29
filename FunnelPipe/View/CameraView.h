@@ -12,7 +12,6 @@
 class CameraView
 {
     gizmesh::GizmoSystem::Buffer m_gizmoBuffer;
-    std::shared_ptr<hierarchy::SceneView> m_sceneView;
     size_t m_viewTextureID = 0;
 
     OrbitCamera m_camera;
@@ -21,8 +20,8 @@ class CameraView
 
 public:
     CameraView();
-    const std::shared_ptr<hierarchy::SceneView> &SceneView() const { return m_sceneView; }
     bool ImGui(const screenstate::ScreenState &state, size_t textureID,
-               const hierarchy::SceneNodePtr &selected);
+               const hierarchy::SceneNodePtr &selected,
+               hierarchy::DrawList *drawlist);
     void UpdateDrawlist(hierarchy::DrawList *drawlist);
 };

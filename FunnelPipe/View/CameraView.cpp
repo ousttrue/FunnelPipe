@@ -5,31 +5,25 @@
 
 
 CameraView::CameraView()
-    : m_sceneView(new hierarchy::SceneView)
 {
     m_camera.zNear = 0.01f;
-    m_sceneView->ClearColor = {
-        0.3f,
-        0.4f,
-        0.5f,
-        1.0f,
-    };
 }
 
 bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
-                       const hierarchy::SceneNodePtr &selected)
+                       const hierarchy::SceneNodePtr &selected,
+                       hierarchy::DrawList *drawlist)
 {
     // view
     // imgui window for rendertarget. convert screenState for view
     screenstate::ScreenState viewState;
-    bool isShowView = ::gui::View(m_sceneView.get(), state, textureID, &viewState);
+    bool isShowView = ::gui::View(drawlist, state, textureID, &viewState);
 
-    m_sceneView->Width = viewState.Width;
-    m_sceneView->Height = viewState.Height;
-    m_sceneView->Projection = m_camera.state.projection;
-    m_sceneView->View = m_camera.state.view;
-    m_sceneView->CameraPosition = m_camera.state.position;
-    m_sceneView->CameraFovYRadians = m_camera.state.fovYRadians;
+    drawlist->ViewWidth = viewState.Width;
+    drawlist->ViewHeight = viewState.Height;
+    drawlist->Projection = m_camera.state.projection;
+    drawlist->View = m_camera.state.view;
+    drawlist->CameraPosition = m_camera.state.position;
+    drawlist->CameraFovYRadians = m_camera.state.fovYRadians;
 
     //
     // update camera
@@ -70,7 +64,7 @@ bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
 void CameraView::UpdateDrawlist(hierarchy::DrawList *drawlist)
 {
     // gizmo
-    if (m_sceneView->ShowGizmo)
+    if (drawlist->ShowGizmo)
     {
         auto mesh = m_gizmo.GetMesh();
         if (mesh)

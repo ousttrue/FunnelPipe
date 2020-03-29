@@ -127,14 +127,14 @@ public:
         return texture;
     }
 
-    void View(const hierarchy::SceneViewPtr &sceneView, const hierarchy::DrawList &drawlist)
+    void View(const hierarchy::DrawList &drawlist)
     {
-        auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)sceneView.get());
-        UpdateView(viewRenderTarget, sceneView);
+        auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&drawlist);
+        UpdateView(viewRenderTarget, drawlist);
 
         UpdateNodes(drawlist);
         DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget,
-                 sceneView->ClearColor.data(), drawlist);
+                 drawlist.ViewClearColor.data(), drawlist);
     }
 
 private:
@@ -203,22 +203,22 @@ private:
     }
 
     void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
-                    const hierarchy::SceneViewPtr &sceneView)
+                    const hierarchy::DrawList &drawlist)
     {
         {
             // auto a = sizeof(Gpu::dx12::RootSignature::ViewConstants);
             auto buffer = m_rootSignature->GetViewConstantsBuffer(0);
-            buffer->b0Projection = sceneView->Projection;
-            buffer->b0View = sceneView->View;
+            buffer->b0Projection = drawlist.Projection;
+            buffer->b0View = drawlist.View;
             buffer->b0LightDir = m_light->LightDirection;
             buffer->b0LightColor = m_light->LightColor;
-            buffer->b0CameraPosition = sceneView->CameraPosition;
-            buffer->fovY = sceneView->CameraFovYRadians;
-            buffer->b0ScreenSize = {(float)sceneView->Width, (float)sceneView->Height};
+            buffer->b0CameraPosition = drawlist.CameraPosition;
+            buffer->fovY = drawlist.CameraFovYRadians;
+            buffer->b0ScreenSize = {(float)drawlist.ViewWidth, (float)drawlist.ViewHeight};
             m_rootSignature->m_viewConstantsBuffer.CopyToGpu();
         }
 
-        if (viewRenderTarget->Resize(sceneView->Width, sceneView->Height))
+        if (viewRenderTarget->Resize(drawlist.ViewWidth, drawlist.ViewHeight))
         {
             // clear all
             for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
@@ -229,7 +229,7 @@ private:
                     m_imguiDX12.Remove(resource->renderTarget.Get());
                 }
             }
-            viewRenderTarget->Initialize(sceneView->Width, sceneView->Height, m_device, BACKBUFFER_COUNT);
+            viewRenderTarget->Initialize(drawlist.ViewWidth, drawlist.ViewHeight, m_device, BACKBUFFER_COUNT);
         }
     }
 
@@ -328,12 +328,12 @@ void Renderer::EndFrame()
     m_impl->EndFrame();
 }
 
-size_t Renderer::ViewTextureID(const std::shared_ptr<hierarchy::SceneView> &view)
+size_t Renderer::ViewTextureID(size_t view)
 {
-    return m_impl->ViewTextureID((size_t)view.get());
+    return m_impl->ViewTextureID(view);
 }
 
-void Renderer::View(const hierarchy::SceneViewPtr &view, const hierarchy::DrawList &drawlist)
+void Renderer::View(const hierarchy::DrawList &drawlist)
 {
-    m_impl->View(view, drawlist);
+    m_impl->View(drawlist);
 }

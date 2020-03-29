@@ -21,6 +21,16 @@ struct DrawList
     uint32_t ViewWidth;
     uint32_t ViewHeight;
     std::vector<uint8_t> ViewConstantBuffer;
+    // int Width = 0;
+    // int Height = 0;
+    std::array<float, 16> Projection = {};
+    std::array<float, 16> View = {};
+    std::array<float, 3> CameraPosition = {0, 0, 0};
+    float CameraFovYRadians = 1.0f;
+    std::array<float, 4> ViewClearColor = {0, 0, 0, 1};
+    bool ShowGrid = true;
+    bool ShowGizmo = true;
+    bool ShowVR = false;
 
     //
     // 可変サイズのCBバッファの配列

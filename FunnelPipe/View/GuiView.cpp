@@ -49,7 +49,7 @@ static bool ViewButton(void *p, ImTextureID user_texture_id, const ImVec2 &size,
 namespace gui
 {
 
-bool View(hierarchy::SceneView *view, const screenstate::ScreenState &state, size_t textureID,
+bool View(hierarchy::DrawList *view, const screenstate::ScreenState &state, size_t textureID,
           screenstate::ScreenState *viewState)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -74,7 +74,7 @@ bool View(hierarchy::SceneView *view, const screenstate::ScreenState &state, siz
         ImGui::Checkbox("openvr", &view->ShowVR);
         ImGui::SameLine();
         ImGui::Checkbox("gizmo", &view->ShowGizmo);
-        ImGui::ColorEdit3("clear", view->ClearColor.data());
+        ImGui::ColorEdit3("clear", view->ViewClearColor.data());
 
         ViewButton(view, (ImTextureID)textureID, size, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 0);
         // update camera
