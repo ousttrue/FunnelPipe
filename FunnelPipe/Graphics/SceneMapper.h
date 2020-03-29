@@ -22,8 +22,7 @@ public:
     void Initialize(const ComPtr<ID3D12Device> &device);
     void Update(const ComPtr<ID3D12Device> &device);
     std::shared_ptr<class Mesh> GetOrCreate(const ComPtr<ID3D12Device> &device,
-                                            const hierarchy::SceneMeshPtr &model,
-                                            class RootSignature *rootSignature);
+                                            const hierarchy::SceneMeshPtr &model);
     std::shared_ptr<class RenderTargetChain> GetOrCreate(const hierarchy::SceneViewPtr &view);
 };
 

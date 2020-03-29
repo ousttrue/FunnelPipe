@@ -60,7 +60,7 @@ public:
                     const ComPtr<ID3D12Device> &device,
                     UINT frameCount);
 
-    void Begin(UINT frameIndex,
+    bool Begin(UINT frameIndex,
                const ComPtr<ID3D12GraphicsCommandList> &commandList, const float *clearColor);
     void End(UINT frameIndex, const ComPtr<ID3D12GraphicsCommandList> &commandList);
 

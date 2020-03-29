@@ -49,18 +49,12 @@ static int GetStride(DXGI_FORMAT format)
 }
 
 std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &device,
-                                               const std::shared_ptr<hierarchy::SceneMesh> &sceneMesh,
-                                               RootSignature *rootSignature)
+                                               const std::shared_ptr<hierarchy::SceneMesh> &sceneMesh)
 {
     auto found = m_meshMap.find(sceneMesh);
     if (found != m_meshMap.end())
     {
         return found->second;
-    }
-
-    if (!rootSignature)
-    {
-        return nullptr;
     }
 
     if (sceneMesh->submeshes.empty())

@@ -145,19 +145,6 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
 
 void RootSignature::Update(const ComPtr<ID3D12Device> &device)
 {
-    // update shader
-    // for (auto kv : m_shaderMap)
-    // {
-    //     auto [source, generation] = kv.first->source();
-    //     if (!source.empty())
-    //     {
-    //         if (!kv.second->Initialize(device, source, generation))
-    //         {
-    //             kv.first->clear();
-    //         }
-    //     }
-    // }
-
     for (auto kv : m_materialMap)
     {
         kv.second->Initialize(device, kv.first);
@@ -172,28 +159,6 @@ void RootSignature::Begin(const ComPtr<ID3D12Device> &device, const ComPtr<ID3D1
     commandList->SetGraphicsRootDescriptorTable(0, m_heap->GpuHandle(0));
 }
 
-// std::shared_ptr<Shader> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> &device, const hierarchy::ShaderWatcherPtr &shader)
-// {
-//     auto found = m_shaderMap.find(shader);
-//     if (found != m_shaderMap.end())
-//     {
-//         return found->second;
-//     }
-
-//     auto gpuShader = std::make_shared<Shader>(shader->name());
-//     auto [source, generation] = shader->source();
-//     if (!source.empty())
-//     {
-//         if (!gpuShader->Initialize(device, source, generation))
-//         {
-//             shader->clear();
-//         }
-//     }
-
-//     m_shaderMap.insert(std::make_pair(shader, gpuShader));
-//     return gpuShader;
-// }
-
 std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> &device, const std::shared_ptr<hierarchy::SceneMaterial> &sceneMaterial)
 {
     auto found = m_materialMap.find(sceneMaterial);
@@ -201,13 +166,6 @@ std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> 
     {
         return found->second;
     }
-
-    // shader
-    // auto gpuShader = GetOrCreate(device, sceneMaterial->shader);
-    // if (!gpuShader)
-    // {
-    //     return nullptr;
-    // }
 
     auto gpuMaterial = std::make_shared<Material>();
     if (!gpuMaterial->Initialize(device, m_rootSignature, sceneMaterial))
@@ -258,10 +216,6 @@ std::pair<std::shared_ptr<class Texture>, UINT> RootSignature::GetOrCreate(const
 void RootSignature::SetDrawDescriptorTable(const ComPtr<ID3D12Device> &device,
                                            const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT nodeIndex)
 {
-    // m_heap->CreateView();
-    // void Heap::CreateView(const ComPtr<ID3D12Device> &device, UINT cbIndex)
-    // {
-
     std::pair<uint32_t, uint32_t> view = {};
     if (nodeIndex < m_viewList.size())
     {

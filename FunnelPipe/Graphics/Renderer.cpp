@@ -154,13 +154,24 @@ private:
         }
     }
 
+    struct DrawInfo
+    {
+        std::shared_ptr<Gpu::dx12::Mesh> drawable;
+        hierarchy::SceneSubmesh submesh;
+    };
+    std::vector<DrawInfo> m_drawables;
+
     void UpdateNodes(const hierarchy::DrawList &drawlist)
     {
+        m_drawables.clear();
+        m_drawables.resize(drawlist.Items.size());
+
         // skins
-        for (auto &drawMesh : drawlist.Items)
+        for (size_t i = 0; i < drawlist.Items.size(); ++i)
         {
+            auto &drawMesh = drawlist.Items[i];
             auto mesh = drawMesh.Mesh;
-            auto drawable = m_sceneMapper->GetOrCreate(m_device, drawMesh.Mesh, m_rootSignature.get());
+            auto drawable = m_sceneMapper->GetOrCreate(m_device, drawMesh.Mesh);
             if (drawable)
             {
                 auto skin = mesh->skin;
@@ -177,6 +188,10 @@ private:
                 {
                     drawable->IndexBuffer()->MapCopyUnmap(drawMesh.Indices.Ptr, drawMesh.Indices.Size, drawMesh.Indices.Stride);
                 }
+                m_drawables[i] = {
+                    drawable,
+                    mesh->submeshes[drawMesh.SubmeshIndex],
+                };
             }
         }
 
@@ -223,66 +238,57 @@ private:
                   const float *clearColor,
                   const hierarchy::DrawList &drawlist)
     {
-        // clear
-        if (viewRenderTarget->Resource(frameIndex))
+        // begin, clear
+        if (viewRenderTarget->Begin(frameIndex, commandList, clearColor))
         {
-            viewRenderTarget->Begin(frameIndex, commandList, clearColor);
-
-            // global settings
+            // setup root signature
+            // all shader use same root signature
             m_rootSignature->Begin(m_device, commandList);
 
             for (size_t i = 0; i < drawlist.Items.size(); ++i)
             {
-                DrawMesh(commandList, (UINT)i, drawlist.Items[i]);
+                DrawMesh(commandList, (UINT)i, m_drawables[i]);
             }
 
+            // finish rendering
             viewRenderTarget->End(frameIndex, commandList);
         }
     }
 
-    void DrawMesh(const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT i, const hierarchy::DrawList::DrawItem &info)
+    void DrawMesh(const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT i,
+                  const DrawInfo &info)
     {
-        auto &mesh = info.Mesh;
-        if (!mesh)
+        if (!info.drawable)
+        {
+            return;
+        }
+        if (!info.drawable->IsDrawable(m_commandlist.get()))
         {
             return;
         }
 
-        auto drawable = m_sceneMapper->GetOrCreate(m_device, mesh, m_rootSignature.get());
-        if (!drawable)
-        {
-            return;
-        }
-        if (!drawable->IsDrawable(m_commandlist.get()))
-        {
-            return;
-        }
+        m_rootSignature->SetDrawDescriptorTable(m_device, commandList, i);
 
-        // for (auto &submesh : mesh->submeshes)
+        auto &submesh = info.submesh;
+        auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
+
+        // texture setup
+        if (submesh.material->colorImage)
         {
-            m_rootSignature->SetDrawDescriptorTable(m_device, commandList, i);
-
-            auto &submesh = mesh->submeshes[info.SubmeshIndex];
-            auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
-
-            // texture setup
-            if (submesh.material->colorImage)
+            auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->colorImage,
+                                                                       m_sceneMapper->GetUploader());
+            if (texture)
             {
-                auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->colorImage,
-                                                                           m_sceneMapper->GetUploader());
-                if (texture)
+                if (texture->IsDrawable(m_commandlist.get(), 0))
                 {
-                    if (texture->IsDrawable(m_commandlist.get(), 0))
-                    {
-                        m_rootSignature->SetTextureDescriptorTable(m_device, commandList, textureSlot);
-                    }
+                    m_rootSignature->SetTextureDescriptorTable(m_device, commandList, textureSlot);
                 }
             }
+        }
 
-            if (material->Set(commandList))
-            {
-                m_commandlist->Get()->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
-            }
+        if (material->Set(commandList))
+        {
+            commandList->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
         }
     }
 };

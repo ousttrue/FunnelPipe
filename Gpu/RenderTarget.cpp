@@ -126,9 +126,14 @@ void RenderTargetChain::Initialize(UINT width, UINT height,
     }
 }
 
-void RenderTargetChain::Begin(UINT frameIndex,
+bool RenderTargetChain::Begin(UINT frameIndex,
                               const ComPtr<ID3D12GraphicsCommandList> &commandList, const float *clearColor)
 {
+    if (!Resource(frameIndex))
+    {
+        return false;
+    }
+
     ComPtr<ID3D12Device> device;
     commandList->GetDevice(IID_PPV_ARGS(&device));
 
@@ -158,6 +163,8 @@ void RenderTargetChain::Begin(UINT frameIndex,
         commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
     }
     commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0, 0, 0, nullptr);
+
+    return true;
 }
 
 void RenderTargetChain::End(UINT frameIndex,
