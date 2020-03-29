@@ -36,7 +36,7 @@ void SemanticsConstantBuffer::Initialize(const Microsoft::WRL::ComPtr<ID3D12Devi
     ThrowIfFailed(m_resource->Map(0, &readRange, reinterpret_cast<void **>(&m_pCbvDataBegin)));
 }
 
-void SemanticsConstantBuffer::Assign(const std::uint8_t *p, const std::pair<UINT, UINT> *range, uint32_t count)
+void SemanticsConstantBuffer::Assign(const std::pair<UINT, UINT> *range, uint32_t count)
 {
     if (count == 0)
     {
@@ -44,8 +44,8 @@ void SemanticsConstantBuffer::Assign(const std::uint8_t *p, const std::pair<UINT
         return;
     }
     m_ranges.assign(range, range + count);
-    auto &back = m_ranges.back();
-    memcpy(m_bytes.data(), p, back.first + back.second);
+    // auto &back = m_ranges.back();
+    // memcpy(m_bytes.data(), p, back.first + back.second);
 }
 
 } // namespace Gpu::dx12

@@ -196,10 +196,9 @@ private:
         }
 
         // CB
-        m_rootSignature->m_drawConstantsBuffer.Assign(drawlist.CB.data(),
-                                                      (const std::pair<UINT, UINT> *)drawlist.CBRanges.data(),
+        m_rootSignature->m_drawConstantsBuffer.Assign((const std::pair<UINT, UINT> *)drawlist.CBRanges.data(),
                                                       (uint32_t)drawlist.CBRanges.size());
-        m_rootSignature->m_drawConstantsBuffer.CopyToGpu();
+        m_rootSignature->m_drawConstantsBuffer.CopyToGpu(drawlist.CB.data(), drawlist.CB.size());
     }
 
     void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
@@ -207,15 +206,16 @@ private:
     {
         {
             // auto a = sizeof(Gpu::dx12::RootSignature::ViewConstants);
-            auto buffer = m_rootSignature->GetViewConstantsBuffer(0);
-            buffer->b0Projection = drawlist.Projection;
-            buffer->b0View = drawlist.View;
-            buffer->b0LightDir = m_light->LightDirection;
-            buffer->b0LightColor = m_light->LightColor;
-            buffer->b0CameraPosition = drawlist.CameraPosition;
-            buffer->fovY = drawlist.CameraFovYRadians;
-            buffer->b0ScreenSize = {(float)drawlist.ViewWidth, (float)drawlist.ViewHeight};
-            m_rootSignature->m_viewConstantsBuffer.CopyToGpu();
+            Gpu::dx12::RootSignature::ViewConstants buffer{};
+            // auto buffer = m_rootSignature->GetViewConstantsBuffer(0);
+            buffer.b0Projection = drawlist.Projection;
+            buffer.b0View = drawlist.View;
+            buffer.b0LightDir = m_light->LightDirection;
+            buffer.b0LightColor = m_light->LightColor;
+            buffer.b0CameraPosition = drawlist.CameraPosition;
+            buffer.fovY = drawlist.CameraFovYRadians;
+            buffer.b0ScreenSize = {(float)drawlist.ViewWidth, (float)drawlist.ViewHeight};
+            m_rootSignature->m_viewConstantsBuffer.CopyToGpu(buffer);
         }
 
         if (viewRenderTarget->Resize(drawlist.ViewWidth, drawlist.ViewHeight))
