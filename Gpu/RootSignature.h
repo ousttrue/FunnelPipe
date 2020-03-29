@@ -38,9 +38,9 @@ public:
     std::pair<std::shared_ptr<class Texture>, UINT> GetOrCreate(const ComPtr<ID3D12Device> &device, const hierarchy::SceneImagePtr &image, class Uploader *uploader);
 
     // each Frame
-    Gpu::dx12::SemanticsConstantBuffer m_viewConstantsBuffer{1024};
+    Gpu::dx12::ConstantBuffer m_viewConstantsBuffer;
     // each DrawCall
-    Gpu::dx12::SemanticsConstantBuffer m_drawConstantsBuffer{1024};
+    Gpu::dx12::ConstantBuffer m_drawConstantsBuffer;
 
     void SetDrawDescriptorTable(const ComPtr<ID3D12Device> &device,
                                 const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT nodeIndex);

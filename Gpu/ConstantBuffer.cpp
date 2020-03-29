@@ -3,9 +3,10 @@
 namespace Gpu::dx12
 {
 
-void SemanticsConstantBuffer::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device> &device, int count)
+void ConstantBuffer::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device> &device,
+                                uint32_t size)
 {
-    m_bytes.resize(m_allocSizePerItem * count);
+    // m_bytes.resize(m_allocSizePerItem * count);
 
     D3D12_HEAP_PROPERTIES prop{
         .Type = D3D12_HEAP_TYPE_UPLOAD,
@@ -13,7 +14,7 @@ void SemanticsConstantBuffer::Initialize(const Microsoft::WRL::ComPtr<ID3D12Devi
     D3D12_RESOURCE_DESC desc{
         .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
         .Alignment = 0,
-        .Width = (UINT)m_bytes.size(),
+        .Width = size,
         .Height = 1,
         .DepthOrArraySize = 1,
         .MipLevels = 1,
@@ -36,7 +37,7 @@ void SemanticsConstantBuffer::Initialize(const Microsoft::WRL::ComPtr<ID3D12Devi
     ThrowIfFailed(m_resource->Map(0, &readRange, reinterpret_cast<void **>(&m_pCbvDataBegin)));
 }
 
-void SemanticsConstantBuffer::Assign(const std::pair<UINT, UINT> *range, uint32_t count)
+void ConstantBuffer::Assign(const std::pair<UINT, UINT> *range, uint32_t count)
 {
     if (count == 0)
     {
@@ -44,13 +45,12 @@ void SemanticsConstantBuffer::Assign(const std::pair<UINT, UINT> *range, uint32_
         return;
     }
     m_ranges.assign(range, range + count);
-    // auto &back = m_ranges.back();
-    // memcpy(m_bytes.data(), p, back.first + back.second);
 }
 
-void SemanticsConstantBuffer::AllRange()
+void ConstantBuffer::AllRange()
 {
-    m_ranges.push_back({0, m_bytes.size()});
+    D3D12_RESOURCE_DESC desc = m_resource->GetDesc();
+    m_ranges.push_back({0, desc.Width});
 }
 
 } // namespace Gpu::dx12
