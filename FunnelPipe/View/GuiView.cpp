@@ -59,15 +59,7 @@ bool View(hierarchy::DrawList *view, const screenstate::ScreenState &state, size
     {
         ImGui::SetWindowSize(ImVec2(512, 512), ImGuiCond_FirstUseEver);
 
-        auto size = ImGui::GetContentRegionAvail();
-        auto pos = ImGui::GetWindowPos();
-        auto frameHeight = ImGui::GetFrameHeight();
-
-        *viewState = state;
-        viewState->Width = (int)size.x;
-        viewState->Height = (int)size.y;
-        viewState->MouseX = state.MouseX - (int)pos.x;
-        viewState->MouseY = state.MouseY - (int)pos.y - (int)frameHeight;
+        auto size_ = ImGui::GetContentRegionAvail();
 
         ImGui::Checkbox("grid", &view->ShowGrid);
         ImGui::SameLine();
@@ -75,6 +67,17 @@ bool View(hierarchy::DrawList *view, const screenstate::ScreenState &state, size
         ImGui::SameLine();
         ImGui::Checkbox("gizmo", &view->ShowGizmo);
         ImGui::ColorEdit3("clear", view->ViewClearColor.data());
+
+        auto size = ImGui::GetContentRegionAvail();
+        auto pos = ImGui::GetWindowPos();
+        auto cursor = ImGui::GetCursorPos();
+        // auto frameHeight = ImGui::GetFrameHeight();
+
+        *viewState = state;
+        viewState->Width = (int)size.x;
+        viewState->Height = (int)size.y;
+        viewState->MouseX = state.MouseX - (int)pos.x;
+        viewState->MouseY = state.MouseY - (int)pos.y - (int)cursor.y;
 
         ViewButton(view, (ImTextureID)textureID, size, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 0);
         // update camera

@@ -71,7 +71,7 @@ public:
                 frame_metrics::scoped ss("view");
                 m_drawlist.Clear();
                 m_scene.UpdateDrawlist(&m_drawlist, m_drawlist.ShowGrid);
-                // m_view.UpdateDrawlist(&m_drawlist);
+                m_view.UpdateDrawlist(&m_drawlist);
                 // LOGD << m_drawlist.CBRanges.size() << ", " << m_drawlist.Items.size();
                 m_renderer.View(m_drawlist);
             }
