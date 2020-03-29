@@ -495,34 +495,6 @@ private:
         {
             ImGui::ShowDemoWindow();
         }
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-        static bool show_demo_window = true;
-        static bool show_another_window = true;
-
-        {
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
-            // ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
-            // ImGui::Checkbox("Another Window", &show_another_window);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-            // ImGui::ColorEdit3("clear color", clearColor); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            // ImGui::Text("%s among %d items", ICON_FA_SEARCH, 10);
-            // ImGui::Text("%s", ICON_FA_SEARCH " Search");
-
-            ImGui::End();
-        }
     }
 };
 
@@ -548,6 +520,51 @@ void Gui::OnFrame(const screenstate::ScreenState &state,
                   const FileOpenFunc &open)
 {
     m_impl->NewFrame(state, open);
+}
+
+void Gui::FrameData(const framedata::FrameData &framedata)
+{
+    ImGui::Begin("FrameData");
+
+    // ImGui::Text("With border:");
+    ImGui::Columns(4, "mycolumns"); // 4-ways, with border
+    ImGui::Separator();
+    ImGui::Text("index");
+    ImGui::NextColumn();
+    ImGui::Text("mesh");
+    ImGui::NextColumn();
+    ImGui::Text("submesh");
+    ImGui::NextColumn();
+    ImGui::Text("material");
+    ImGui::NextColumn();
+    ImGui::Separator();
+    // const char *names[3] = {"One", "Two", "Three"};
+    // const char *paths[3] = {"/path/one", "/path/two", "/path/three"};
+    static int selected = -1;
+    int i = 0;
+    for (auto &item : framedata.Drawlist)
+    {
+        char label[32];
+        sprintf(label, "%04d", i);
+        if (ImGui::Selectable(label, selected == i, ImGuiSelectableFlags_SpanAllColumns))
+            selected = i;
+        bool hovered = ImGui::IsItemHovered();
+
+        // auto &mesh = model->meshes[i];
+        ImGui::NextColumn();
+        ImGui::Text(item.Mesh->name.c_str());
+        ImGui::NextColumn();
+        ImGui::Text("%d", item.Submesh.drawCount);
+        ImGui::NextColumn();
+        ImGui::Text("%s", item.Submesh.material->name.c_str());
+        ImGui::NextColumn();
+
+        ++i;
+    }
+    ImGui::Columns(1);
+    ImGui::Separator();
+
+    ImGui::End();
 }
 
 } // namespace gui

@@ -21,7 +21,7 @@ scene+
 ## TODO
 
 * imgui
-  * [ ] ModelInfo
-  * [ ] ResourceInfo
+  * [x] ModelInfo
+  * [x] ResourceInfo
 * shader
   * [ ] Gltf PBR

@@ -177,12 +177,12 @@ void SceneManager::OpenFile(const std::filesystem::path &path)
     }
 }
 
-namespace hierarchy
+namespace framedata
 {
 
 using FilterFunc = std::function<bool(const framedata::FrameMaterialPtr &)>;
 
-void TraverseMesh(framedata::FrameData *framedata, const std::shared_ptr<SceneNode> &node, const FilterFunc &filter)
+void TraverseMesh(FrameData *framedata, const std::shared_ptr<hierarchy::SceneNode> &node)
 {
     auto mesh = node->Mesh();
     if (mesh)
@@ -198,7 +198,20 @@ void TraverseMesh(framedata::FrameData *framedata, const std::shared_ptr<SceneNo
                 mesh->vertices->stride,
             };
         }
+    }
+    int count;
+    auto child = node->GetChildren(&count);
+    for (int i = 0; i < count; ++i, ++child)
+    {
+        TraverseMesh(framedata, *child);
+    }
+}
 
+void TraverseSubmesh(FrameData *framedata, const std::shared_ptr<hierarchy::SceneNode> &node, const FilterFunc &filter)
+{
+    auto mesh = node->Mesh();
+    if (mesh)
+    {
         for (auto &submesh : mesh->submeshes)
         {
             auto &material = submesh.material;
@@ -230,47 +243,54 @@ void TraverseMesh(framedata::FrameData *framedata, const std::shared_ptr<SceneNo
     auto child = node->GetChildren(&count);
     for (int i = 0; i < count; ++i, ++child)
     {
-        TraverseMesh(framedata, *child, filter);
+        TraverseSubmesh(framedata, *child, filter);
     }
 }
 
-static void UpdateFrameDataIf(framedata::FrameData *framedata, const Scene *scene, const FilterFunc &filter)
+static void UpdateFrameDataIf(framedata::FrameData *framedata,
+                              const hierarchy::Scene *scene,
+                              const framedata::FilterFunc &filter)
 {
     if (framedata->ShowGrid)
     {
         for (auto &node : scene->gizmoNodes)
         {
-            TraverseMesh(framedata, node, filter);
+            TraverseSubmesh(framedata, node, filter);
         }
     }
-    // if (view->ShowVR)
-    // {
-    //     for (auto &node : scene->vrNodes)
-    //     {
-    //         TraverseMesh(&view->Drawlist, node, filter);
-    //     }
-    // }
-    // for (auto &node : scene->sceneNodes)
     if (scene->model)
     {
-        TraverseMesh(framedata, scene->model->root, filter);
+        TraverseSubmesh(framedata, scene->model->root, filter);
     }
 }
-} // namespace hierarchy
+} // namespace framedata
 
 void SceneManager::UpdateFrameData(framedata::FrameData *framedata)
 {
     m_scene.Update();
 
     //
+    // node
+    //
+    for (auto &node : m_scene.gizmoNodes)
+    {
+        framedata::TraverseMesh(framedata, node);
+    }
+    if (m_scene.model)
+    {
+        framedata::TraverseMesh(framedata, m_scene.model->root);
+    }
+
+    //
     // mesh
     //
     // Opaque
-    hierarchy::UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
+    framedata::UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
         return m->alphaMode != framedata::AlphaMode::Blend;
     });
+
     // AlphaBlend
-    hierarchy::UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
+    framedata::UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
         return m->alphaMode == framedata::AlphaMode::Blend;
     });
 }

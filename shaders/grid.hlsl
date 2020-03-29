@@ -12,6 +12,12 @@ struct PS_INPUT
     linear float2 uv : TEXCOORD0;
 };
 
+struct PS_OUT
+{
+    float4 color : SV_Target;
+    float depth : SV_Depth;
+};
+
 cbuffer SceneConstantBuffer : register(b0)
 {
     float4x4 b0View : CAMERA_VIEW;
@@ -58,7 +64,8 @@ float gridX(float x)
     return range;
 }
 
-float4 PSMain(PS_INPUT ps) : SV_Target
+// https://stackoverflow.com/questions/50659949/hlsl-modify-depth-in-pixel-shader
+PS_OUT PSMain(PS_INPUT ps)
 {
     float3 n = b0CameraPosition.y >= 0 ? float3(0, -1, 0) : float3(0, 1, 0);
 
@@ -89,5 +96,11 @@ float4 PSMain(PS_INPUT ps) : SV_Target
     float c = max(lx, ly);
     c *= fade;
 
-    return float4(float3(0.8, 0.8, 0.8) * c, 1);
+    float4 projected = mul(b0Projection, mul(b0View, float4(world, 1)));
+
+    PS_OUT output = (PS_OUT)0;
+    output.color = float4(float3(0.8, 0.8, 0.8) * c, 0.5);
+    output.depth = projected.z/projected.w;
+
+    return output;
 }

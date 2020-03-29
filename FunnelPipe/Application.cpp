@@ -61,6 +61,13 @@ public:
 
             // model panel
             m_scene.ImGui();
+
+            // update framedata
+            m_frameData.Clear();
+            m_scene.UpdateFrameData(&m_frameData);
+            m_view.UpdateFrameData(&m_frameData);
+
+            m_imgui.FrameData(m_frameData);
         }
 
         // renderering
@@ -70,11 +77,6 @@ public:
             if (isShowView)
             {
                 frame_metrics::scoped ss("view");
-                m_frameData.Clear();
-                m_scene.UpdateFrameData(&m_frameData);
-                m_view.UpdateFrameData(&m_frameData);
-                // LOGD << m_frameData.CBRanges.size() << ", " << m_frameData.Items.size();
-
                 m_renderer.View(m_frameData);
             }
             m_renderer.EndFrame();

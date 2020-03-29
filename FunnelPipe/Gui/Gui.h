@@ -2,6 +2,7 @@
 #include <ScreenState.h>
 #include <functional>
 #include <filesystem>
+#include <FrameData.h>
 
 namespace gui
 {
@@ -18,6 +19,7 @@ public:
     void Log(const char *msg);
     void OnFrame(const screenstate::ScreenState &state,
                  const FileOpenFunc &open);
+    void FrameData(const framedata::FrameData &framedata);
 };
 
 } // namespace gui
