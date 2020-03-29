@@ -460,7 +460,7 @@ private:
     {
         ImGui::Begin("Performance");
         {
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
             auto width = ImGui::GetWindowContentRegionWidth();
             const float TIME_RANGE = 2.0f / 60.0f;
