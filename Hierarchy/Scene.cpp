@@ -45,10 +45,11 @@ void Scene::Update()
         node->UpdateWorld();
         UpdateRecursive(node);
     }
-    for (auto &node : sceneNodes)
+    // for (auto &node : sceneNodes)
+    if(model)
     {
-        node->UpdateWorld();
-        UpdateRecursive(node);
+        model->root->UpdateWorld();
+        UpdateRecursive(model->root);
     }
 }
 

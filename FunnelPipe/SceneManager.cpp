@@ -22,12 +22,12 @@ SceneManager::SceneManager(int argc, char **argv)
         auto model = hierarchy::SceneModel::LoadFromPath(argv[2]);
         if (model)
         {
-            m_scene.sceneNodes.push_back(model->root);
+            m_scene.model = model;
         }
     }
 }
 
-static void DrawNode(const hierarchy::SceneNodePtr &node, hierarchy::Scene *scene)
+void SceneManager::DrawNode(const hierarchy::SceneNodePtr &node)
 {
     int childCount;
     auto children = node->GetChildren(&childCount);
@@ -38,14 +38,14 @@ static void DrawNode(const hierarchy::SceneNodePtr &node, hierarchy::Scene *scen
     {
         flags |= ImGuiTreeNodeFlags_Leaf;
     }
-    if (node == scene->selected.lock())
+    if (node == m_selected.lock())
     {
         flags |= ImGuiTreeNodeFlags_Selected;
     }
     auto isOpen = ImGui::TreeNodeEx(node->Name().c_str(), flags);
     if (ImGui::IsItemClicked())
     {
-        scene->selected = node;
+        m_selected = node;
     }
 
     if (isOpen)
@@ -53,7 +53,7 @@ static void DrawNode(const hierarchy::SceneNodePtr &node, hierarchy::Scene *scen
         // children
         for (int i = 0; i < childCount; ++i)
         {
-            DrawNode(children[i], scene);
+            DrawNode(children[i]);
         }
         ImGui::TreePop();
     }
@@ -61,15 +61,58 @@ static void DrawNode(const hierarchy::SceneNodePtr &node, hierarchy::Scene *scen
     ImGui::PopID();
 }
 
+static void MeshList(const hierarchy::SceneModelPtr &model)
+{
+    // ImGui::Text("With border:");
+    ImGui::Columns(4, "mycolumns"); // 4-ways, with border
+    ImGui::Separator();
+    ImGui::Text("ID");
+    ImGui::NextColumn();
+    ImGui::Text("Name");
+    ImGui::NextColumn();
+    ImGui::Text("Vertices");
+    ImGui::NextColumn();
+    ImGui::Text("Submeshes");
+    ImGui::NextColumn();
+    ImGui::Separator();
+    // const char *names[3] = {"One", "Two", "Three"};
+    // const char *paths[3] = {"/path/one", "/path/two", "/path/three"};
+    static int selected = -1;
+    int i = 0;
+    for (auto &mesh : model->meshes)
+    {
+        char label[32];
+        sprintf(label, "%04d", i);
+        if (ImGui::Selectable(label, selected == i, ImGuiSelectableFlags_SpanAllColumns))
+            selected = i;
+        bool hovered = ImGui::IsItemHovered();
+
+        // auto &mesh = model->meshes[i];
+        ImGui::NextColumn();
+        ImGui::Text(mesh->name.c_str());
+        ImGui::NextColumn();
+        ImGui::Text("%d", mesh->vertices->Count());
+        ImGui::NextColumn();
+        ImGui::Text("%d", mesh->submeshes.size());
+        ImGui::NextColumn();
+
+        ++i;
+    }
+    ImGui::Columns(1);
+    ImGui::Separator();
+}
+
 void SceneManager::ImGui()
 {
     // scene tree
-    ImGui::Begin("scene graph");
+    ImGui::Begin("Model");
     ImGui::SetWindowSize(ImVec2(256, 512), ImGuiCond_FirstUseEver);
 
-    for (auto &node : m_scene.sceneNodes)
+    if (m_scene.model)
     {
-        DrawNode(node, &m_scene);
+        MeshList(m_scene.model);
+
+        DrawNode(m_scene.model->root);
     }
 
     ImGui::End();
@@ -81,8 +124,7 @@ void SceneManager::OpenFile(const std::filesystem::path &path)
 
     if (model)
     {
-        m_scene.sceneNodes.clear();
-        m_scene.sceneNodes.push_back(model->root);
+        m_scene.model = model;
     }
 }
 
@@ -155,9 +197,10 @@ static void UpdateFrameDataIf(framedata::FrameData *framedata, const Scene *scen
     //         TraverseMesh(&view->Drawlist, node, filter);
     //     }
     // }
-    for (auto &node : scene->sceneNodes)
+    // for (auto &node : scene->sceneNodes)
+    if (scene->model)
     {
-        TraverseMesh(framedata, node, filter);
+        TraverseMesh(framedata, scene->model->root, filter);
     }
 }
 } // namespace hierarchy

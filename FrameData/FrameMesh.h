@@ -19,14 +19,14 @@ struct FrameSubmesh
 class FrameMesh
 {
 public:
-    std::wstring name;
-    FrameMesh(const std::wstring &n)
+    std::string name;
+    FrameMesh(const std::string &n)
         : name(n)
     {
     }
 
-    static std::shared_ptr<FrameMesh> Create(const std::wstring &name);
-    static std::shared_ptr<FrameMesh> CreateDynamic(const std::wstring &name,
+    static std::shared_ptr<FrameMesh> Create(const std::string &name);
+    static std::shared_ptr<FrameMesh> CreateDynamic(const std::string &name,
                                                     uint32_t vertexReserve, uint32_t vertexStride,
                                                     uint32_t indexReserve, uint32_t indexStride);
 

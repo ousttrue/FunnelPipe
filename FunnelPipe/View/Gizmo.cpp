@@ -5,7 +5,7 @@
 
 Gizmo::Gizmo()
     : m_gizmoMesh(framedata::FrameMesh::CreateDynamic(
-          L"gizmo",
+          "gizmo",
           65535, 40, // GizmoVertex
           65535, 2)),
       m_gizmoNode(hierarchy::SceneNode::Create("gizmo"))

@@ -51,6 +51,7 @@ public:
         bool isShowView = false;
         {
             frame_metrics::scoped s("imgui");
+
             // imgui
             m_imgui.OnFrame(state, std::bind(&SceneManager::OpenFile, &m_scene, std::placeholders::_1));
 

@@ -27,7 +27,7 @@ static std::shared_ptr<FrameMesh> CreateGrid()
         0, 1, 2, //
         2, 3, 0, //
     };
-    auto mesh = FrameMesh::Create(L"grid");
+    auto mesh = FrameMesh::Create("grid");
     mesh->vertices = VertexBuffer::CreateStatic(
         Semantics::Vertex,
         sizeof(vertices[0]), vertices, sizeof(vertices));

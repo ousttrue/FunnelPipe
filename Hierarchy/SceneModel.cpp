@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <plog/Log.h>
+#include <FrameData.h>
 
 struct GltfVertex
 {
@@ -78,8 +79,7 @@ class GltfLoader
             const gltfformat::Mesh &gltfMesh,
             const gltfformat::MeshPrimitive &gltfPrimitive)
         {
-            mesh = framedata::FrameMesh::Create(L"gltf");
-            mesh->name = Utf8ToUnicode(gltfMesh.name);
+            mesh = framedata::FrameMesh::Create(gltfMesh.name);
 
             std::vector<GltfVertex> vertices;
             int vertexCount = 0;
@@ -324,12 +324,17 @@ public:
             {
                 m_meshes.push_back(LoadIsolatedPrimitives(gltfMesh));
             }
+
+            for (auto &prim : m_meshes.back()->primitives)
+            {
+                m_model->meshes.push_back(prim.mesh);
+            }
         }
     }
 
     std::shared_ptr<framedata::VertexBuffer> LoadIndices(const gltfformat::glTF &gltf,
-                                              const gltfformat::bin &bin,
-                                              const gltfformat::MeshPrimitive &gltfPrimitive)
+                                                         const gltfformat::bin &bin,
+                                                         const gltfformat::MeshPrimitive &gltfPrimitive)
     {
         if (!gltfPrimitive.indices.has_value())
         {
@@ -482,6 +487,7 @@ public:
                 {
                     auto &gltfSkin = m_gltf.skins[gltfNode.skin.value()];
                     node->skin = CreateSkin(gltfSkin, meshGroup);
+                    m_model->skins.push_back(node->skin);
                     mesh->vertices->isDynamic = true;
 
                     if (node->skin->vertexSkiningArray.size() != mesh->vertices->Count())

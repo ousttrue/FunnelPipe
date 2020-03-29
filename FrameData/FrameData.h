@@ -4,6 +4,7 @@
 #include "ShaderManager.h"
 #include "MeshFactory/CreateGrid.h"
 #include "FrameMesh.h"
+#include "ToUnicode.h"
 
 #include <array>
 #include <vector>

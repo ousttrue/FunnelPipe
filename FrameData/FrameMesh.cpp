@@ -6,13 +6,13 @@
 namespace framedata
 {
 
-FrameMeshPtr FrameMesh::Create(const std::wstring &name)
+FrameMeshPtr FrameMesh::Create(const std::string &name)
 {
     return FrameMeshPtr(new FrameMesh(name));
 }
 
 std::shared_ptr<FrameMesh> FrameMesh::CreateDynamic(
-    const std::wstring &name,
+    const std::string &name,
     uint32_t vertexReserve, uint32_t vertexStride,
     uint32_t indexReserve, uint32_t indexStride)
 {

@@ -4,7 +4,6 @@ add_library(${TARGET_NAME}
     Scene.cpp
     ParseGltf.cpp
     SceneModel.cpp
-    ToUnicode.cpp
     SceneMeshSkin.cpp
     )
 set_property(TARGET ${TARGET_NAME} 

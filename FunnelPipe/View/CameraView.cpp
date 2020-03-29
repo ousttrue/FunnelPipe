@@ -26,19 +26,19 @@ bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
     //
     // update camera
     //
-    if (selected != m_selected)
-    {
-        if (selected)
-        {
-            m_camera.gaze = -selected->World().translation;
-        }
-        else
-        {
-            // m_camera->gaze = {0, 0, 0};
-        }
+    // if (selected != m_selected)
+    // {
+    //     if (selected)
+    //     {
+    //         m_camera.gaze = -selected->World().translation;
+    //     }
+    //     else
+    //     {
+    //         // m_camera->gaze = {0, 0, 0};
+    //     }
 
-        m_selected = selected;
-    }
+    //     m_selected = selected;
+    // }
     m_camera.Update(viewState);
 
     //

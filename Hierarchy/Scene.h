@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include "SceneNode.h"
+#include "SceneModel.h"
 #include "FrameMaterial.h"
 #include "FrameMesh.h"
 
@@ -15,10 +16,9 @@ class Scene
 public:
     std::vector<SceneNodePtr> gizmoNodes;
     std::vector<SceneNodePtr> vrNodes;
-    std::vector<SceneNodePtr> sceneNodes;
+    // std::vector<SceneNodePtr> sceneNodes;
 
-    // single selection
-    std::weak_ptr<hierarchy::SceneNode> selected;
+    SceneModelPtr model;
 
     Scene();
     void Update();
