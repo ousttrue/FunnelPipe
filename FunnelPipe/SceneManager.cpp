@@ -129,9 +129,9 @@ void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNod
     }
 }
 
-static void UpdateDrawListIf(framedata::FrameData *drawlist, const Scene *scene, bool showGrid, const FilterFunc &filter)
+static void UpdateDrawListIf(framedata::FrameData *drawlist, const Scene *scene, const FilterFunc &filter)
 {
-    if (showGrid)
+    if (drawlist->ShowGrid)
     {
         for (auto &node : scene->gizmoNodes)
         {
@@ -152,8 +152,7 @@ static void UpdateDrawListIf(framedata::FrameData *drawlist, const Scene *scene,
 }
 } // namespace hierarchy
 
-void SceneManager::UpdateDrawlist(framedata::FrameData *drawlist,
-                                  bool showGrid)
+void SceneManager::UpdateDrawlist(framedata::FrameData *drawlist)
 {
     m_scene.Update();
 
@@ -161,11 +160,11 @@ void SceneManager::UpdateDrawlist(framedata::FrameData *drawlist,
     // mesh
     //
     // Opaque
-    hierarchy::UpdateDrawListIf(drawlist, &m_scene, showGrid, [](const hierarchy::SceneMaterialPtr &m) {
+    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const hierarchy::SceneMaterialPtr &m) {
         return m->alphaMode != hierarchy::AlphaMode::Blend;
     });
     // AlphaBlend
-    hierarchy::UpdateDrawListIf(drawlist, &m_scene, showGrid, [](const hierarchy::SceneMaterialPtr &m) {
+    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const hierarchy::SceneMaterialPtr &m) {
         return m->alphaMode == hierarchy::AlphaMode::Blend;
     });
 }
