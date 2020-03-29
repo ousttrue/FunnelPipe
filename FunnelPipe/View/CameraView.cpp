@@ -3,7 +3,6 @@
 #include <ScreenState.h>
 #include <frame_metrics.h>
 
-
 CameraView::CameraView()
 {
     m_camera.zNear = 0.01f;
@@ -18,12 +17,11 @@ bool CameraView::ImGui(const screenstate::ScreenState &state, size_t textureID,
     screenstate::ScreenState viewState;
     bool isShowView = ::gui::View(drawlist, state, textureID, &viewState);
 
-    drawlist->ViewWidth = viewState.Width;
-    drawlist->ViewHeight = viewState.Height;
-    drawlist->Projection = m_camera.state.projection;
-    drawlist->View = m_camera.state.view;
-    drawlist->CameraPosition = m_camera.state.position;
-    drawlist->CameraFovYRadians = m_camera.state.fovYRadians;
+    drawlist->ViewConstantBuffer.b0ScreenSize = {(float)viewState.Width, (float)viewState.Height};
+    drawlist->ViewConstantBuffer.b0Projection = m_camera.state.projection;
+    drawlist->ViewConstantBuffer.b0View = m_camera.state.view;
+    drawlist->ViewConstantBuffer.b0CameraPosition = m_camera.state.position;
+    drawlist->ViewConstantBuffer.fovY = m_camera.state.fovYRadians;
 
     //
     // update camera

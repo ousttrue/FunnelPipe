@@ -15,22 +15,46 @@ struct CBValue
     uint32_t size;
 };
 
+// each View
+// https://gamedev.stackexchange.com/questions/105572/c-struct-doesnt-align-correctly-to-a-pixel-shader-cbuffer
+#pragma pack(push)
+#pragma pack(16)
+struct ViewConstants
+{
+    std::array<float, 16> b0View;
+    std::array<float, 16> b0Projection;
+    std::array<float, 3> b0LightDir;
+    float _padding0;
+    std::array<float, 3> b0LightColor;
+    float _padding1;
+    std::array<float, 3> b0CameraPosition;
+    float _padding2;
+    std::array<float, 2> b0ScreenSize;
+    float fovY;
+    float _padding3;
+    // DirectX::XMFLOAT4X4 b0ViewInv;
+};
+#pragma pack(pop)
+static_assert(sizeof(ViewConstants) == 16 * 12, "sizeof ViewConstantsSize");
+
 struct DrawList
 {
     size_t ViewID;
-    uint32_t ViewWidth;
-    uint32_t ViewHeight;
-    std::vector<uint8_t> ViewConstantBuffer;
+    uint32_t ViewWidth() const { return (uint32_t)ViewConstantBuffer.b0ScreenSize[0]; }
+    uint32_t ViewHeight() const { return (uint32_t)ViewConstantBuffer.b0ScreenSize[1]; }
+    // std::vector<uint8_t> ViewConstantBuffer;
     // int Width = 0;
     // int Height = 0;
-    std::array<float, 16> Projection = {};
-    std::array<float, 16> View = {};
-    std::array<float, 3> CameraPosition = {0, 0, 0};
-    float CameraFovYRadians = 1.0f;
+    // std::array<float, 16> Projection = {};
+    // std::array<float, 16> View = {};
+    // std::array<float, 3> CameraPosition = {0, 0, 0};
+    // float CameraFovYRadians = 1.0f;
     std::array<float, 4> ViewClearColor = {0, 0, 0, 1};
     bool ShowGrid = true;
     bool ShowGizmo = true;
     bool ShowVR = false;
+
+    ViewConstants ViewConstantBuffer;
 
     //
     // 可変サイズのCBバッファの配列

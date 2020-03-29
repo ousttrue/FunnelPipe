@@ -73,6 +73,15 @@ public:
                 m_scene.UpdateDrawlist(&m_drawlist, m_drawlist.ShowGrid);
                 m_view.UpdateDrawlist(&m_drawlist);
                 // LOGD << m_drawlist.CBRanges.size() << ", " << m_drawlist.Items.size();
+
+                // buffer.b0Projection = drawlist.Projection;
+                // buffer.b0View = drawlist.View;
+                // buffer.b0LightDir = m_light->LightDirection;
+                // buffer.b0LightColor = m_light->LightColor;
+                // buffer.b0CameraPosition = drawlist.CameraPosition;
+                // buffer.fovY = drawlist.CameraFovYRadians;
+                // buffer.b0ScreenSize = {(float)drawlist.ViewWidth, (float)drawlist.ViewHeight};
+
                 m_renderer.View(m_drawlist);
             }
             m_renderer.EndFrame();

@@ -37,34 +37,8 @@ public:
     std::shared_ptr<class Material> GetOrCreate(const ComPtr<ID3D12Device> &device, const hierarchy::SceneMaterialPtr &material);
     std::pair<std::shared_ptr<class Texture>, UINT> GetOrCreate(const ComPtr<ID3D12Device> &device, const hierarchy::SceneImagePtr &image, class Uploader *uploader);
 
-// each View
-// https://gamedev.stackexchange.com/questions/105572/c-struct-doesnt-align-correctly-to-a-pixel-shader-cbuffer
-#pragma pack(push)
-#pragma pack(16)
-    struct ViewConstants
-    {
-        std::array<float, 16> b0View;
-        std::array<float, 16> b0Projection;
-        std::array<float, 3> b0LightDir;
-        float _padding0;
-        std::array<float, 3> b0LightColor;
-        float _padding1;
-        std::array<float, 3> b0CameraPosition;
-        float _padding2;
-        std::array<float, 2> b0ScreenSize;
-        float fovY;
-        float _padding3;
-        // DirectX::XMFLOAT4X4 b0ViewInv;
-    };
-#pragma pack(pop)
-    static_assert(sizeof(ViewConstants) == 16 * 12, "sizeof ViewConstantsSize");
-
-    Gpu::dx12::ConstantBuffer<ViewConstants> m_viewConstantsBuffer;
-    ViewConstants *GetViewConstantsBuffer(UINT index)
-    {
-        return m_viewConstantsBuffer.GetTyped(index);
-    }
-
+    // each Frame
+    Gpu::dx12::SemanticsConstantBuffer m_viewConstantsBuffer{1024};
     // each DrawCall
     Gpu::dx12::SemanticsConstantBuffer m_drawConstantsBuffer{1024};
 

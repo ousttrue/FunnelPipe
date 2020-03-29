@@ -126,6 +126,7 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
     // buffers
     //
     m_viewConstantsBuffer.Initialize(device, 1);
+    m_viewConstantsBuffer.AllRange();
 
     m_drawConstantsBuffer.Initialize(device, DRAW_SLOTS);
     auto count = 1 + DRAW_SLOTS + TEXTURE_SLOTS;

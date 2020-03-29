@@ -204,21 +204,9 @@ private:
     void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
                     const hierarchy::DrawList &drawlist)
     {
-        {
-            // auto a = sizeof(Gpu::dx12::RootSignature::ViewConstants);
-            Gpu::dx12::RootSignature::ViewConstants buffer{};
-            // auto buffer = m_rootSignature->GetViewConstantsBuffer(0);
-            buffer.b0Projection = drawlist.Projection;
-            buffer.b0View = drawlist.View;
-            buffer.b0LightDir = m_light->LightDirection;
-            buffer.b0LightColor = m_light->LightColor;
-            buffer.b0CameraPosition = drawlist.CameraPosition;
-            buffer.fovY = drawlist.CameraFovYRadians;
-            buffer.b0ScreenSize = {(float)drawlist.ViewWidth, (float)drawlist.ViewHeight};
-            m_rootSignature->m_viewConstantsBuffer.CopyToGpu(buffer);
-        }
+        m_rootSignature->m_viewConstantsBuffer.CopyToGpu(drawlist.ViewConstantBuffer);
 
-        if (viewRenderTarget->Resize(drawlist.ViewWidth, drawlist.ViewHeight))
+        if (viewRenderTarget->Resize(drawlist.ViewWidth(), drawlist.ViewHeight()))
         {
             // clear all
             for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
@@ -229,7 +217,7 @@ private:
                     m_imguiDX12.Remove(resource->renderTarget.Get());
                 }
             }
-            viewRenderTarget->Initialize(drawlist.ViewWidth, drawlist.ViewHeight, m_device, BACKBUFFER_COUNT);
+            viewRenderTarget->Initialize(drawlist.ViewWidth(), drawlist.ViewHeight(), m_device, BACKBUFFER_COUNT);
         }
     }
 

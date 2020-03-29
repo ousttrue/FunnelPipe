@@ -48,4 +48,9 @@ void SemanticsConstantBuffer::Assign(const std::pair<UINT, UINT> *range, uint32_
     // memcpy(m_bytes.data(), p, back.first + back.second);
 }
 
+void SemanticsConstantBuffer::AllRange()
+{
+    m_ranges.push_back({0, m_bytes.size()});
+}
+
 } // namespace Gpu::dx12
