@@ -69,7 +69,7 @@ class GltfLoader
 
     struct GltfPrimitive
     {
-        framedata::SceneMeshPtr mesh;
+        framedata::FrameMeshPtr mesh;
         std::vector<VertexSkining> skining;
 
         void LoadVertices(
@@ -78,7 +78,7 @@ class GltfLoader
             const gltfformat::Mesh &gltfMesh,
             const gltfformat::MeshPrimitive &gltfPrimitive)
         {
-            mesh = framedata::SceneMesh::Create(L"gltf");
+            mesh = framedata::FrameMesh::Create(L"gltf");
             mesh->name = Utf8ToUnicode(gltfMesh.name);
 
             std::vector<GltfVertex> vertices;
@@ -185,7 +185,7 @@ public:
             auto bytes = m_bin.get_bytes(bufferView);
 
             // TO_PNG
-            auto image = framedata::SceneImage::Load(bytes.p, bytes.size);
+            auto image = framedata::FrameImage::Load(bytes.p, bytes.size);
             image->name = Utf8ToUnicode(gltfImage.name);
             m_model->images.push_back(image);
         }
@@ -196,7 +196,7 @@ public:
         m_model->materials.reserve(m_gltf.materials.size());
         for (auto &gltfMaterial : m_gltf.materials)
         {
-            auto material = framedata::SceneMaterial::Create();
+            auto material = framedata::FrameMaterial::Create();
             auto shader = IsUnlit(gltfMaterial) ? "gltf_unlit" : "gltf_standard";
 
             switch (gltfMaterial.alphaMode.value_or(gltfformat::MaterialAlphaMode::OPAQUE))
@@ -462,7 +462,7 @@ public:
             {
                 auto meshGroup = m_meshes[gltfNode.mesh.value()];
 
-                framedata::SceneMeshPtr mesh; // = SceneMesh::Create();
+                framedata::FrameMeshPtr mesh; // = FrameMesh::Create();
                 auto sum = 0;
                 for (auto &primitive : meshGroup->primitives)
                 {

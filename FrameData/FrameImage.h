@@ -13,14 +13,14 @@ enum class ImageType
     Raw,
 };
 
-class SceneImage
+class FrameImage
 {
 public:
     // empty
-    static std::shared_ptr<SceneImage> Create();
+    static std::shared_ptr<FrameImage> Create();
 
     // load
-    static std::shared_ptr<SceneImage> Load(const uint8_t *p, int size);
+    static std::shared_ptr<FrameImage> Load(const uint8_t *p, int size);
 
     std::vector<uint8_t> buffer;
     ImageType type = ImageType::Unknown;
@@ -41,6 +41,6 @@ public:
         buffer.assign(p, p + w * h);
     }
 };
-using SceneImagePtr = std::shared_ptr<SceneImage>;
+using FrameImagePtr = std::shared_ptr<FrameImage>;
 
 } // namespace framedata

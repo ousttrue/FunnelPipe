@@ -1,4 +1,4 @@
-#include "SceneMesh.h"
+#include "FrameMesh.h"
 #include "VertexBuffer.h"
 #include "Shader.h"
 #include <algorithm>
@@ -6,17 +6,17 @@
 namespace framedata
 {
 
-SceneMeshPtr SceneMesh::Create(const std::wstring &name)
+FrameMeshPtr FrameMesh::Create(const std::wstring &name)
 {
-    return SceneMeshPtr(new SceneMesh(name));
+    return FrameMeshPtr(new FrameMesh(name));
 }
 
-std::shared_ptr<SceneMesh> SceneMesh::CreateDynamic(
+std::shared_ptr<FrameMesh> FrameMesh::CreateDynamic(
     const std::wstring &name,
     uint32_t vertexReserve, uint32_t vertexStride,
     uint32_t indexReserve, uint32_t indexStride)
 {
-    auto mesh = SceneMeshPtr(new SceneMesh(name));
+    auto mesh = FrameMeshPtr(new FrameMesh(name));
 
     mesh->vertices = VertexBuffer::CreateDynamic(
         Semantics::Vertex,
@@ -31,7 +31,7 @@ std::shared_ptr<SceneMesh> SceneMesh::CreateDynamic(
     return mesh;
 }
 
-void SceneMesh::AddSubmesh(const std::shared_ptr<SceneMesh> &mesh)
+void FrameMesh::AddSubmesh(const std::shared_ptr<FrameMesh> &mesh)
 {
     if (!vertices)
     {
@@ -117,7 +117,7 @@ static int GetStride(DXGI_FORMAT format)
     throw;
 }
 
-bool SceneMesh::Validate()
+bool FrameMesh::Validate()
 {
     for (auto &submesh : submeshes)
     {

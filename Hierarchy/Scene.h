@@ -4,8 +4,8 @@
 #include <string>
 #include <algorithm>
 #include "SceneNode.h"
-#include "SceneMaterial.h"
-#include "SceneMesh.h"
+#include "FrameMaterial.h"
+#include "FrameMesh.h"
 
 namespace hierarchy
 {

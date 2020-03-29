@@ -1,16 +1,16 @@
-#include "SceneImage.h"
+#include "FrameImage.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 namespace framedata
 {
 
-std::shared_ptr<SceneImage> SceneImage::Create()
+std::shared_ptr<FrameImage> FrameImage::Create()
 {
-    return SceneImagePtr(new SceneImage);
+    return FrameImagePtr(new FrameImage);
 }
 
-std::shared_ptr<SceneImage> SceneImage::Load(const uint8_t *p, int size)
+std::shared_ptr<FrameImage> FrameImage::Load(const uint8_t *p, int size)
 {
     int x, y, n;
     unsigned char *data = stbi_load_from_memory(p, size, &x, &y, &n, 4);

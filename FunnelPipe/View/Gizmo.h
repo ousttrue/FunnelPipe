@@ -16,7 +16,7 @@ class Gizmo
 {
     struct gizmesh::GizmoSystem *m_gizmo = nullptr;
     hierarchy::SceneNodePtr m_gizmoNode; // for node id
-    framedata::SceneMeshPtr m_gizmoMesh;
+    framedata::FrameMeshPtr m_gizmoMesh;
     GizmoModes m_mode = GizmoModes::Translate;
     bool m_isLocal = true;
     std::bitset<128> m_lastKeyCode;
@@ -30,7 +30,7 @@ public:
         return m_gizmoNode->ID();
     }
 
-    framedata::SceneMeshPtr GetMesh() const { return m_gizmoMesh; }
+    framedata::FrameMeshPtr GetMesh() const { return m_gizmoMesh; }
 
     void Begin(const screenstate::ScreenState &state, const camera::CameraState &camera);
     gizmesh::GizmoSystem::Buffer End();

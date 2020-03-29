@@ -7,7 +7,7 @@ namespace Gpu::dx12
 
 bool Material::Initialize(const ComPtr<ID3D12Device> &device,
                           const ComPtr<ID3D12RootSignature> &rootSignature,
-                          const framedata::SceneMaterialPtr &material)
+                          const framedata::FrameMaterialPtr &material)
 {
     auto &shader = material->shader->Compiled();
 

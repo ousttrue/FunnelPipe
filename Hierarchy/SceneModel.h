@@ -10,9 +10,9 @@ namespace hierarchy
 struct SceneModel
 {
     std::string name;
-    std::vector<framedata::SceneImagePtr> images;
-    std::vector<framedata::SceneMaterialPtr> materials;
-    std::vector<framedata::SceneMeshPtr> meshes;
+    std::vector<framedata::FrameImagePtr> images;
+    std::vector<framedata::FrameMaterialPtr> materials;
+    std::vector<framedata::FrameMeshPtr> meshes;
     std::vector<SceneMeshSkinPtr> skins;
     std::vector<SceneNodePtr> nodes;
 

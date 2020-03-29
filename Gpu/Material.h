@@ -13,14 +13,14 @@ class Material : NonCopyable
 
 public:
     bool Initialize(const ComPtr<ID3D12Device> &device,
-                    const framedata::SceneMaterialPtr &material)
+                    const framedata::FrameMaterialPtr &material)
     {
         return Initialize(device, m_rootSignature, material);
     }
 
     bool Initialize(const ComPtr<ID3D12Device> &device,
                     const ComPtr<ID3D12RootSignature> &rootSignature,
-                    const framedata::SceneMaterialPtr &material);
+                    const framedata::FrameMaterialPtr &material);
     bool Set(const ComPtr<ID3D12GraphicsCommandList> &commandList);
 };
 

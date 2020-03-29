@@ -1,5 +1,5 @@
 #pragma once
-#include "SceneMesh.h"
+#include "FrameMesh.h"
 #include <vector>
 #include <memory>
 #include <falg.h>
@@ -16,7 +16,7 @@ class SceneNode : public std::enable_shared_from_this<SceneNode>
     // unique
     int m_id = -1;
     std::string m_name;
-    std::shared_ptr<framedata::SceneMesh> m_mesh;
+    std::shared_ptr<framedata::FrameMesh> m_mesh;
     bool m_enableGizmo = false;
 
     std::vector<std::shared_ptr<SceneNode>> m_children;
@@ -31,8 +31,8 @@ class SceneNode : public std::enable_shared_from_this<SceneNode>
     }
 
 public:
-    const framedata::SceneMeshPtr &Mesh() const { return m_mesh; }
-    void Mesh(const framedata::SceneMeshPtr &mesh) { m_mesh = mesh; }
+    const framedata::FrameMeshPtr &Mesh() const { return m_mesh; }
+    void Mesh(const framedata::FrameMeshPtr &mesh) { m_mesh = mesh; }
 
     std::shared_ptr<class SceneMeshSkin> skin;
 

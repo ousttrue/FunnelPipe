@@ -89,7 +89,7 @@ void SceneManager::OpenFile(const std::filesystem::path &path)
 namespace hierarchy
 {
 
-using FilterFunc = std::function<bool(const framedata::SceneMaterialPtr &)>;
+using FilterFunc = std::function<bool(const framedata::FrameMaterialPtr &)>;
 
 void TraverseMesh(framedata::FrameData *drawlist, const std::shared_ptr<SceneNode> &node, const FilterFunc &filter)
 {
@@ -170,11 +170,11 @@ void SceneManager::UpdateDrawlist(framedata::FrameData *drawlist)
     // mesh
     //
     // Opaque
-    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const framedata::SceneMaterialPtr &m) {
+    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const framedata::FrameMaterialPtr &m) {
         return m->alphaMode != framedata::AlphaMode::Blend;
     });
     // AlphaBlend
-    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const framedata::SceneMaterialPtr &m) {
+    hierarchy::UpdateDrawListIf(drawlist, &m_scene, [](const framedata::FrameMaterialPtr &m) {
         return m->alphaMode == framedata::AlphaMode::Blend;
     });
 }

@@ -3,13 +3,13 @@
 #include "Shader.h"
 #include "ShaderManager.h"
 #include "MeshFactory/CreateGrid.h"
-#include "SceneMesh.h"
+#include "FrameMesh.h"
 
 #include <array>
 #include <vector>
 #include <memory>
 #include "ShaderConstantVariable.h"
-#include "SceneMesh.h"
+#include "FrameMesh.h"
 
 namespace framedata
 {
@@ -70,7 +70,7 @@ struct FrameData
     };
     struct MeshItem
     {
-        std::shared_ptr<SceneMesh> Mesh;
+        std::shared_ptr<FrameMesh> Mesh;
         Buffer Vertices{};
         Buffer Indices{};
         Buffer Skin{};
@@ -78,8 +78,8 @@ struct FrameData
     std::vector<MeshItem> Meshlist;
     struct DrawItem
     {
-        std::shared_ptr<SceneMesh> Mesh;
-        SceneSubmesh Submesh;
+        std::shared_ptr<FrameMesh> Mesh;
+        FrameSubmesh Submesh;
     };
     std::vector<DrawItem> Drawlist;
 

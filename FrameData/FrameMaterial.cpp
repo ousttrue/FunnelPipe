@@ -1,12 +1,12 @@
-#include "SceneMaterial.h"
+#include "FrameMaterial.h"
 #include "ShaderManager.h"
 
 namespace framedata
 {
 
-std::shared_ptr<SceneMaterial> SceneMaterial::Create()
+std::shared_ptr<FrameMaterial> FrameMaterial::Create()
 {
-    auto material = SceneMaterialPtr(new SceneMaterial);
+    auto material = FrameMaterialPtr(new FrameMaterial);
     material->shader = ShaderManager::Instance().getDefault();
     return material;
 }

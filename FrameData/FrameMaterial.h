@@ -2,7 +2,7 @@
 #include <memory>
 #include <string>
 #include <stdint.h>
-#include "SceneImage.h"
+#include "FrameImage.h"
 #include "ShaderWatcher.h"
 
 namespace framedata
@@ -15,18 +15,18 @@ enum class AlphaMode
     Blend,
 };
 
-class SceneMaterial
+class FrameMaterial
 {
 
 public:
-    static std::shared_ptr<SceneMaterial> Create();
+    static std::shared_ptr<FrameMaterial> Create();
 
     std::string name;
     ShaderWatcherPtr shader;
     AlphaMode alphaMode{};
     float alphaCutoff = 0;
-    SceneImagePtr colorImage;
+    FrameImagePtr colorImage;
 };
-using SceneMaterialPtr = std::shared_ptr<SceneMaterial>;
+using FrameMaterialPtr = std::shared_ptr<FrameMaterial>;
 
 } // namespace framedata

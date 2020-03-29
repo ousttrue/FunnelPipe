@@ -1,9 +1,9 @@
 set(TARGET_NAME FrameData)
 add_library(${TARGET_NAME}
     FrameData.cpp
-    SceneImage.cpp
-    SceneMaterial.cpp
-    SceneMesh.cpp
+    FrameImage.cpp
+    FrameMaterial.cpp
+    FrameMesh.cpp
     VertexBuffer.cpp
     Shader.cpp
     ShaderManager.cpp

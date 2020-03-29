@@ -1,7 +1,7 @@
 #pragma once
 #include "VertexBuffer.h"
 #include "ShaderManager.h"
-#include "SceneMesh.h"
+#include "FrameMesh.h"
 #include <array>
 
 namespace framedata
@@ -10,7 +10,7 @@ namespace framedata
 ///
 /// 無限グリッド
 ///
-static std::shared_ptr<SceneMesh> CreateGrid()
+static std::shared_ptr<FrameMesh> CreateGrid()
 {
     struct GridVertex
     {
@@ -27,7 +27,7 @@ static std::shared_ptr<SceneMesh> CreateGrid()
         0, 1, 2, //
         2, 3, 0, //
     };
-    auto mesh = SceneMesh::Create(L"grid");
+    auto mesh = FrameMesh::Create(L"grid");
     mesh->vertices = VertexBuffer::CreateStatic(
         Semantics::Vertex,
         sizeof(vertices[0]), vertices, sizeof(vertices));
@@ -35,7 +35,7 @@ static std::shared_ptr<SceneMesh> CreateGrid()
         Semantics::Index,
         2, indices, sizeof(indices));
     {
-        auto material = SceneMaterial::Create();
+        auto material = FrameMaterial::Create();
         material->shader = ShaderManager::Instance().get("grid");
         mesh->submeshes.push_back({.drawCount = _countof(indices),
                                    .material = material});

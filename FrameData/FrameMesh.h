@@ -4,39 +4,39 @@
 #include <stdint.h>
 #include <DirectXMath.h>
 #include <ranges>
-#include "SceneMaterial.h"
+#include "FrameMaterial.h"
 
 namespace framedata
 {
 
-struct SceneSubmesh
+struct FrameSubmesh
 {
     uint32_t drawOffset = 0;
     uint32_t drawCount = 0;
-    SceneMaterialPtr material;
+    FrameMaterialPtr material;
 };
 
-class SceneMesh
+class FrameMesh
 {
 public:
     std::wstring name;
-    SceneMesh(const std::wstring &n)
+    FrameMesh(const std::wstring &n)
         : name(n)
     {
     }
 
-    static std::shared_ptr<SceneMesh> Create(const std::wstring &name);
-    static std::shared_ptr<SceneMesh> CreateDynamic(const std::wstring &name,
+    static std::shared_ptr<FrameMesh> Create(const std::wstring &name);
+    static std::shared_ptr<FrameMesh> CreateDynamic(const std::wstring &name,
                                                     uint32_t vertexReserve, uint32_t vertexStride,
                                                     uint32_t indexReserve, uint32_t indexStride);
 
     std::shared_ptr<class VertexBuffer> vertices;
     std::shared_ptr<class VertexBuffer> indices;
 
-    std::vector<SceneSubmesh> submeshes;
-    void AddSubmesh(const std::shared_ptr<SceneMesh> &mesh);
+    std::vector<FrameSubmesh> submeshes;
+    void AddSubmesh(const std::shared_ptr<FrameMesh> &mesh);
     bool Validate();
 };
-using SceneMeshPtr = std::shared_ptr<SceneMesh>;
+using FrameMeshPtr = std::shared_ptr<FrameMesh>;
 
 } // namespace framedata

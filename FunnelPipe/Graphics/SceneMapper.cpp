@@ -23,7 +23,7 @@ void SceneMapper::Update(const ComPtr<ID3D12Device> &device)
 }
 
 std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &device,
-                                               const std::shared_ptr<framedata::SceneMesh> &sceneMesh)
+                                               const std::shared_ptr<framedata::FrameMesh> &sceneMesh)
 {
     auto found = m_meshMap.find(sceneMesh);
     if (found != m_meshMap.end())
