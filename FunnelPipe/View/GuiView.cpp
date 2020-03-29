@@ -62,8 +62,8 @@ bool View(hierarchy::DrawList *view, const screenstate::ScreenState &state, size
         auto size_ = ImGui::GetContentRegionAvail();
 
         ImGui::Checkbox("grid", &view->ShowGrid);
-        ImGui::SameLine();
-        ImGui::Checkbox("openvr", &view->ShowVR);
+        // ImGui::SameLine();
+        // ImGui::Checkbox("openvr", &view->ShowVR);
         ImGui::SameLine();
         ImGui::Checkbox("gizmo", &view->ShowGizmo);
         ImGui::ColorEdit3("clear", view->ViewClearColor.data());
