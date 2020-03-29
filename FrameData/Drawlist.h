@@ -17,6 +17,11 @@ struct CBValue
 
 struct DrawList
 {
+    size_t ViewID;
+    uint32_t ViewWidth;
+    uint32_t ViewHeight;
+    std::vector<uint8_t> ViewConstantBuffer;
+
     //
     // 可変サイズのCBバッファの配列
     // TODO: 16byte(256?) alignment
@@ -34,8 +39,8 @@ struct DrawList
     };
     struct DrawItem
     {
-        // mesh
         std::shared_ptr<SceneMesh> Mesh;
+        bool isDynamic = false;
         Buffer Vertices{};
         Buffer Indices{};
         hierarchy::SceneSubmesh Submesh;

@@ -14,7 +14,7 @@ class SceneMapper
 
     std::unique_ptr<class Uploader> m_uploader;
     std::unordered_map<hierarchy::SceneMeshPtr, std::shared_ptr<class Mesh>> m_meshMap;
-    std::unordered_map<hierarchy::SceneViewPtr, std::shared_ptr<class RenderTargetChain>> m_renderTargetMap;
+    std::unordered_map<size_t, std::shared_ptr<class RenderTargetChain>> m_renderTargetMap;
 
 public:
     SceneMapper();
@@ -23,7 +23,7 @@ public:
     void Update(const ComPtr<ID3D12Device> &device);
     std::shared_ptr<class Mesh> GetOrCreate(const ComPtr<ID3D12Device> &device,
                                             const hierarchy::SceneMeshPtr &model);
-    std::shared_ptr<class RenderTargetChain> GetOrCreate(const hierarchy::SceneViewPtr &view);
+    std::shared_ptr<class RenderTargetChain> GetOrCreateRenderTarget(size_t id);
 };
 
 } // namespace Gpu::dx12

@@ -118,10 +118,10 @@ public:
         m_queue->SyncFence(callbacks);
     }
 
-    size_t ViewTextureID(const hierarchy::SceneViewPtr &sceneView)
+    size_t ViewTextureID(size_t id)
     {
         // view texture for current frame
-        auto viewRenderTarget = m_sceneMapper->GetOrCreate(sceneView);
+        auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget(id);
         auto resource = viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
         size_t texture = resource ? m_imguiDX12.GetOrCreateTexture(m_device.Get(), resource->renderTarget.Get()) : -1;
         return texture;
@@ -129,7 +129,7 @@ public:
 
     void View(const hierarchy::SceneViewPtr &sceneView, const hierarchy::DrawList &drawlist)
     {
-        auto viewRenderTarget = m_sceneMapper->GetOrCreate(sceneView);
+        auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)sceneView.get());
         UpdateView(viewRenderTarget, sceneView);
 
         UpdateNodes(drawlist);
@@ -330,7 +330,7 @@ void Renderer::EndFrame()
 
 size_t Renderer::ViewTextureID(const std::shared_ptr<hierarchy::SceneView> &view)
 {
-    return m_impl->ViewTextureID(view);
+    return m_impl->ViewTextureID((size_t)view.get());
 }
 
 void Renderer::View(const hierarchy::SceneViewPtr &view, const hierarchy::DrawList &drawlist)

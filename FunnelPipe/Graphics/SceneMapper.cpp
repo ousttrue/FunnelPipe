@@ -137,16 +137,16 @@ std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &devic
     return gpuMesh;
 }
 
-std::shared_ptr<RenderTargetChain> SceneMapper::GetOrCreate(const hierarchy::SceneViewPtr &view)
+std::shared_ptr<RenderTargetChain> SceneMapper::GetOrCreateRenderTarget(size_t id)
 {
-    auto found = m_renderTargetMap.find(view);
+    auto found = m_renderTargetMap.find(id);
     if (found != m_renderTargetMap.end())
     {
         return found->second;
     }
 
     auto renderTarget = std::make_shared<RenderTargetChain>();
-    m_renderTargetMap.insert(std::make_pair(view, renderTarget));
+    m_renderTargetMap.insert(std::make_pair(id, renderTarget));
     return renderTarget;
 }
 
