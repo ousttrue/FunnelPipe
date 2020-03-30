@@ -23,17 +23,14 @@ public:
     // singleton
     static ShaderManager &Instance();
 
-    void watch(std::filesystem::path &path);
-    void stop();
-
     // default
-    ShaderWatcherPtr get(const std::string &shaderName);
-    ShaderWatcherPtr getDefault()
+    ShaderWatcherPtr Get(const std::string &shaderName);
+    ShaderWatcherPtr GetDefault()
     {
-        return get("default");
+        return Get("default");
     }
 
-    void onFile(const std::wstring &fileName, int action);
+    void OnFile(const std::wstring &fileName, int action);
 };
 
 } // namespace framedata

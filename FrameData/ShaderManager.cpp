@@ -42,7 +42,6 @@ ShaderManager::ShaderManager()
 
 ShaderManager::~ShaderManager()
 {
-    stop();
 }
 
 ShaderManager &ShaderManager::Instance()
@@ -51,19 +50,8 @@ ShaderManager &ShaderManager::Instance()
     return s_instance;
 }
 
-void ShaderManager::watch(std::filesystem::path &path)
-{
-    stop();
-    DirectoryWatcher::Instance().Watch(path, std::bind(&ShaderManager::onFile, this, std::placeholders::_1, std::placeholders::_2));
-}
-
-void ShaderManager::stop()
-{
-    DirectoryWatcher::Instance().Stop();
-}
-
 // default
-ShaderWatcherPtr ShaderManager::get(const std::string &shaderName)
+ShaderWatcherPtr ShaderManager::Get(const std::string &shaderName)
 {
     auto fileName = multi_to_wide_winapi(shaderName + ".hlsl");
     auto found = m_shaderMap.find(fileName);
@@ -84,7 +72,7 @@ ShaderWatcherPtr ShaderManager::get(const std::string &shaderName)
     return shader;
 }
 
-void ShaderManager::onFile(const std::wstring &fileName, int action)
+void ShaderManager::OnFile(const std::wstring &fileName, int action)
 {
     if (action == FILE_ACTION_MODIFIED)
     {

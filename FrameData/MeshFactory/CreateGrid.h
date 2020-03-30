@@ -36,7 +36,7 @@ static std::shared_ptr<FrameMesh> CreateGrid()
         2, indices, sizeof(indices));
     {
         auto material = FrameMaterial::Create();
-        material->shaderSource = ShaderManager::Instance().get("grid");
+        material->shaderSource = ShaderManager::Instance().Get("grid");
         material->alphaMode = AlphaMode::Blend;
         mesh->submeshes.push_back({.drawCount = _countof(indices),
                                    .material = material});

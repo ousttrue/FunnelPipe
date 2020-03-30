@@ -3,23 +3,30 @@
 #include <imgui.h>
 #include <functional>
 #include <sstream>
+#include <memory>
 #include <nameof.hpp>
 
 SceneManager::SceneManager(int argc, char **argv)
 {
+    // watch file path
     auto path = std::filesystem::current_path();
     if (argc > 1)
     {
         path = argv[1];
     }
-    framedata::ShaderManager::Instance().watch(path);
+    auto callback = [](const std::wstring &fileName, int action) {
+        framedata::ShaderManager::Instance().OnFile(fileName, action);
+    };
+    framedata::DirectoryWatcher::Instance().Watch(path, callback);
 
+    // grid
     {
         auto node = hierarchy::SceneNode::Create("grid");
         node->Mesh(framedata::CreateGrid());
         m_scene.gizmoNodes.push_back(node);
     }
 
+    // load
     if (argc > 2)
     {
         auto model = hierarchy::SceneModel::LoadFromPath(argv[2]);
@@ -28,6 +35,11 @@ SceneManager::SceneManager(int argc, char **argv)
             m_scene.model = model;
         }
     }
+}
+
+SceneManager::~SceneManager()
+{
+    framedata::DirectoryWatcher::Instance().Stop();
 }
 
 void SceneManager::DrawNode(const hierarchy::SceneNodePtr &node)
@@ -147,7 +159,7 @@ static void MeshList(const hierarchy::SceneModelPtr &model)
     ImGui::Separator();
 }
 
-void SceneManager::ImGui(const GetTextureFunc& getTexture)
+void SceneManager::ImGui(const GetTextureFunc &getTexture)
 {
     // scene tree
     ImGui::Begin("Model");

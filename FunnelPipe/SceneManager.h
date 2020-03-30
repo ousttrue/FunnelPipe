@@ -17,6 +17,7 @@ class SceneManager
 public:
     using GetTextureFunc = std::function<ComPtr<ID3D12Resource>(const framedata::FrameImagePtr &)>;
     SceneManager(int argc, char **argv);
+    ~SceneManager();
     void ImGui(const GetTextureFunc &getTexture);
     void OpenFile(const std::filesystem::path &path);
     void UpdateFrameData(framedata::FrameData *framedata);

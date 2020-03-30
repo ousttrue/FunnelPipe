@@ -7,7 +7,7 @@ namespace framedata
 std::shared_ptr<FrameMaterial> FrameMaterial::Create()
 {
     auto material = FrameMaterialPtr(new FrameMaterial);
-    material->shaderSource = ShaderManager::Instance().getDefault();
+    material->shaderSource = ShaderManager::Instance().GetDefault();
     return material;
 }
 

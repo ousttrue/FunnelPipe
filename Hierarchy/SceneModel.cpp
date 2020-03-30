@@ -218,7 +218,7 @@ public:
                 throw "unknown";
             }
 
-            material->shaderSource = framedata::ShaderManager::Instance().get(shader);
+            material->shaderSource = framedata::ShaderManager::Instance().Get(shader);
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();

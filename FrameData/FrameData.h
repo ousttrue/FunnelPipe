@@ -5,6 +5,7 @@
 #include "MeshFactory/CreateGrid.h"
 #include "FrameMesh.h"
 #include "ToUnicode.h"
+#include "DirectoryWatcher.h"
 
 #include <array>
 #include <vector>
