@@ -125,16 +125,15 @@ bool FrameMesh::Validate()
 {
     for (auto &submesh : submeshes)
     {
-        auto shader = submesh.material->shader;
-        if (!shader || shader->Generation() < 0)
-        {
-            return false;
-        }
+        // auto shader = submesh.material->shader;
+        // if (!shader || shader->Generation() < 0)
+        // {
+        //     return false;
+        // }
 
-        // auto resource = CreateResourceItem(device, m_uploader, sceneMesh, shader->inputLayout(), shader->inputLayoutCount());
         auto dstStride = 0;
         int inputLayoutCount;
-        auto inputLayout = shader->inputLayout(&inputLayoutCount);
+        auto inputLayout = submesh.material->VS->inputLayout(&inputLayoutCount);
         for (int i = 0; i < inputLayoutCount; ++i)
         {
             dstStride += GetStride(inputLayout[i].Format);

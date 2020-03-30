@@ -19,7 +19,10 @@ enum class AlphaMode
 struct FrameMaterial
 {
     std::string name;
-    ShaderPtr shader;
+
+    VertexShaderPtr VS;
+    PixelShaderPtr PS;
+
     AlphaMode alphaMode{};
     float alphaCutoff = 0;
     FrameImagePtr colorImage;

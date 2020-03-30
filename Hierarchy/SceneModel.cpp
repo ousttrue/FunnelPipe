@@ -216,8 +216,10 @@ public:
                 throw "unknown";
             }
 
-            material->shader = std::make_shared<framedata::Shader>("gltf");
-            material->shader->Compile(framedata::DirectoryWatcher::Instance().Get(shaderFile)->String());
+            material->VS = std::make_shared<framedata::VertexShader>("gltf@vs");
+            material->VS->Compile(framedata::DirectoryWatcher::Instance().Get(shaderFile)->String());
+            material->PS = std::make_shared<framedata::PixelShader>("gltf@ps");
+            material->PS->Compile(framedata::DirectoryWatcher::Instance().Get(shaderFile)->String());
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();

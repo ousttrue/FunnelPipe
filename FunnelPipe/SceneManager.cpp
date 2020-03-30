@@ -86,11 +86,11 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
         ss << "[" << i++ << "] " << material->name;
         if (ImGui::TreeNode(ss.str().c_str()))
         {
-            auto shader = material->shader;
-            if (shader)
-            {
-                ImGui::Text("shader: %s", material->shader->Name().c_str());
-            }
+            // auto shader = material->shader;
+            // if (shader)
+            // {
+            //     ImGui::Text("shader: %s", material->shader->Name().c_str());
+            // }
 
             ImGui::Text("alphaMode: %s", nameof::nameof_enum(material->alphaMode).data());
             // if (material->alphaMode == framedata::AlphaMode::Mask)
@@ -234,8 +234,8 @@ void TraverseSubmesh(FrameData *framedata, const std::shared_ptr<hierarchy::Scen
             auto &material = submesh.material;
             if (filter(material))
             {
-                auto shader = material->shader;
-                if (shader)
+                auto vs = material->VS;
+                if (vs)
                 {
                     auto m = node->World().RowMatrix();
                     framedata::CBValue values[] = {
@@ -246,7 +246,7 @@ void TraverseSubmesh(FrameData *framedata, const std::shared_ptr<hierarchy::Scen
                          .p = material->color.data(),
                          .size = sizeof(material->color)},
                     };
-                    framedata->PushCB(shader->VS.DrawCB(), values, _countof(values));
+                    framedata->PushCB(vs->DrawCB(), values, _countof(values));
                     framedata->Drawlist.push_back({
                         .Mesh = mesh,
                         .Submesh = submesh,

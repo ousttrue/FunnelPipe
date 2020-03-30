@@ -9,7 +9,7 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
                           const ComPtr<ID3D12RootSignature> &rootSignature,
                           const framedata::FrameMaterialPtr &material)
 {
-    auto &shader = material->shader;
+    auto &shader = material->VS;
     if(!shader)
     {
         return false;
@@ -20,12 +20,12 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
 
     m_rootSignature = rootSignature;
 
-    auto current = shader->Generation();
-    if (current > m_lastGeneration)
-    {
-        m_pipelineState = nullptr;
-        m_lastGeneration = current;
-    }
+    // auto current = shader->Generation();
+    // if (current > m_lastGeneration)
+    // {
+    //     m_pipelineState = nullptr;
+    //     m_lastGeneration = current;
+    // }
 
     if (m_pipelineState)
     {
@@ -100,8 +100,8 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
     // Describe and create the graphics pipeline state object (PSO).
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {
         .pRootSignature = rootSignature.Get(),
-        .VS = shader->VS.ByteCode(),
-        .PS = shader->PS.ByteCode(),
+        .VS = material->VS->ByteCode(),
+        .PS = material->PS->ByteCode(),
         .BlendState = blend,
         .SampleMask = UINT_MAX,
         .RasterizerState = {

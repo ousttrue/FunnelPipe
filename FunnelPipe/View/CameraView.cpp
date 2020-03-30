@@ -68,8 +68,8 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
         auto mesh = m_gizmo.GetMesh();
         if (mesh && !mesh->submeshes.empty())
         {
-            auto shader = mesh->submeshes[0].material->shader;
-            if (shader)
+            auto vs = mesh->submeshes[0].material->VS;
+            if (vs)
             {
                 m_gizmoBuffer = m_gizmo.End();
                 std::array<float, 16> matrix{
@@ -85,7 +85,7 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
                             .p = &matrix,
                             .size = sizeof(matrix),
                         }};
-                framedata->PushCB(shader->VS.DrawCB(), values, _countof(values));
+                framedata->PushCB(vs->DrawCB(), values, _countof(values));
                 framedata->Meshlist.push_back({
                     .Mesh = mesh,
                     .Vertices = {

@@ -23,8 +23,10 @@ void Gizmo::Begin(const screenstate::ScreenState &state, const camera::CameraSta
     {
         m_gizmo = new gizmesh::GizmoSystem;
         auto material = std::make_shared<framedata::FrameMaterial>();
-        material->shader = std::make_shared<framedata::Shader>("gizmo");
-        material->shader->Compile(framedata::DirectoryWatcher::Instance().Get(L"gizmo.hlsl")->String());
+        material->VS = std::make_shared<framedata::VertexShader>("gizmo@vs");
+        material->VS->Compile(framedata::DirectoryWatcher::Instance().Get(L"gizmo.hlsl")->String());
+        material->PS = std::make_shared<framedata::PixelShader>("gizmo@ps");
+        material->PS->Compile(framedata::DirectoryWatcher::Instance().Get(L"gizmo.hlsl")->String());
         m_gizmoMesh->submeshes.push_back({
             .material = material,
         });

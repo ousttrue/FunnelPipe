@@ -13,8 +13,8 @@ static std::string ToString(const Microsoft::WRL::ComPtr<ID3DBlob> &blob)
     return std::string(buffer.begin(), buffer.end());
 }
 
-void Shader::ShaderWithConstants::GetConstants(const ComPtr<ID3D12ShaderReflection> &pReflection,
-                                               const std::string &source)
+void Shader::GetConstants(const ComPtr<ID3D12ShaderReflection> &pReflection,
+                          const std::string &source)
 {
     D3D12_SHADER_DESC desc;
     pReflection->GetDesc(&desc);
@@ -22,12 +22,12 @@ void Shader::ShaderWithConstants::GetConstants(const ComPtr<ID3D12ShaderReflecti
     for (unsigned i = 0; i < desc.ConstantBuffers; ++i)
     {
         auto cb = pReflection->GetConstantBufferByIndex(i);
-        Buffers.push_back({});
-        Buffers.back().GetVariables(pReflection.Get(), cb, source);
+        m_cblist.push_back({});
+        m_cblist.back().GetVariables(pReflection.Get(), cb, source);
     }
 }
 
-bool Shader::InputLayoutFromReflection(const ComPtr<ID3D12ShaderReflection> &pReflection)
+bool VertexShader::InputLayoutFromReflection(const ComPtr<ID3D12ShaderReflection> &pReflection)
 {
     // Define the vertex input layout.
     // D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -161,23 +161,8 @@ class IncludeHandler : public ID3DInclude
     }
 };
 
-bool Shader::Compile(const std::string &source, int generation)
+bool VertexShader::Compile(const std::string &source)
 {
-    if (generation > m_generation)
-    {
-        // clear
-        VS.Compiled = nullptr;
-        PS.Compiled = nullptr;
-        m_semantics.clear();
-        m_layout.clear();
-    }
-
-    if (VS.Compiled && PS.Compiled)
-    {
-        // already
-        return true;
-    }
-
     if (source.empty())
     {
         return false;
@@ -196,44 +181,51 @@ bool Shader::Compile(const std::string &source, int generation)
     //
     // VS
     //
+    ComPtr<ID3DBlob> error;
+    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, "VSMain", "vs_5_0", compileFlags, 0, &m_compiled, &error)))
     {
-        ComPtr<ID3DBlob> error;
-        if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, "VSMain", "vs_5_0", compileFlags, 0, &VS.Compiled, &error)))
-        {
-            LOGW << ToString(error);
-            return false;
-        }
-        ComPtr<ID3D12ShaderReflection> pReflection;
-        if (FAILED(D3DReflect(VS.Compiled->GetBufferPointer(), VS.Compiled->GetBufferSize(), IID_PPV_ARGS(&pReflection))))
-        {
-            return false;
-        }
-        if (!InputLayoutFromReflection(pReflection))
-        {
-            return false;
-        }
-        VS.GetConstants(pReflection, source);
+        LOGW << ToString(error);
+        return false;
     }
-
-    //
-    // PS
-    //
+    ComPtr<ID3D12ShaderReflection> pReflection;
+    if (FAILED(D3DReflect(m_compiled->GetBufferPointer(), m_compiled->GetBufferSize(), IID_PPV_ARGS(&pReflection))))
     {
-        ComPtr<ID3DBlob> error;
-        if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, "PSMain", "ps_5_0", compileFlags, 0, &PS.Compiled, nullptr)))
-        {
-            LOGW << ToString(error);
-            return false;
-        }
-        ComPtr<ID3D12ShaderReflection> pReflection;
-        if (FAILED(D3DReflect(PS.Compiled->GetBufferPointer(), PS.Compiled->GetBufferSize(), IID_PPV_ARGS(&pReflection))))
-        {
-            return false;
-        }
-        PS.GetConstants(pReflection, source);
+        return false;
     }
+    if (!InputLayoutFromReflection(pReflection))
+    {
+        return false;
+    }
+    GetConstants(pReflection, source);
 
-    m_generation = generation;
+    return true;
+}
+
+bool PixelShader::Compile(const std::string &source)
+{
+    // Create the pipeline state, which includes compiling and loading shaders.
+#if defined(_DEBUG)
+    // Enable better shader debugging with the graphics debugging tools.
+    UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+    UINT compileFlags = 0;
+#endif
+
+    IncludeHandler includeHandler;
+
+    ComPtr<ID3DBlob> error;
+    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, "PSMain", "ps_5_0", compileFlags, 0, &m_compiled, nullptr)))
+    {
+        LOGW << ToString(error);
+        return false;
+    }
+    ComPtr<ID3D12ShaderReflection> pReflection;
+    if (FAILED(D3DReflect(m_compiled->GetBufferPointer(), m_compiled->GetBufferSize(), IID_PPV_ARGS(&pReflection))))
+    {
+        return false;
+    }
+    GetConstants(pReflection, source);
+
     return true;
 }
 

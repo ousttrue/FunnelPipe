@@ -37,8 +37,10 @@ static std::shared_ptr<FrameMesh> CreateGrid()
         2, indices, sizeof(indices));
     {
         auto material = std::make_shared<FrameMaterial>();
-        material->shader = std::make_shared<Shader>("grid.hlsl");
-        material->shader->Compile(DirectoryWatcher::Instance().Get(L"grid.hlsl")->String());
+        material->VS = std::make_shared<VertexShader>("grid.hlsl@vs");
+        material->VS->Compile(DirectoryWatcher::Instance().Get(L"grid.hlsl")->String());
+        material->PS = std::make_shared<PixelShader>("grid.hlsl@ps");
+        material->PS->Compile(DirectoryWatcher::Instance().Get(L"grid.hlsl")->String());
         material->alphaMode = AlphaMode::Blend;
         mesh->submeshes.push_back({.drawCount = _countof(indices),
                                    .material = material});
