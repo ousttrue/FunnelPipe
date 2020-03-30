@@ -19,3 +19,6 @@
 [submodule "external/nameof"]
 	path = external/nameof
 	url = https://github.com/Neargye/nameof.git
+[submodule "external/tomlplusplus"]
+	path = external/tomlplusplus
+	url = https://github.com/marzer/tomlplusplus.git
