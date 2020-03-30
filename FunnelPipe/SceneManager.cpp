@@ -14,10 +14,10 @@ SceneManager::SceneManager(int argc, char **argv)
     {
         path = argv[1];
     }
-    auto callback = [](const std::wstring &fileName, int action) {
-        framedata::ShaderManager::Instance().OnFile(fileName, action);
-    };
-    framedata::DirectoryWatcher::Instance().Watch(path, callback);
+    // auto callback = [](const std::wstring &fileName, int action) {
+    //     framedata::ShaderManager::Instance().OnFile(fileName, action);
+    // };
+    framedata::DirectoryWatcher::Instance().Watch(path);
 
     // grid
     {
@@ -86,10 +86,10 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
         ss << "[" << i++ << "] " << material->name;
         if (ImGui::TreeNode(ss.str().c_str()))
         {
-            auto shader = material->shaderSource->Compiled();
+            auto shader = material->shader;
             if (shader)
             {
-                ImGui::Text("shader: %s", material->shaderSource->name().c_str());
+                ImGui::Text("shader: %s", material->shader->Name().c_str());
             }
 
             ImGui::Text("alphaMode: %s", nameof::nameof_enum(material->alphaMode).data());
@@ -234,7 +234,7 @@ void TraverseSubmesh(FrameData *framedata, const std::shared_ptr<hierarchy::Scen
             auto &material = submesh.material;
             if (filter(material))
             {
-                auto shader = material->shaderSource->Compiled();
+                auto shader = material->shader;
                 if (shader)
                 {
                     auto m = node->World().RowMatrix();

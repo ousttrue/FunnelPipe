@@ -11,5 +11,8 @@
         "hwnd",
         "imgui",
         "uploader"
-    ]
+    ],
+    "files.associations": {
+        "mutex": "cpp"
+    }
 }

@@ -68,7 +68,7 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
         auto mesh = m_gizmo.GetMesh();
         if (mesh && !mesh->submeshes.empty())
         {
-            auto shader = mesh->submeshes[0].material->shaderSource->Compiled();
+            auto shader = mesh->submeshes[0].material->shader;
             if (shader)
             {
                 m_gizmoBuffer = m_gizmo.End();

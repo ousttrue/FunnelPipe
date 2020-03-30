@@ -2,12 +2,9 @@ set(TARGET_NAME FrameData)
 add_library(${TARGET_NAME}
     FrameData.cpp
     FrameImage.cpp
-    FrameMaterial.cpp
     FrameMesh.cpp
     VertexBuffer.cpp
     Shader.cpp
-    ShaderManager.cpp
-    ShaderWatcher.cpp
     ShaderConstantVariable.cpp
     ToUnicode.cpp
     DirectoryWatcher.cpp

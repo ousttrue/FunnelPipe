@@ -1,7 +1,8 @@
 #pragma once
-#include "VertexBuffer.h"
-#include "ShaderManager.h"
 #include "FrameMesh.h"
+#include "VertexBuffer.h"
+#include "DirectoryWatcher.h"
+#include "Shader.h"
 #include <array>
 
 namespace framedata
@@ -35,8 +36,9 @@ static std::shared_ptr<FrameMesh> CreateGrid()
         Semantics::Index,
         2, indices, sizeof(indices));
     {
-        auto material = FrameMaterial::Create();
-        material->shaderSource = ShaderManager::Instance().GetSource("grid.hlsl");
+        auto material = std::make_shared<FrameMaterial>();
+        material->shader = std::make_shared<Shader>("grid.hlsl");
+        material->shader->Compile(DirectoryWatcher::Instance().Get(L"grid.hlsl")->String());
         material->alphaMode = AlphaMode::Blend;
         mesh->submeshes.push_back({.drawCount = _countof(indices),
                                    .material = material});

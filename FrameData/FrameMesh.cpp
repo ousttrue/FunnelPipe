@@ -125,8 +125,8 @@ bool FrameMesh::Validate()
 {
     for (auto &submesh : submeshes)
     {
-        auto shader = submesh.material->shaderSource->Compiled();
-        if (shader->Generation() < 0)
+        auto shader = submesh.material->shader;
+        if (!shader || shader->Generation() < 0)
         {
             return false;
         }

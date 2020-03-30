@@ -3,8 +3,6 @@
 #include <gltfformat/glb.h>
 #include <gltfformat/bin.h>
 #include "ParseGltf.h"
-#include "ShaderManager.h"
-#include "VertexBuffer.h"
 #include "SceneMeshSkin.h"
 #include "ToUnicode.h"
 #include <vector>
@@ -197,11 +195,11 @@ public:
         m_model->materials.reserve(m_gltf.materials.size());
         for (auto &gltfMaterial : m_gltf.materials)
         {
-            auto material = framedata::FrameMaterial::Create();
+            auto material = std::make_shared<framedata::FrameMaterial>();
             material->name = gltfMaterial.name;
             material->colorImage = framedata::FrameImage::White();
 
-            auto shader = IsUnlit(gltfMaterial) ? "gltf_unlit.hlsl" : "gltf_standard.hlsl";
+            auto shaderFile = IsUnlit(gltfMaterial) ? L"gltf_unlit.hlsl" : L"gltf_standard.hlsl";
 
             switch (gltfMaterial.alphaMode.value_or(gltfformat::MaterialAlphaMode::OPAQUE))
             {
@@ -218,7 +216,8 @@ public:
                 throw "unknown";
             }
 
-            material->shaderSource = framedata::ShaderManager::Instance().GetSource(shader);
+            material->shader = std::make_shared<framedata::Shader>("gltf");
+            material->shader->Compile(framedata::DirectoryWatcher::Instance().Get(shaderFile)->String());
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();

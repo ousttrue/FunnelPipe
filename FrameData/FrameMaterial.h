@@ -4,7 +4,7 @@
 #include <array>
 #include <stdint.h>
 #include "FrameImage.h"
-#include "ShaderWatcher.h"
+#include "Shader.h"
 
 namespace framedata
 {
@@ -16,14 +16,10 @@ enum class AlphaMode
     Blend,
 };
 
-class FrameMaterial
+struct FrameMaterial
 {
-
-public:
-    static std::shared_ptr<FrameMaterial> Create();
-
     std::string name;
-    ShaderWatcherPtr shaderSource;
+    ShaderPtr shader;
     AlphaMode alphaMode{};
     float alphaCutoff = 0;
     FrameImagePtr colorImage;

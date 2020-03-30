@@ -9,7 +9,11 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
                           const ComPtr<ID3D12RootSignature> &rootSignature,
                           const framedata::FrameMaterialPtr &material)
 {
-    auto &shader = material->shaderSource->Compiled();
+    auto &shader = material->shader;
+    if(!shader)
+    {
+        return false;
+    }
 
     int inputLayoutCount;
     auto inputLayout = shader->inputLayout(&inputLayoutCount);

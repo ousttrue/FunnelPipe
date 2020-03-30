@@ -1,7 +1,6 @@
 #pragma once
 #include "VertexBuffer.h"
 #include "Shader.h"
-#include "ShaderManager.h"
 #include "MeshFactory/CreateGrid.h"
 #include "FrameMesh.h"
 #include "ToUnicode.h"

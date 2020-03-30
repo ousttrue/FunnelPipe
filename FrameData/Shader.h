@@ -69,6 +69,8 @@ public:
     {
     }
 
+    const std::string &Name() const { return m_name; }
+
     int Generation() const { return m_generation; }
 
     const D3D12_INPUT_ELEMENT_DESC *inputLayout(int *count) const
@@ -76,8 +78,7 @@ public:
         *count = (int)m_layout.size();
         return m_layout.data();
     }
-    bool Initialize(const ComPtr<ID3D12Device> &device,
-                    const std::string &source, int generation);
+    bool Compile(const std::string &source, int generation = 0);
 };
 using ShaderPtr = std::shared_ptr<Shader>;
 

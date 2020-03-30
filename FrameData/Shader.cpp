@@ -1,6 +1,7 @@
 #include "Shader.h"
 #include <plog/log.h>
-#include "ShaderManager.h"
+#include "DirectoryWatcher.h"
+#include "ToUnicode.h"
 
 namespace framedata
 {
@@ -113,7 +114,7 @@ char INCLUDE[] = R"(cbuffer SceneConstantBuffer : register(b0)
 
 struct Buffer
 {
-    std::vector<uint8_t> data;
+    std::string data;
 };
 class IncludeHandler : public ID3DInclude
 {
@@ -130,29 +131,24 @@ class IncludeHandler : public ID3DInclude
         default:
             return E_FAIL;
         }
-        auto watcher = ShaderManager::Instance().GetSource(pFileName, true);
-        auto [source, generation] = watcher->source();
-        if (generation < 0)
-        {
-            return E_FAIL;
-        }
+        auto watcher = DirectoryWatcher::Instance().Get(SJISToUnicode(pFileName));
 
         auto buffer = std::make_shared<Buffer>();
 
         m_buffers.emplace_back(buffer);
 
-        // buffer->data.assign(source.begin(), source.end());
-        buffer->data.assign(INCLUDE, INCLUDE+sizeof(INCLUDE)-1);
+        auto copy = watcher->Copy();
+        buffer->data = std::string(copy.begin(), copy.end());
 
-        int i = 0;
-        for (; i < buffer->data.size(); ++i)
-        {
-            if (buffer->data[i] != INCLUDE[i])
-            {
-                break;
-            }
-        }
-        auto a = 0;
+        // int i = 0;
+        // for (; i < buffer->data.size(); ++i)
+        // {
+        //     if (buffer->data[i] != INCLUDE[i])
+        //     {
+        //         break;
+        //     }
+        // }
+        // auto a = 0;
 
         *ppData = buffer->data.data();
         *pBytes = (UINT)buffer->data.size();
@@ -165,9 +161,7 @@ class IncludeHandler : public ID3DInclude
     }
 };
 
-bool Shader::Initialize(const ComPtr<ID3D12Device> &device,
-                        const std::string &source,
-                        int generation)
+bool Shader::Compile(const std::string &source, int generation)
 {
     if (generation > m_generation)
     {
