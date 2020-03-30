@@ -50,14 +50,14 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
         },
         {
             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-            .NumDescriptors = 12,
+            .NumDescriptors = 8,
             .BaseShaderRegister = 0,
             .RegisterSpace = 0,
             // .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC,
         },
         {
             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-            .NumDescriptors = 12,
+            .NumDescriptors = 8,
             .BaseShaderRegister = 0,
             .RegisterSpace = 0,
         },
@@ -194,7 +194,7 @@ std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> 
     return gpuMaterial;
 }
 
-std::pair<std::shared_ptr<class Texture>, UINT> RootSignature::GetOrCreate(
+std::shared_ptr<class Texture> RootSignature::GetOrCreate(
     const ComPtr<ID3D12Device> &device,
     const framedata::FrameImagePtr &image,
     Uploader *uploader)
@@ -202,7 +202,7 @@ std::pair<std::shared_ptr<class Texture>, UINT> RootSignature::GetOrCreate(
     auto found = m_textureMap.find(image);
     if (found != m_textureMap.end())
     {
-        return std::make_pair(m_textures[found->second], found->second);
+        return found->second;
     }
 
     // create texture
@@ -213,23 +213,9 @@ std::pair<std::shared_ptr<class Texture>, UINT> RootSignature::GetOrCreate(
         uploader->EnqueueUpload(resource, image->buffer.data(), (UINT)image->buffer.size(), image->width * 4);
     }
 
-    auto index = (UINT)m_textures.size();
-    m_textures.push_back(gpuTexture);
-    m_textureMap.insert(std::make_pair(image, index));
+    m_textureMap.insert(std::make_pair(image, gpuTexture));
 
-    // create view
-    D3D12_SHADER_RESOURCE_VIEW_DESC desc{
-        .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-        .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
-        .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-        .Texture2D = {
-            .MostDetailedMip = 0,
-            .MipLevels = 1,
-        },
-    };
-    device->CreateShaderResourceView(gpuTexture->Resource().Get(), &desc, m_heap->CpuHandle(index + 1 + DRAW_SLOTS));
-
-    return std::make_pair(gpuTexture, index);
+    return gpuTexture;
 }
 
 void RootSignature::SetDrawDescriptorTable(const ComPtr<ID3D12Device> &device,
@@ -259,10 +245,76 @@ void RootSignature::SetDrawDescriptorTable(const ComPtr<ID3D12Device> &device,
     commandList->SetGraphicsRootDescriptorTable(1, m_heap->GpuHandle(1 + nodeIndex));
 }
 
-void RootSignature::SetTextureDescriptorTable(const ComPtr<ID3D12Device> &device,
-                                              const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT textureIndex)
+void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
+                              Gpu::dx12::CommandList *commandList,
+                              const framedata::FrameData &framedata, class Uploader *uploader)
 {
-    commandList->SetGraphicsRootDescriptorTable(2, m_heap->GpuHandle(1 + DRAW_SLOTS + textureIndex));
+    std::vector<std::shared_ptr<Texture>> m_textures;
+    m_textures.clear();
+    m_srvStatus.clear();
+
+    for (auto &image : framedata.Images)
+    {
+        auto texture = GetOrCreate(device, image, uploader);
+        if (texture)
+        {
+            auto [isDrawable, callback] = texture->IsDrawable(commandList->Get());
+            if (callback)
+            {
+                commandList->AddOnCompleted(callback);
+            }
+            if (!isDrawable)
+            {
+                texture = nullptr;
+            }
+        }
+        m_textures.push_back(texture);
+    }
+
+    UINT index = 1 + DRAW_SLOTS;
+    for (auto &srv : framedata.SRVViews)
+    {
+        bool status = true;
+        m_srvStatus.push_back({
+            .index = index,
+        });
+        for (int i = 0; i < 8; ++i, ++index)
+        {
+            // create view
+            D3D12_SHADER_RESOURCE_VIEW_DESC desc{
+                .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+                .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                .Texture2D = {
+                    .MostDetailedMip = 0,
+                    .MipLevels = 1,
+                },
+            };
+            auto gpuTexture = m_textures[srv.list[i]];
+            if (gpuTexture)
+            {
+                device->CreateShaderResourceView(gpuTexture->Resource().Get(), &desc, m_heap->CpuHandle(index));
+            }
+            else
+            {
+                // not ready
+                status = false;
+            }
+        }
+        m_srvStatus.back().status = status;
+    }
+}
+
+bool RootSignature::SetTextureDescriptorTable(const ComPtr<ID3D12Device> &device,
+                                              const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT materialIndex)
+{
+    auto &status =m_srvStatus[materialIndex];
+    if (!status.status)
+    {
+        return false;
+    }
+    commandList->SetGraphicsRootDescriptorTable(2, m_heap->GpuHandle(status.index));
+    return true;
 }
 
 } // namespace Gpu::dx12

@@ -143,13 +143,14 @@ public:
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&framedata);
         UpdateView(viewRenderTarget, framedata);
         UpdateMeshes(framedata);
+        m_rootSignature->UpdateSRV(m_device, m_commandlist.get(), framedata, m_sceneMapper->GetUploader());
         DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget,
                  framedata.ViewClearColor.data(), framedata);
     }
 
     Microsoft::WRL::ComPtr<ID3D12Resource> GetTexture(const framedata::FrameImagePtr &image)
     {
-        auto [texture, slot] = m_rootSignature->GetOrCreate(m_device, image, m_sceneMapper->GetUploader());
+        auto texture = m_rootSignature->GetOrCreate(m_device, image, m_sceneMapper->GetUploader());
         return texture->Resource();
     }
 
@@ -258,27 +259,29 @@ private:
         auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
 
         // texture setup
-        if (submesh.material->ColorImage)
+        // if (submesh.material->ColorImage)
+        // {
+        //     auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->ColorImage,
+        //                                                                m_sceneMapper->GetUploader());
+        //     if (texture)
+        //     {
+        //         auto [isDrawable, callback] = texture->IsDrawable(commandList);
+        //         if (callback)
+        //         {
+        //             m_commandlist->AddOnCompleted(callback);
+        //         }
+        //         if (isDrawable)
+        //         {
+        //             m_rootSignature->SetTextureDescriptorTable(m_device, commandList, textureSlot);
+        //         }
+        //     }
+        // }
+        m_rootSignature->SetTextureDescriptorTable(m_device, commandList, info.MaterialIndex);
         {
-            auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->ColorImage,
-                                                                       m_sceneMapper->GetUploader());
-            if (texture)
+            if (material->Set(commandList))
             {
-                auto [isDrawable, callback] = texture->IsDrawable(commandList);
-                if (callback)
-                {
-                    m_commandlist->AddOnCompleted(callback);
-                }
-                if (isDrawable)
-                {
-                    m_rootSignature->SetTextureDescriptorTable(m_device, commandList, textureSlot);
-                }
+                commandList->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
             }
-        }
-
-        if (material->Set(commandList))
-        {
-            commandList->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
         }
     }
 };

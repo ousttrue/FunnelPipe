@@ -79,32 +79,41 @@ struct FrameData
     std::vector<MeshItem> Meshlist;
 
     // texture の slot 割り当て
-    std::vector<FrameImagePtr> Textures;
-    std::unordered_map<FrameImagePtr, size_t> TextureMap;
-    size_t PushImage(const FrameImagePtr &texture)
+    std::vector<FrameImagePtr> Images;
+    std::unordered_map<FrameImagePtr, size_t> ImageMap;
+    size_t PushImage(const FrameImagePtr &image)
     {
-        auto found = TextureMap.find(texture);
-        if (found != TextureMap.end())
+        auto found = ImageMap.find(image);
+        if (found != ImageMap.end())
         {
             return found->second;
         }
-        auto index = Textures.size();
-        Textures.push_back(texture);
-        TextureMap.insert(std::make_pair(texture, index));
+        auto index = Images.size();
+        Images.push_back(image);
+        ImageMap.insert(std::make_pair(image, index));
         return index;
     }
 
     // material毎の slot 割り当て
-    struct SRVView
-    {
-        uint16_t SRV0TextureIndex;
-        uint16_t SRV1TextureIndex;
-        uint16_t SRV2TextureIndex;
-        uint16_t SRV3TextureIndex;
-        uint16_t SRV4TextureIndex;
-        uint16_t SRV5TextureIndex;
-        uint16_t SRV6TextureIndex;
-        uint16_t SRV7TextureIndex;
+    union SRVView {
+        uint16_t list[8];
+        struct
+        {
+            uint16_t SRV0TextureIndex;
+            uint16_t SRV1TextureIndex;
+            uint16_t SRV2TextureIndex;
+            uint16_t SRV3TextureIndex;
+            uint16_t SRV4TextureIndex;
+            uint16_t SRV5TextureIndex;
+            uint16_t SRV6TextureIndex;
+            uint16_t SRV7TextureIndex;
+        };
+
+        SRVView(uint16_t i0, uint16_t i1, uint16_t i2, uint16_t i3,
+                uint16_t i4, uint16_t i5, uint16_t i6, uint16_t i7)
+            : SRV0TextureIndex(i0), SRV1TextureIndex(i1), SRV2TextureIndex(i2), SRV3TextureIndex(i3), SRV4TextureIndex(i4), SRV5TextureIndex(i5), SRV6TextureIndex(i6), SRV7TextureIndex(i7)
+        {
+        }
     };
     std::vector<SRVView> SRVViews;
     // std::vector<FrameMaterialPtr> Materials;
@@ -120,16 +129,15 @@ struct FrameData
 
         auto white = PushImage(FrameImage::White());
 
-        SRVViews.push_back({
-            .SRV0TextureIndex = (uint16_t)(material->ColorImage ? PushImage(material->ColorImage) : white),
-            .SRV1TextureIndex = (uint16_t)white,
-            .SRV2TextureIndex = (uint16_t)white,
-            .SRV3TextureIndex = (uint16_t)white,
-            .SRV4TextureIndex = (uint16_t)white,
-            .SRV5TextureIndex = (uint16_t)white,
-            .SRV6TextureIndex = (uint16_t)white,
-            .SRV7TextureIndex = (uint16_t)white,
-        });
+        SRVViews.push_back(SRVView(
+            (uint16_t)(material->ColorImage ? PushImage(material->ColorImage) : white),
+            (uint16_t)white,
+            (uint16_t)white,
+            (uint16_t)white,
+            (uint16_t)white,
+            (uint16_t)white,
+            (uint16_t)white,
+            (uint16_t)white));
         MaterialMap.insert(std::make_pair(material, index));
         return index;
     }
@@ -164,8 +172,8 @@ struct FrameData
         CBRanges.clear();
         Drawlist.clear();
 
-        Textures.clear();
-        TextureMap.clear();
+        Images.clear();
+        ImageMap.clear();
         MaterialMap.clear();
         SRVViews.clear();
     }
