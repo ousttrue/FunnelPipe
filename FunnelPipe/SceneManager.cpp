@@ -92,6 +92,7 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
                             material->colorImage->name.c_str(),
                             material->colorImage->width, material->colorImage->height);
                 auto texture = getTexture(material->colorImage);
+                texture->AddRef();
                 ImGui::Image((ImTextureID)texture.Get(), ImVec2(150, 150));
             }
             else

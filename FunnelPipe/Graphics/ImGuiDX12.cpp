@@ -21,6 +21,8 @@ static const char *g_pixelShader =
 #include "ImGuiDX12.ps"
     ;
 
+const int NUM_DESCRIPTORS = 256;
+
 class ImGuiDX12Impl
 {
     ComPtr<ID3D12RootSignature> m_pRootSignature;
@@ -35,7 +37,7 @@ class ImGuiDX12Impl
     UINT m_frameIndex = UINT_MAX;
 
     std::unordered_map<ID3D12Resource *, size_t> m_textureDescriptorMap;
-    std::vector<ComPtr<ID3D12Resource>> m_descriptors;
+    ID3D12Resource *m_descriptors[NUM_DESCRIPTORS] = {};
 
     size_t GetOrCreateTexture(ID3D12Resource *resource)
     {
@@ -62,26 +64,68 @@ class ImGuiDX12Impl
             },
         };
 
-        auto index = m_textureDescriptorMap.size();
-        // LOGD << "imgui: new texture#" << index;
+        auto index = 0;
+
+        for (; index < NUM_DESCRIPTORS; ++index)
+        {
+            if (!m_descriptors[index])
+            {
+                break;
+            }
+        }
+        if (index >= NUM_DESCRIPTORS)
+        {
+            throw;
+        }
+        m_descriptors[index] = resource;
 
         auto handle = m_pHeap->GetCPUDescriptorHandleForHeapStart();
         handle.ptr += index * m_increment;
         device->CreateShaderResourceView(resource,
                                          &srvDesc, handle);
 
-        m_descriptors.push_back(resource);
         m_textureDescriptorMap.insert(std::make_pair(resource, index));
 
         return index;
     }
 
-    D3D12_GPU_DESCRIPTOR_HANDLE GetHandle(ID3D12Resource *texture)
+    bool TryGetHandle(ID3D12Resource *texture, D3D12_GPU_DESCRIPTOR_HANDLE *handle)
     {
+        if (!handle)
+        {
+            return false;
+        }
+
+        int ref = -1;
+        if (texture == m_pFontTextureResource.Get())
+        {
+            // OK
+        }
+        else
+        {
+            // before ImGui::Image, AddRef
+            ref = texture->Release();
+            if (ref == 0)
+            {
+                LOGD << "remove texture";
+                auto it = m_textureDescriptorMap.find(texture);
+                if (it != m_textureDescriptorMap.end())
+                {
+                    m_descriptors[it->second] = nullptr;
+                    m_textureDescriptorMap.erase(it);
+                }
+                return false;
+            }
+        }
+
         auto index = GetOrCreateTexture(texture);
-        auto handle = m_pHeap->GetGPUDescriptorHandleForHeapStart();
-        handle.ptr += (size_t)index * m_increment;
-        return handle;
+        // if (ref >= 0)
+        // {
+        //     LOGD << ref << "=>" << index;
+        // }
+        *handle = m_pHeap->GetGPUDescriptorHandleForHeapStart();
+        handle->ptr += (size_t)index * m_increment;
+        return true;
     }
 
 public:
@@ -120,7 +164,7 @@ public:
             // heap
             D3D12_DESCRIPTOR_HEAP_DESC desc = {
                 .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                .NumDescriptors = 128,
+                .NumDescriptors = NUM_DESCRIPTORS,
                 .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
             };
             if (FAILED(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_pHeap))))
@@ -206,9 +250,10 @@ public:
                 {
                     // Apply Scissor, Bind texture, Draw
                     const D3D12_RECT r = {(LONG)(pcmd->ClipRect.x - clip_off.x), (LONG)(pcmd->ClipRect.y - clip_off.y), (LONG)(pcmd->ClipRect.z - clip_off.x), (LONG)(pcmd->ClipRect.w - clip_off.y)};
-                    if (pcmd->TextureId)
+                    D3D12_GPU_DESCRIPTOR_HANDLE handle;
+                    if (TryGetHandle((ID3D12Resource *)pcmd->TextureId, &handle))
                     {
-                        ctx->SetGraphicsRootDescriptorTable(1, GetHandle((ID3D12Resource *)pcmd->TextureId));
+                        ctx->SetGraphicsRootDescriptorTable(1, handle);
                     }
                     ctx->RSSetScissorRects(1, &r);
                     ctx->DrawIndexedInstanced(pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
