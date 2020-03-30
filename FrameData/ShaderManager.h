@@ -9,7 +9,7 @@ namespace framedata
 
 class ShaderManager
 {
-    std::unordered_map<std::wstring, ShaderWatcherPtr> m_shaderMap;
+    std::unordered_map<std::wstring, ShaderWatcherPtr> m_watcherMap;
     std::mutex m_mutex;
 
     // avoid copy
@@ -24,10 +24,10 @@ public:
     static ShaderManager &Instance();
 
     // default
-    ShaderWatcherPtr Get(const std::string &shaderName);
+    ShaderWatcherPtr GetSource(const std::string &shaderName, bool isInclude = false);
     ShaderWatcherPtr GetDefault()
     {
-        return Get("default");
+        return GetSource("default.hlsl");
     }
 
     void OnFile(const std::wstring &fileName, int action);

@@ -25,3 +25,4 @@ scene+
   * [x] ResourceInfo
 * shader
   * [ ] Gltf PBR
+  * [x] ID3DInclude

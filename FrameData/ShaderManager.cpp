@@ -51,25 +51,25 @@ ShaderManager &ShaderManager::Instance()
 }
 
 // default
-ShaderWatcherPtr ShaderManager::Get(const std::string &shaderName)
+ShaderWatcherPtr ShaderManager::GetSource(const std::string &shaderName, bool isInclude)
 {
-    auto fileName = multi_to_wide_winapi(shaderName + ".hlsl");
-    auto found = m_shaderMap.find(fileName);
-    if (found != m_shaderMap.end())
+    auto fileName = multi_to_wide_winapi(shaderName);
+    auto found = m_watcherMap.find(fileName);
+    if (found != m_watcherMap.end())
     {
         return found->second;
     }
 
-    auto shader = std::make_shared<ShaderWatcher>(shaderName);
+    auto watcher = std::make_shared<ShaderWatcher>(shaderName, isInclude);
     auto source = ReadAllText(DirectoryWatcher::Instance().FullPath(fileName));
-    shader->source(source);
+    watcher->source(source);
 
     {
         std::lock_guard<std::mutex> scoped(m_mutex);
-        m_shaderMap.insert(std::make_pair(fileName, shader));
+        m_watcherMap.insert(std::make_pair(fileName, watcher));
     }
 
-    return shader;
+    return watcher;
 }
 
 void ShaderManager::OnFile(const std::wstring &fileName, int action)
@@ -77,8 +77,8 @@ void ShaderManager::OnFile(const std::wstring &fileName, int action)
     if (action == FILE_ACTION_MODIFIED)
     {
         std::lock_guard<std::mutex> scoped(m_mutex);
-        auto found = m_shaderMap.find(fileName);
-        if (found != m_shaderMap.end())
+        auto found = m_watcherMap.find(fileName);
+        if (found != m_watcherMap.end())
         {
             auto source = ReadAllText(DirectoryWatcher::Instance().FullPath(fileName));
             found->second->source(source);

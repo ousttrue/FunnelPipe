@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include <plog/log.h>
+#include "ShaderManager.h"
 
 namespace framedata
 {
@@ -101,6 +102,69 @@ bool Shader::InputLayoutFromReflection(const ComPtr<ID3D12ShaderReflection> &pRe
     return true;
 }
 
+char INCLUDE[] = R"(cbuffer SceneConstantBuffer : register(b0)
+{
+    float4x4 b0View : CAMERA_VIEW;
+    float4x4 b0Projection : CAMERA_PROJECTION;
+    float3 b0LightDirection : LIGHT_DIRECTION;
+    float3 b0LightColor : LIGHT_COLOR;
+};
+)";
+
+struct Buffer
+{
+    std::vector<uint8_t> data;
+};
+class IncludeHandler : public ID3DInclude
+{
+    std::vector<std::shared_ptr<Buffer>> m_buffers;
+
+    HRESULT Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes) override
+    {
+        switch (IncludeType)
+        {
+        case D3D_INCLUDE_LOCAL:
+        case D3D_INCLUDE_SYSTEM:
+            break;
+
+        default:
+            return E_FAIL;
+        }
+        auto watcher = ShaderManager::Instance().GetSource(pFileName, true);
+        auto [source, generation] = watcher->source();
+        if (generation < 0)
+        {
+            return E_FAIL;
+        }
+
+        auto buffer = std::make_shared<Buffer>();
+
+        m_buffers.emplace_back(buffer);
+
+        // buffer->data.assign(source.begin(), source.end());
+        buffer->data.assign(INCLUDE, INCLUDE+sizeof(INCLUDE)-1);
+
+        int i = 0;
+        for (; i < buffer->data.size(); ++i)
+        {
+            if (buffer->data[i] != INCLUDE[i])
+            {
+                break;
+            }
+        }
+        auto a = 0;
+
+        *ppData = buffer->data.data();
+        *pBytes = (UINT)buffer->data.size();
+        return S_OK;
+    }
+
+    HRESULT Close(LPCVOID pData) override
+    {
+        return S_OK;
+    }
+};
+
 bool Shader::Initialize(const ComPtr<ID3D12Device> &device,
                         const std::string &source,
                         int generation)
@@ -133,12 +197,14 @@ bool Shader::Initialize(const ComPtr<ID3D12Device> &device,
     UINT compileFlags = 0;
 #endif
 
+    IncludeHandler includeHandler;
+
     //
     // VS
     //
     {
         ComPtr<ID3DBlob> error;
-        if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &VS.Compiled, &error)))
+        if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, "VSMain", "vs_5_0", compileFlags, 0, &VS.Compiled, &error)))
         {
             LOGW << ToString(error);
             return false;
@@ -160,7 +226,7 @@ bool Shader::Initialize(const ComPtr<ID3D12Device> &device,
     //
     {
         ComPtr<ID3DBlob> error;
-        if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &PS.Compiled, nullptr)))
+        if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, "PSMain", "ps_5_0", compileFlags, 0, &PS.Compiled, nullptr)))
         {
             LOGW << ToString(error);
             return false;

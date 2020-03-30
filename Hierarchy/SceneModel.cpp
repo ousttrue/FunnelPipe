@@ -201,7 +201,7 @@ public:
             material->name = gltfMaterial.name;
             material->colorImage = framedata::FrameImage::White();
 
-            auto shader = IsUnlit(gltfMaterial) ? "gltf_unlit" : "gltf_standard";
+            auto shader = IsUnlit(gltfMaterial) ? "gltf_unlit.hlsl" : "gltf_standard.hlsl";
 
             switch (gltfMaterial.alphaMode.value_or(gltfformat::MaterialAlphaMode::OPAQUE))
             {
@@ -218,7 +218,7 @@ public:
                 throw "unknown";
             }
 
-            material->shaderSource = framedata::ShaderManager::Instance().Get(shader);
+            material->shaderSource = framedata::ShaderManager::Instance().GetSource(shader);
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();

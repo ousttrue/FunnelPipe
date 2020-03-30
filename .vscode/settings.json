@@ -3,9 +3,11 @@
     "cSpell.words": [
         "DXGI",
         "Gltf",
+        "HRESULT",
         "countof",
         "falg",
         "gizmesh",
+        "hlsl",
         "hwnd",
         "imgui",
         "uploader"
