@@ -33,14 +33,14 @@ SamplerState occlusionSampler : register(s3);
 Texture2D metallicRoughnessTexture : register(t4);
 SamplerState metallicRoughnessSampler : register(s4);
 
-TextureCube envDiffuseTexture : register(t8);
-SamplerState envDiffuseSampler : register(s8);
+TextureCube envDiffuseTexture : register(t5);
+SamplerState envDiffuseSampler : register(s5);
 
-Texture2D brdfLutTexture : register(t9);
-SamplerState brdfLutSampler : register(s9);
+Texture2D brdfLutTexture : register(t6);
+SamplerState brdfLutSampler : register(s6);
 
-TextureCube envSpecularTexture : register(t10);
-SamplerState envSpecularSampler : register(s10);
+TextureCube envSpecularTexture : register(t7);
+SamplerState envSpecularSampler : register(s7);
 
 struct Light
 {

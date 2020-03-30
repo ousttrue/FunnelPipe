@@ -35,7 +35,7 @@ public:
 
     const std::string &Name() const { return m_name; }
 
-    virtual bool Compile(const std::string &source, const std::string &entrypoint) = 0;
+    virtual bool Compile(const std::string &source, const std::string &entrypoint, const D3D_SHADER_MACRO *define) = 0;
 
     D3D12_SHADER_BYTECODE ByteCode() const
     {
@@ -64,7 +64,7 @@ class PixelShader : public Shader
 {
 public:
     using Shader::Shader;
-    bool Compile(const std::string &source, const std::string &entrypoint) override;
+    bool Compile(const std::string &source, const std::string &entrypoint, const D3D_SHADER_MACRO *define) override;
 };
 using PixelShaderPtr = std::shared_ptr<PixelShader>;
 
@@ -80,7 +80,7 @@ class VertexShader : public Shader
 
 public:
     using Shader::Shader;
-    bool Compile(const std::string &source, const std::string &entrypoint) override;
+    bool Compile(const std::string &source, const std::string &entrypoint, const D3D_SHADER_MACRO *define) override;
     const D3D12_INPUT_ELEMENT_DESC *inputLayout(int *count) const
     {
         *count = (int)m_layout.size();

@@ -161,7 +161,7 @@ class IncludeHandler : public ID3DInclude
     }
 };
 
-bool VertexShader::Compile(const std::string &source, const std::string &entrypoint)
+bool VertexShader::Compile(const std::string &source, const std::string &entrypoint, const D3D_SHADER_MACRO *define)
 {
     if (source.empty())
     {
@@ -182,7 +182,9 @@ bool VertexShader::Compile(const std::string &source, const std::string &entrypo
     // VS
     //
     ComPtr<ID3DBlob> error;
-    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, entrypoint.c_str(), "vs_5_0", compileFlags, 0, &m_compiled, &error)))
+    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(),
+                          define, &includeHandler,
+                          entrypoint.c_str(), "vs_5_0", compileFlags, 0, &m_compiled, &error)))
     {
         if (error)
         {
@@ -208,7 +210,7 @@ bool VertexShader::Compile(const std::string &source, const std::string &entrypo
     return true;
 }
 
-bool PixelShader::Compile(const std::string &source, const std::string &entrypoint)
+bool PixelShader::Compile(const std::string &source, const std::string &entrypoint, const D3D_SHADER_MACRO *define)
 {
     // Create the pipeline state, which includes compiling and loading shaders.
 #if defined(_DEBUG)
@@ -221,7 +223,9 @@ bool PixelShader::Compile(const std::string &source, const std::string &entrypoi
     IncludeHandler includeHandler;
 
     ComPtr<ID3DBlob> error;
-    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, entrypoint.c_str(), "ps_5_0", compileFlags, 0, &m_compiled, nullptr)))
+    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(),
+                          define, &includeHandler,
+                          entrypoint.c_str(), "ps_5_0", compileFlags, 0, &m_compiled, nullptr)))
     {
         if (error)
         {
