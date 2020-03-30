@@ -37,10 +37,10 @@ void Gizmo::Begin(const screenstate::ScreenState &state, const camera::CameraSta
     {
         m_mode = GizmoModes::Rotation;
     }
-    if (state.KeyCode['S'])
-    {
-        m_mode = GizmoModes::Scale;
-    }
+    // if (state.KeyCode['S'])
+    // {
+    //     m_mode = GizmoModes::Scale;
+    // }
     if (state.KeyCode['\t'] && !m_lastKeyCode['\t'])
     {
         m_isLocal = !m_isLocal;
