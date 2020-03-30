@@ -13,6 +13,8 @@
         "uploader"
     ],
     "files.associations": {
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "memory": "cpp",
+        "functional": "cpp"
     }
 }

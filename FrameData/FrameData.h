@@ -61,7 +61,6 @@ struct FrameData
     //
     std::vector<uint8_t> CB;
     std::vector<std::pair<uint32_t, uint32_t>> CBRanges;
-
     std::pair<uint32_t, uint32_t> PushCB(const ConstantBuffer *cb, const CBValue *value, int count);
 
     struct Buffer
@@ -83,14 +82,35 @@ struct FrameData
         std::shared_ptr<FrameMesh> Mesh;
         FrameSubmesh Submesh;
     };
+    // CBRanges.size() == Drawlist.size()
     std::vector<DrawItem> Drawlist;
+
+    // texture の slot 割り当て
+    std::vector<FrameImagePtr> Textures;
+    // material毎の slot 割り当て
+    struct SRVView
+    {
+        uint16_t SRV0TextureIndex;
+        uint16_t SRV1TextureIndex;
+        uint16_t SRV2TextureIndex;
+        uint16_t SRV3TextureIndex;
+        uint16_t SRV4TextureIndex;
+        uint16_t SRV5TextureIndex;
+        uint16_t SRV6TextureIndex;
+        uint16_t SRV7TextureIndex;
+    };
+    std::vector<SRVView> SRVViews;
 
     void Clear()
     {
+        Meshlist.clear();
+        
         CB.clear();
         CBRanges.clear();
-        Meshlist.clear();
         Drawlist.clear();
+
+        Textures.clear();
+        SRVViews.clear();
     }
 };
 

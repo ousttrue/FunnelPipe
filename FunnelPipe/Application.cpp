@@ -21,7 +21,7 @@ class ApplicationImpl
     // Microsoft::WRL::ComPtr<ID3D12Resource> m_viewTexture;
     framedata::FrameData m_frameData;
     gui::Gui m_imgui;
-    
+
     Renderer m_renderer;
 
     bool m_initialized = false;

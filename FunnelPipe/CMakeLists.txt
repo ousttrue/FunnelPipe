@@ -20,6 +20,9 @@ add_executable(${TARGET_NAME}
 set_property(TARGET ${TARGET_NAME} 
     PROPERTY CXX_STANDARD 20
     )
+target_compile_definitions(${TARGET_NAME} PRIVATE
+    _CRT_SECURE_NO_WARNINGS
+    )
 target_include_directories(${TARGET_NAME} PRIVATE
     ${EXTERNAL_DIR}/plog/include
     ${EXTERNAL_DIR}/nlohmann_json/include

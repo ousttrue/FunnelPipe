@@ -5,6 +5,7 @@ add_library(${TARGET_NAME}
     ParseGltf.cpp
     SceneModel.cpp
     SceneMeshSkin.cpp
+    FrameDataBuilder.cpp
     )
 set_property(TARGET ${TARGET_NAME} 
     PROPERTY CXX_STANDARD 20
