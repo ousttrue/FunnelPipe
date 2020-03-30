@@ -161,7 +161,7 @@ class IncludeHandler : public ID3DInclude
     }
 };
 
-bool VertexShader::Compile(const std::string &source)
+bool VertexShader::Compile(const std::string &source, const std::string &entrypoint)
 {
     if (source.empty())
     {
@@ -182,9 +182,16 @@ bool VertexShader::Compile(const std::string &source)
     // VS
     //
     ComPtr<ID3DBlob> error;
-    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, "VSMain", "vs_5_0", compileFlags, 0, &m_compiled, &error)))
+    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, entrypoint.c_str(), "vs_5_0", compileFlags, 0, &m_compiled, &error)))
     {
-        LOGW << ToString(error);
+        if (error)
+        {
+            LOGW << ToString(error);
+        }
+        else
+        {
+            LOGW << "unknown error";
+        }
         return false;
     }
     ComPtr<ID3D12ShaderReflection> pReflection;
@@ -201,7 +208,7 @@ bool VertexShader::Compile(const std::string &source)
     return true;
 }
 
-bool PixelShader::Compile(const std::string &source)
+bool PixelShader::Compile(const std::string &source, const std::string &entrypoint)
 {
     // Create the pipeline state, which includes compiling and loading shaders.
 #if defined(_DEBUG)
@@ -214,9 +221,16 @@ bool PixelShader::Compile(const std::string &source)
     IncludeHandler includeHandler;
 
     ComPtr<ID3DBlob> error;
-    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, "PSMain", "ps_5_0", compileFlags, 0, &m_compiled, nullptr)))
+    if (FAILED(D3DCompile(source.data(), source.size(), m_name.c_str(), nullptr, &includeHandler, entrypoint.c_str(), "ps_5_0", compileFlags, 0, &m_compiled, nullptr)))
     {
-        LOGW << ToString(error);
+        if (error)
+        {
+            LOGW << ToString(error);
+        }
+        else
+        {
+            LOGW << "unknown error";
+        }
         return false;
     }
     ComPtr<ID3D12ShaderReflection> pReflection;

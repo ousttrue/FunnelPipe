@@ -50,10 +50,16 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
         },
         {
             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-            .NumDescriptors = 1,
+            .NumDescriptors = 12,
             .BaseShaderRegister = 0,
             .RegisterSpace = 0,
             // .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC,
+        },
+        {
+            .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
+            .NumDescriptors = 12,
+            .BaseShaderRegister = 0,
+            .RegisterSpace = 0,
         },
     };
 
@@ -85,6 +91,15 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
             },
             .ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL,
         },
+        // Sampler
+        {
+            .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
+            .DescriptorTable = {
+                .NumDescriptorRanges = 1,
+                .pDescriptorRanges = &ranges[3],
+            },
+            .ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL,
+        },
     };
 
     // Allow input layout and deny unecessary access to certain pipeline stages.
@@ -112,6 +127,7 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
         .AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
         .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
         .MaxLOD = D3D12_FLOAT32_MAX,
+        .ShaderRegister = 12,
         .ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL,
     };
     rootSignatureDesc.Desc_1_1.pStaticSamplers = &sampler;
