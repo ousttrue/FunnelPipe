@@ -12,8 +12,6 @@ class ShaderManager
     std::unordered_map<std::wstring, ShaderWatcherPtr> m_shaderMap;
     std::mutex m_mutex;
 
-    class DirectoryWatcher *m_watcher = nullptr;
-
     // avoid copy
     ShaderManager(const ShaderManager &) = delete;
     ShaderManager &operator=(const ShaderManager &) = delete;

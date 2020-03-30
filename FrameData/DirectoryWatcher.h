@@ -7,12 +7,22 @@ namespace framedata
 {
 class DirectoryWatcher
 {
-    class DirectoryWatcherImpl *m_impl = nullptr;
-
 public:
     using OnFileFunc = const std::function<void(const std::wstring &, int)>;
-    DirectoryWatcher(const std::filesystem::path &path, const OnFileFunc &callback);
+
+private:
+    class DirectoryWatcherImpl *m_impl = nullptr;
+
+    DirectoryWatcher();
     ~DirectoryWatcher();
+
+public:
+    // singleton
+    static DirectoryWatcher &Instance();
+
+    void Watch(const std::filesystem::path &path, const OnFileFunc &callback);
+    void Stop();
+
     std::filesystem::path FullPath(const std::wstring &relativeName) const;
 };
 

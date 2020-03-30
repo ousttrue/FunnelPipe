@@ -142,14 +142,34 @@ public:
     }
 };
 
-DirectoryWatcher::DirectoryWatcher(const std::filesystem::path &path, const OnFileFunc &callback)
-    : m_impl(new DirectoryWatcherImpl(path, callback))
+DirectoryWatcher::DirectoryWatcher()
 {
 }
 
 DirectoryWatcher::~DirectoryWatcher()
 {
-    delete m_impl;
+    Stop();
+}
+
+DirectoryWatcher &DirectoryWatcher::Instance()
+{
+    static DirectoryWatcher s_instance;
+    return s_instance;
+}
+
+void DirectoryWatcher::Watch(const std::filesystem::path &path, const OnFileFunc &callback)
+{
+    Stop();
+    m_impl = new DirectoryWatcherImpl(path, callback);
+}
+
+void DirectoryWatcher::Stop()
+{
+    if (m_impl)
+    {
+        delete m_impl;
+        m_impl = nullptr;
+    }
 }
 
 std::filesystem::path DirectoryWatcher::FullPath(const std::wstring &relativeName) const

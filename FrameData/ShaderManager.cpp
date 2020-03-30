@@ -54,16 +54,12 @@ ShaderManager &ShaderManager::Instance()
 void ShaderManager::watch(std::filesystem::path &path)
 {
     stop();
-    m_watcher = new DirectoryWatcher(path, std::bind(&ShaderManager::onFile, this, std::placeholders::_1, std::placeholders::_2));
+    DirectoryWatcher::Instance().Watch(path, std::bind(&ShaderManager::onFile, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ShaderManager::stop()
 {
-    if (m_watcher)
-    {
-        delete m_watcher;
-        m_watcher = nullptr;
-    }
+    DirectoryWatcher::Instance().Stop();
 }
 
 // default
@@ -77,7 +73,7 @@ ShaderWatcherPtr ShaderManager::get(const std::string &shaderName)
     }
 
     auto shader = std::make_shared<ShaderWatcher>(shaderName);
-    auto source = ReadAllText(m_watcher->FullPath(fileName));
+    auto source = ReadAllText(DirectoryWatcher::Instance().FullPath(fileName));
     shader->source(source);
 
     {
@@ -96,7 +92,7 @@ void ShaderManager::onFile(const std::wstring &fileName, int action)
         auto found = m_shaderMap.find(fileName);
         if (found != m_shaderMap.end())
         {
-            auto source = ReadAllText(m_watcher->FullPath(fileName));
+            auto source = ReadAllText(DirectoryWatcher::Instance().FullPath(fileName));
             found->second->source(source);
         }
     }
