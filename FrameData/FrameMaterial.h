@@ -4,7 +4,7 @@
 #include <array>
 #include <stdint.h>
 #include "FrameImage.h"
-#include "Shader.h"
+#include "ShaderPass.h"
 
 namespace framedata
 {
@@ -18,15 +18,14 @@ enum class AlphaMode
 
 struct FrameMaterial
 {
-    std::string name;
+    std::string Name;
 
-    VertexShaderPtr VS;
-    PixelShaderPtr PS;
+    ShaderPassPtr Shader;
 
-    AlphaMode alphaMode{};
-    float alphaCutoff = 0;
-    FrameImagePtr colorImage;
-    std::array<float, 4> color = {1, 1, 1, 1};
+    AlphaMode AlphaMode{};
+    float AlphaCutoff = 0;
+    FrameImagePtr ColorImage;
+    std::array<float, 4> Color = {1, 1, 1, 1};
 };
 using FrameMaterialPtr = std::shared_ptr<FrameMaterial>;
 

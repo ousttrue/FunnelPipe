@@ -8,6 +8,7 @@ add_library(${TARGET_NAME}
     ShaderConstantVariable.cpp
     ToUnicode.cpp
     DirectoryWatcher.cpp
+    ShaderManager.cpp
     )
 set_property(TARGET ${TARGET_NAME} 
     PROPERTY CXX_STANDARD 20

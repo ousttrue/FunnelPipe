@@ -196,30 +196,28 @@ public:
         for (auto &gltfMaterial : m_gltf.materials)
         {
             auto material = std::make_shared<framedata::FrameMaterial>();
-            material->name = gltfMaterial.name;
-            material->colorImage = framedata::FrameImage::White();
-
-            auto shaderFile = IsUnlit(gltfMaterial) ? L"gltf_unlit.hlsl" : L"gltf_standard.hlsl";
+            material->Name = gltfMaterial.name;
+            material->Shader =
+                IsUnlit(gltfMaterial)
+                    ? framedata::ShaderManager::Instance().GltfUnlit()
+                    : framedata::ShaderManager::Instance().GltfPBR();
 
             switch (gltfMaterial.alphaMode.value_or(gltfformat::MaterialAlphaMode::OPAQUE))
             {
             case gltfformat::MaterialAlphaMode::OPAQUE:
-                material->alphaMode = framedata::AlphaMode::Opaque;
+                material->AlphaMode = framedata::AlphaMode::Opaque;
                 break;
             case gltfformat::MaterialAlphaMode::MASK:
-                material->alphaMode = framedata::AlphaMode::Mask;
+                material->AlphaMode = framedata::AlphaMode::Mask;
                 break;
             case gltfformat::MaterialAlphaMode::BLEND:
-                material->alphaMode = framedata::AlphaMode::Blend;
+                material->AlphaMode = framedata::AlphaMode::Blend;
                 break;
             default:
                 throw "unknown";
             }
 
-            material->VS = std::make_shared<framedata::VertexShader>("gltf@vs");
-            material->VS->Compile(framedata::DirectoryWatcher::Instance().Get(shaderFile)->String());
-            material->PS = std::make_shared<framedata::PixelShader>("gltf@ps");
-            material->PS->Compile(framedata::DirectoryWatcher::Instance().Get(shaderFile)->String());
+            material->ColorImage = framedata::FrameImage::White();
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();
@@ -227,14 +225,14 @@ public:
                 {
                     auto &gltfTexture = m_gltf.textures[pbr.baseColorTexture.value().index.value()];
                     auto image = m_model->images[gltfTexture.source.value()];
-                    material->colorImage = image;
+                    material->ColorImage = image;
                 }
 
                 if (pbr.baseColorFactor.size() == 4)
                 {
                     for (int i = 0; i < 4; ++i)
                     {
-                        material->color[i] = pbr.baseColorFactor[i];
+                        material->Color[i] = pbr.baseColorFactor[i];
                     }
                 }
             }

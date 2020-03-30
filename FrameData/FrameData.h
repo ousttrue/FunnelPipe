@@ -5,6 +5,7 @@
 #include "FrameMesh.h"
 #include "ToUnicode.h"
 #include "DirectoryWatcher.h"
+#include "ShaderManager.h"
 
 #include <array>
 #include <vector>

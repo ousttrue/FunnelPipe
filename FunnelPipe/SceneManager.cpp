@@ -83,7 +83,7 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
     for (auto &material : model->materials)
     {
         std::stringstream ss;
-        ss << "[" << i++ << "] " << material->name;
+        ss << "[" << i++ << "] " << material->Name;
         if (ImGui::TreeNode(ss.str().c_str()))
         {
             // auto shader = material->shader;
@@ -92,18 +92,19 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
             //     ImGui::Text("shader: %s", material->shader->Name().c_str());
             // }
 
-            ImGui::Text("alphaMode: %s", nameof::nameof_enum(material->alphaMode).data());
+            ImGui::Text("alphaMode: %s", nameof::nameof_enum(material->AlphaMode).data());
             // if (material->alphaMode == framedata::AlphaMode::Mask)
             {
-                ImGui::Text("alphaCutoff: %f", material->alphaCutoff);
+                ImGui::Text("alphaCutoff: %f", material->AlphaCutoff);
             }
 
-            if (material->colorImage)
+            auto colorImage = material->ColorImage;
+            if (colorImage)
             {
                 ImGui::Text("colorImage: %s: %d x %d",
-                            material->colorImage->name.c_str(),
-                            material->colorImage->width, material->colorImage->height);
-                auto texture = getTexture(material->colorImage);
+                            colorImage->name.c_str(),
+                            colorImage->width, colorImage->height);
+                auto texture = getTexture(colorImage);
                 texture->AddRef();
                 ImGui::Image((ImTextureID)texture.Get(), ImVec2(150, 150));
             }
@@ -111,7 +112,7 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
             {
                 ImGui::Text("colorImage: null");
             }
-            ImGui::ColorEdit4("color", material->color.data());
+            ImGui::ColorEdit4("color", material->Color.data());
 
             ImGui::TreePop();
         }
@@ -234,7 +235,7 @@ void TraverseSubmesh(FrameData *framedata, const std::shared_ptr<hierarchy::Scen
             auto &material = submesh.material;
             if (filter(material))
             {
-                auto vs = material->VS;
+                auto vs = material->Shader ? material->Shader->VS : nullptr;
                 if (vs)
                 {
                     auto m = node->World().RowMatrix();
@@ -243,8 +244,8 @@ void TraverseSubmesh(FrameData *framedata, const std::shared_ptr<hierarchy::Scen
                          .p = &m,
                          .size = sizeof(m)},
                         {.semantic = framedata::ConstantSemantics::MATERIAL_COLOR,
-                         .p = material->color.data(),
-                         .size = sizeof(material->color)},
+                         .p = material->Color.data(),
+                         .size = sizeof(material->Color)},
                     };
                     framedata->PushCB(vs->DrawCB(), values, _countof(values));
                     framedata->Drawlist.push_back({
@@ -303,11 +304,11 @@ void SceneManager::UpdateFrameData(framedata::FrameData *framedata)
     //
     // Opaque
     framedata::UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
-        return m->alphaMode != framedata::AlphaMode::Blend;
+        return m->AlphaMode != framedata::AlphaMode::Blend;
     });
 
     // AlphaBlend
     framedata::UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
-        return m->alphaMode == framedata::AlphaMode::Blend;
+        return m->AlphaMode == framedata::AlphaMode::Blend;
     });
 }

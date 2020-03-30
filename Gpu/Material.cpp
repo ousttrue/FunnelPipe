@@ -1,7 +1,6 @@
 #include "Material.h"
 #include <Shader.h>
 
-
 namespace Gpu::dx12
 {
 
@@ -9,14 +8,14 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
                           const ComPtr<ID3D12RootSignature> &rootSignature,
                           const framedata::FrameMaterialPtr &material)
 {
-    auto &shader = material->VS;
-    if(!shader)
+    auto vs = material->Shader ? material->Shader->VS : nullptr;
+    if (!vs)
     {
         return false;
     }
 
     int inputLayoutCount;
-    auto inputLayout = shader->inputLayout(&inputLayoutCount);
+    auto inputLayout = vs->inputLayout(&inputLayoutCount);
 
     m_rootSignature = rootSignature;
 
@@ -68,7 +67,7 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
         .BackFace = {D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS},
     };
 
-    switch (material->alphaMode)
+    switch (material->AlphaMode)
     {
     case framedata::AlphaMode::Opaque:
         break;
@@ -100,8 +99,8 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
     // Describe and create the graphics pipeline state object (PSO).
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {
         .pRootSignature = rootSignature.Get(),
-        .VS = material->VS->ByteCode(),
-        .PS = material->PS->ByteCode(),
+        .VS = vs->ByteCode(),
+        .PS = material->Shader->PS->ByteCode(),
         .BlendState = blend,
         .SampleMask = UINT_MAX,
         .RasterizerState = {

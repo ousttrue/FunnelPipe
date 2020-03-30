@@ -1,6 +1,6 @@
 #include "FrameMesh.h"
 #include "VertexBuffer.h"
-#include "Shader.h"
+#include "ShaderPass.h"
 #include <algorithm>
 
 namespace framedata
@@ -133,7 +133,7 @@ bool FrameMesh::Validate()
 
         auto dstStride = 0;
         int inputLayoutCount;
-        auto inputLayout = submesh.material->VS->inputLayout(&inputLayoutCount);
+        auto inputLayout = submesh.material->Shader->VS->inputLayout(&inputLayoutCount);
         for (int i = 0; i < inputLayoutCount; ++i)
         {
             dstStride += GetStride(inputLayout[i].Format);

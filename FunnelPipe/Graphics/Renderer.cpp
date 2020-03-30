@@ -258,9 +258,9 @@ private:
         auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
 
         // texture setup
-        if (submesh.material->colorImage)
+        if (submesh.material->ColorImage)
         {
-            auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->colorImage,
+            auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->ColorImage,
                                                                        m_sceneMapper->GetUploader());
             if (texture)
             {

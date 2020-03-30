@@ -556,7 +556,7 @@ void Gui::FrameData(const framedata::FrameData &framedata)
         ImGui::NextColumn();
         ImGui::Text("%d", item.Submesh.drawCount);
         ImGui::NextColumn();
-        ImGui::Text("%s", item.Submesh.material->name.c_str());
+        ImGui::Text("%s", item.Submesh.material->Name.c_str());
         ImGui::NextColumn();
 
         ++i;
