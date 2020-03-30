@@ -17,9 +17,8 @@ public:
 
     void UpdateFrameData(framedata::FrameData *framedata)
     {
-
         //
-        // node
+        // FrameData::Meshlist
         //
         for (auto &node : m_scene.gizmoNodes)
         {
@@ -31,7 +30,7 @@ public:
         }
 
         //
-        // mesh
+        // FrameData::Drawlist
         //
         // Opaque
         UpdateFrameDataIf(framedata, &m_scene, [](const framedata::FrameMaterialPtr &m) {
@@ -70,6 +69,23 @@ private:
         }
     }
 
+    void UpdateFrameDataIf(framedata::FrameData *framedata,
+                           const Scene *scene,
+                           const FilterFunc &filter)
+    {
+        if (framedata->ShowGrid)
+        {
+            for (auto &node : scene->gizmoNodes)
+            {
+                TraverseSubmesh(framedata, node, filter);
+            }
+        }
+        if (scene->model)
+        {
+            TraverseSubmesh(framedata, scene->model->root, filter);
+        }
+    }
+
     void TraverseSubmesh(framedata::FrameData *framedata, const std::shared_ptr<SceneNode> &node, const FilterFunc &filter)
     {
         auto mesh = node->Mesh();
@@ -93,10 +109,7 @@ private:
                              .size = sizeof(material->Color)},
                         };
                         framedata->PushCB(vs->DrawCB(), values, _countof(values));
-                        framedata->Drawlist.push_back({
-                            .Mesh = mesh,
-                            .Submesh = submesh,
-                        });
+                        framedata->PushDraw(mesh, submesh);
                     }
                 }
             }
@@ -107,23 +120,6 @@ private:
         for (int i = 0; i < count; ++i, ++child)
         {
             TraverseSubmesh(framedata, *child, filter);
-        }
-    }
-
-    void UpdateFrameDataIf(framedata::FrameData *framedata,
-                           const Scene *scene,
-                           const FilterFunc &filter)
-    {
-        if (framedata->ShowGrid)
-        {
-            for (auto &node : scene->gizmoNodes)
-            {
-                TraverseSubmesh(framedata, node, filter);
-            }
-        }
-        if (scene->model)
-        {
-            TraverseSubmesh(framedata, scene->model->root, filter);
         }
     }
 };

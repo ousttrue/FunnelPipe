@@ -99,10 +99,7 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
                         .Stride = m_gizmoBuffer.indexStride,
                     },
                 });
-                framedata->Drawlist.push_back({
-                    .Mesh = mesh,
-                    .Submesh = mesh->submeshes[0],
-                });
+                framedata->PushDraw(mesh, 0);
             }
         }
     }

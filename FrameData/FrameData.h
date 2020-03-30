@@ -77,16 +77,23 @@ struct FrameData
         Buffer Skin{};
     };
     std::vector<MeshItem> Meshlist;
-    struct DrawItem
-    {
-        std::shared_ptr<FrameMesh> Mesh;
-        FrameSubmesh Submesh;
-    };
-    // CBRanges.size() == Drawlist.size()
-    std::vector<DrawItem> Drawlist;
 
     // texture の slot 割り当て
     std::vector<FrameImagePtr> Textures;
+    std::unordered_map<FrameImagePtr, size_t> TextureMap;
+    size_t PushImage(const FrameImagePtr &texture)
+    {
+        auto found = TextureMap.find(texture);
+        if (found != TextureMap.end())
+        {
+            return found->second;
+        }
+        auto index = Textures.size();
+        Textures.push_back(texture);
+        TextureMap.insert(std::make_pair(texture, index));
+        return index;
+    }
+
     // material毎の slot 割り当て
     struct SRVView
     {
@@ -100,16 +107,66 @@ struct FrameData
         uint16_t SRV7TextureIndex;
     };
     std::vector<SRVView> SRVViews;
+    // std::vector<FrameMaterialPtr> Materials;
+    std::unordered_map<FrameMaterialPtr, size_t> MaterialMap;
+    size_t PushMaterial(const framedata::FrameMaterialPtr &material)
+    {
+        auto found = MaterialMap.find(material);
+        if (found != MaterialMap.end())
+        {
+            return found->second;
+        }
+        auto index = SRVViews.size();
+
+        auto white = PushImage(FrameImage::White());
+
+        SRVViews.push_back({
+            .SRV0TextureIndex = (uint16_t)(material->ColorImage ? PushImage(material->ColorImage) : white),
+            .SRV1TextureIndex = (uint16_t)white,
+            .SRV2TextureIndex = (uint16_t)white,
+            .SRV3TextureIndex = (uint16_t)white,
+            .SRV4TextureIndex = (uint16_t)white,
+            .SRV5TextureIndex = (uint16_t)white,
+            .SRV6TextureIndex = (uint16_t)white,
+            .SRV7TextureIndex = (uint16_t)white,
+        });
+        MaterialMap.insert(std::make_pair(material, index));
+        return index;
+    }
+
+    struct DrawItem
+    {
+        std::shared_ptr<FrameMesh> Mesh;
+        FrameSubmesh Submesh;
+        uint32_t MaterialIndex;
+    };
+    // CBRanges.size() == Drawlist.size()
+    std::vector<DrawItem> Drawlist;
+    void PushDraw(const FrameMeshPtr &mesh, uint32_t submeshIndex)
+    {
+        PushDraw(mesh, mesh->submeshes[submeshIndex]);
+    }
+    void PushDraw(const FrameMeshPtr &mesh, const FrameSubmesh &submesh)
+    {
+        auto materialIndex = (uint32_t)PushMaterial(submesh.material);
+        Drawlist.push_back({
+            .Mesh = mesh,
+            .Submesh = submesh,
+            .MaterialIndex = materialIndex,
+        });
+    }
 
     void Clear()
     {
         Meshlist.clear();
-        
+
         CB.clear();
         CBRanges.clear();
         Drawlist.clear();
 
         Textures.clear();
+        TextureMap.clear();
+        MaterialMap.clear();
         SRVViews.clear();
     }
 };
