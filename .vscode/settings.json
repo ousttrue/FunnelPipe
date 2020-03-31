@@ -4,6 +4,7 @@
         "DXGI",
         "Gltf",
         "HRESULT",
+        "TEXCOORD",
         "countof",
         "falg",
         "gizmesh",

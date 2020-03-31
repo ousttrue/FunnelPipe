@@ -16,7 +16,8 @@ struct FrameTexture
     TextureTypes TextureType = TextureTypes::Textue2D;
     std::vector<FrameImagePtr> Images;
 
-    static std::shared_ptr<FrameTexture> White();
+    static std::shared_ptr<FrameTexture> One();
+    static std::shared_ptr<FrameTexture> Zero();
     static std::shared_ptr<FrameTexture> Cube();
 };
 using FrameTexturePtr = std::shared_ptr<FrameTexture>;

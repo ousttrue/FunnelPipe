@@ -56,6 +56,18 @@ static bool IsUnlit(const gltfformat::Material &gltfMatrial)
     return true;
 }
 
+template <size_t N>
+static void SetIf(std::array<float, N> &dst, const std::vector<float> &src)
+{
+    if (src.size() == dst.size())
+    {
+        for (int i = 0; i < dst.size(); ++i)
+        {
+            dst[i] = src[i];
+        }
+    }
+}
+
 namespace hierarchy
 {
 
@@ -197,6 +209,22 @@ public:
         }
     }
 
+    template <typename T>
+    void SetTextureOr(framedata::FrameTexturePtr &dst, const std::optional<T> &src,
+                      const framedata::FrameTexturePtr &value) const
+    {
+        if (src.has_value())
+        {
+            auto &gltfTexture = m_gltf.textures[src.value().index.value()];
+            auto texture = m_model->textures[gltfTexture.source.value()];
+            dst = texture;
+        }
+        else
+        {
+            dst = value;
+        }
+    }
+
     void LoadMaterials()
     {
         m_model->materials.reserve(m_gltf.materials.size());
@@ -208,7 +236,7 @@ public:
                 IsUnlit(gltfMaterial)
                     ? framedata::ShaderManager::Instance().GltfUnlit()
                     : framedata::ShaderManager::Instance().GltfPBR();
-
+            material->DoubleSided = gltfMaterial.doubleSided.value_or(false);
             switch (gltfMaterial.alphaMode.value_or(gltfformat::MaterialAlphaMode::OPAQUE))
             {
             case gltfformat::MaterialAlphaMode::OPAQUE:
@@ -224,25 +252,23 @@ public:
                 throw "unknown";
             }
 
-            material->ColorTexture = framedata::FrameTexture::White();
+            //
+            // pbrMetallicRoughness
+            //
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();
-                if (pbr.baseColorTexture.has_value())
-                {
-                    auto &gltfTexture = m_gltf.textures[pbr.baseColorTexture.value().index.value()];
-                    auto texture = m_model->textures[gltfTexture.source.value()];
-                    material->ColorTexture = texture;
-                }
-
-                if (pbr.baseColorFactor.size() == 4)
-                {
-                    for (int i = 0; i < 4; ++i)
-                    {
-                        material->Color[i] = pbr.baseColorFactor[i];
-                    }
-                }
+                SetTextureOr(material->ColorTexture, pbr.baseColorTexture, framedata::FrameTexture::One());
+                SetIf(material->Color, pbr.baseColorFactor);
+                SetTextureOr(material->MetallicRoughnessTexture, pbr.metallicRoughnessTexture, framedata::FrameTexture::One());
+                material->Metallic = pbr.metallicFactor.value_or(1.0f);
+                material->Roughness = pbr.roughnessFactor.value_or(1.0f);
             }
+
+            SetTextureOr(material->NormalTexture, gltfMaterial.normalTexture, nullptr);
+            SetTextureOr(material->OcclusionTexture, gltfMaterial.occlusionTexture, nullptr);
+            SetTextureOr(material->EmissiveTexture, gltfMaterial.emissiveTexture, framedata::FrameTexture::Zero());
+            SetIf(material->Emissive, gltfMaterial.emissiveFactor);
 
             m_model->materials.push_back(material);
         }

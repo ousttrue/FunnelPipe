@@ -76,6 +76,43 @@ void SceneManager::DrawNode(const hierarchy::SceneNodePtr &node)
     ImGui::PopID();
 }
 
+static void Texture(const std::string &label, const framedata::FrameTexturePtr &texture,
+                    const SceneManager::GetTextureFunc &getTexture)
+{
+    if (texture)
+    {
+        switch (texture->Images.size())
+        {
+        case 1:
+        {
+            auto colorImage = texture->Images.front();
+            ImGui::Text("%s: %s: %d x %d",
+                        label.c_str(),
+                        colorImage->name.c_str(),
+                        colorImage->width, colorImage->height);
+            auto resource = getTexture(texture);
+            resource->AddRef();
+            ImGui::Image((ImTextureID)resource.Get(), ImVec2(150, 150));
+        }
+        break;
+
+        case 6:
+        {
+            // TODO
+            ImGui::Text("%s: cubemap", label.c_str());
+        }
+        break;
+
+        default:
+            throw;
+        }
+    }
+    else
+    {
+        ImGui::Text("%s: null", label.c_str());
+    }
+}
+
 static void MaterialList(const hierarchy::SceneModelPtr &model,
                          const SceneManager::GetTextureFunc &getTexture)
 {
@@ -98,38 +135,12 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
                 ImGui::Text("alphaCutoff: %f", material->AlphaCutoff);
             }
 
-            auto colorTexture = material->ColorTexture;
-            if (colorTexture)
-            {
-                switch (colorTexture->Images.size())
-                {
-                case 1:
-                {
-                    auto colorImage = colorTexture->Images.front();
-                    ImGui::Text("colorImage: %s: %d x %d",
-                                colorImage->name.c_str(),
-                                colorImage->width, colorImage->height);
-                    auto texture = getTexture(colorTexture);
-                    texture->AddRef();
-                    ImGui::Image((ImTextureID)texture.Get(), ImVec2(150, 150));
-                }
-                break;
+            Texture("ColorTexture", material->ColorTexture, getTexture);
+            Texture("NotmslTexture", material->NormalTexture, getTexture);
+            Texture("EmissiveTexture", material->EmissiveTexture, getTexture);
+            Texture("OcclusionTexture", material->OcclusionTexture, getTexture);
+            Texture("MetallicRoughnessTexture", material->MetallicRoughnessTexture, getTexture);
 
-                case 6:
-                {
-                    // TODO
-                    ImGui::Text("colorImage: cubemap");
-                }
-                break;
-
-                default:
-                    throw;
-                }
-            }
-            else
-            {
-                ImGui::Text("colorImage: null");
-            }
             ImGui::ColorEdit4("color", material->Color.data());
 
             ImGui::TreePop();

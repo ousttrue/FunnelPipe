@@ -52,6 +52,8 @@ struct Light
 
 cbuffer cbPerFrame : register(b0)
 {
+    matrix view;
+    matrix projection;
     Light light;
 };
 
@@ -63,7 +65,7 @@ cbuffer cbPerObject : register(b1)
     float2 metallicRoughnessValues;
     float padding1;
     float4 baseColorFactor;
-    float3 camera;
+    float3 camera: CAMERA_POSITION;
     float padding2;
 
     // debugging flags used for shader output of intermediate PBR variables

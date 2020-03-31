@@ -24,8 +24,21 @@ struct FrameMaterial
 
     AlphaMode AlphaMode{};
     float AlphaCutoff = 0;
+
+    bool DoubleSided = false;
+
     FrameTexturePtr ColorTexture;
     std::array<float, 4> Color = {1, 1, 1, 1};
+
+    FrameTexturePtr NormalTexture;
+    FrameTexturePtr OcclusionTexture;
+
+    FrameTexturePtr EmissiveTexture;
+    std::array<float, 3> Emissive = {0, 0, 0};
+
+    FrameTexturePtr MetallicRoughnessTexture;
+    float Metallic = 1.0f;
+    float Roughness = 1.0f;
 };
 using FrameMaterialPtr = std::shared_ptr<FrameMaterial>;
 

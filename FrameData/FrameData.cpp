@@ -36,6 +36,11 @@ std::pair<uint32_t, uint32_t> FrameData::PushCB(const ConstantBuffer *cb, const 
 
 size_t FrameData::PushTexture(const FrameTexturePtr &texture)
 {
+    if (!texture)
+    {
+        return PushTexture(FrameTexture::Zero());
+    }
+
     auto found = TextureMap.find(texture);
     if (found != TextureMap.end())
     {
@@ -56,31 +61,44 @@ size_t FrameData::PushMaterial(const framedata::FrameMaterialPtr &material)
     }
     auto index = SRVViews.size();
 
-    auto white = PushTexture(FrameTexture::White());
-    auto cube = PushTexture(FrameTexture::Cube());
-
     SRVViews.push_back(SRVView(
-        (uint16_t)(material->ColorTexture ? PushTexture(material->ColorTexture) : white),
-        (uint16_t)white,
-        (uint16_t)white,
-        (uint16_t)white,
-        (uint16_t)white,
-        (uint16_t)white,
-        (uint16_t)white,
-        (uint16_t)white));
+        (uint16_t)PushTexture(material->ColorTexture),
+        (uint16_t)PushTexture(FrameTexture::Zero()),
+        (uint16_t)PushTexture(FrameTexture::Zero()),
+        (uint16_t)PushTexture(FrameTexture::Zero()),
+        (uint16_t)PushTexture(FrameTexture::Zero()),
+        (uint16_t)PushTexture(FrameTexture::Zero()),
+        (uint16_t)PushTexture(FrameTexture::Zero()),
+        (uint16_t)PushTexture(FrameTexture::Zero())));
 
     if (material->Shader == ShaderManager::Instance().GltfPBR())
     {
         // Texture2D baseColourTexture : register(t0);
         // Texture2D normalTexture : register(t1);
+        if (material->NormalTexture)
+        {
+            SRVViews.back().SRV1TextureIndex = (uint16_t)PushTexture(material->NormalTexture);
+        }
         // Texture2D emissionTexture : register(t2);
+        if (material->EmissiveTexture)
+        {
+            SRVViews.back().SRV2TextureIndex = (uint16_t)PushTexture(material->EmissiveTexture);
+        }
         // Texture2D occlusionTexture : register(t3);
+        if (material->OcclusionTexture)
+        {
+            SRVViews.back().SRV3TextureIndex = (uint16_t)PushTexture(material->OcclusionTexture);
+        }
         // Texture2D metallicRoughnessTexture : register(t4);
+        if (material->MetallicRoughnessTexture)
+        {
+            SRVViews.back().SRV4TextureIndex = (uint16_t)PushTexture(material->MetallicRoughnessTexture);
+        }
         // TextureCube envDiffuseTexture : register(t5);
-        SRVViews.back().SRV5TextureIndex = (uint16_t)cube;
+        SRVViews.back().SRV5TextureIndex = (uint16_t)PushTexture(FrameTexture::Cube());
         // Texture2D brdfLutTexture : register(t6);
         // TextureCube envSpecularTexture : register(t7);
-        SRVViews.back().SRV7TextureIndex = (uint16_t)cube;
+        SRVViews.back().SRV7TextureIndex = (uint16_t)PushTexture(FrameTexture::Cube());
         auto a = 0;
     }
 
