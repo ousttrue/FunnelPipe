@@ -109,10 +109,10 @@ public:
     void EnqueueUpload(class CommandList *commandList, const std::shared_ptr<class ResourceItem> &upload,
                        const void *p, UINT byteLength, UINT stride);
     // dynamic
-    static std::shared_ptr<ResourceItem> CreateUpload(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name);
+    static std::shared_ptr<ResourceItem> CreateDynamic(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name);
     // static
-    static std::shared_ptr<ResourceItem> CreateDefault(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name);
-    // static image
-    static std::shared_ptr<ResourceItem> CreateDefaultTexture(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name);
+    static std::shared_ptr<ResourceItem> CreateStatic(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name);
+    // static texture
+    static std::shared_ptr<ResourceItem> CreateStaticTexture(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name);
 };
 } // namespace Gpu::dx12

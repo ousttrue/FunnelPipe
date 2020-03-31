@@ -133,7 +133,7 @@ void ResourceItem::EnqueueUpload(CommandList *commandList,
     m_count = byteLength / stride;
 }
 
-std::shared_ptr<ResourceItem> ResourceItem::CreateUpload(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name)
+std::shared_ptr<ResourceItem> ResourceItem::CreateDynamic(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name)
 {
     D3D12_HEAP_PROPERTIES prop{
         .Type = D3D12_HEAP_TYPE_UPLOAD,
@@ -163,7 +163,7 @@ std::shared_ptr<ResourceItem> ResourceItem::CreateUpload(const ComPtr<ID3D12Devi
         new ResourceItem(resource, D3D12_RESOURCE_STATE_GENERIC_READ, name));
 }
 
-std::shared_ptr<ResourceItem> ResourceItem::CreateDefault(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name)
+std::shared_ptr<ResourceItem> ResourceItem::CreateStatic(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name)
 {
     D3D12_HEAP_PROPERTIES prop{
         .Type = D3D12_HEAP_TYPE_DEFAULT,
@@ -193,7 +193,7 @@ std::shared_ptr<ResourceItem> ResourceItem::CreateDefault(const ComPtr<ID3D12Dev
         new ResourceItem(resource, D3D12_RESOURCE_STATE_COPY_DEST, name));
 }
 
-std::shared_ptr<ResourceItem> ResourceItem::CreateDefaultTexture(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name)
+std::shared_ptr<ResourceItem> ResourceItem::CreateStaticTexture(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name)
 {
     D3D12_HEAP_PROPERTIES prop{
         .Type = D3D12_HEAP_TYPE_DEFAULT,
