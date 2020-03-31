@@ -59,12 +59,12 @@ cbuffer cbPerFrame : register(b0)
 
 cbuffer cbPerObject : register(b1)
 {
-    float normalScale;
-    float3 emissiveFactor;
-    float occlusionStrength;
-    float2 metallicRoughnessValues;
+    float normalScale : MATERIAL_NORMAL_SCALE;
+    float3 emissiveFactor : MATERIAL_EMISSIVE;
+    float occlusionStrength : MATERIAL_OCCLUSION_STRENGTH;
+    float2 metallicRoughnessValues : MATERIAL_METALLIC_ROUGHNESS;
     float padding1;
-    float4 baseColorFactor;
+    float4 baseColorFactor : MATERIAL_COLOR;
     float3 camera: CAMERA_POSITION;
     float padding2;
 

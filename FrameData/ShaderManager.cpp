@@ -10,10 +10,10 @@ ShaderManager &ShaderManager::Instance()
     return s_instance;
 }
 
-static ShaderPassPtr CreateShader(const std::string &name,
-                                  const std::wstring &vs, const std::string &vsEntryPoint,
-                                  const std::wstring &ps, const std::string &psEntryPoint,
-                                  const D3D_SHADER_MACRO *pDefine)
+static ShaderPassPtr CreateShader(
+    const std::string &name,
+    const std::wstring &vs, const std::string &vsEntryPoint, const D3D_SHADER_MACRO *vsDefine,
+    const std::wstring &ps, const std::string &psEntryPoint, const D3D_SHADER_MACRO *psDefine)
 {
     auto shader = std::make_shared<ShaderPass>(name);
     {
@@ -24,7 +24,7 @@ static ShaderPassPtr CreateShader(const std::string &name,
         {
             throw;
         }
-        if (!shader->VS->Compile(source, vsEntryPoint, pDefine))
+        if (!shader->VS->Compile(source, vsEntryPoint, vsDefine))
         {
             throw;
         }
@@ -37,7 +37,7 @@ static ShaderPassPtr CreateShader(const std::string &name,
         {
             throw;
         }
-        if (!shader->PS->Compile(source, psEntryPoint, pDefine))
+        if (!shader->PS->Compile(source, psEntryPoint, psDefine))
         {
             throw;
         }
@@ -50,10 +50,10 @@ ShaderPassPtr ShaderManager::GltfUnlit()
     static ShaderPassPtr s_shader;
     if (!s_shader)
     {
-        s_shader = CreateShader("unlit",
-                                L"gltf_unlit.hlsl", "VSMain",
-                                L"gltf_unlit.hlsl", "PSMain",
-                                nullptr);
+        s_shader = CreateShader(
+            "unlit",
+            L"gltf_unlit.hlsl", "VSMain", nullptr,
+            L"gltf_unlit.hlsl", "PSMain", nullptr);
     }
     return s_shader;
 }
@@ -63,15 +63,23 @@ ShaderPassPtr ShaderManager::GltfPBR()
     static ShaderPassPtr s_shader;
     if (!s_shader)
     {
-        D3D_SHADER_MACRO defines[] = {
-            {"NORMALS", ""},
-            {"UV", ""},
+        D3D_SHADER_MACRO vsDefines[] = {
+            {"NORMALS", "1"},
+            {"UV", "1"},
             {nullptr, nullptr},
         };
-        s_shader = CreateShader("pbr",
-                                L"pbrvertex.hlsl", "main",
-                                L"pbrpixel.hlsl", "main",
-                                defines);
+        D3D_SHADER_MACRO psDefines[] = {
+            {"HAS_BASECOLORMAP", "1"},
+            {"HAS_EMISSIVEMAP", "1"},
+            {"HAS_OCCLUSIONMAP", "1"},
+            {"HAS_NORMALMAP", "1"},
+            {"HAS_METALROUGHNESSMAP", "1"},
+            {nullptr, nullptr},
+        };
+        s_shader = CreateShader(
+            "pbr",
+            L"pbrvertex.hlsl", "main", vsDefines,
+            L"pbrpixel.hlsl", "main", psDefines);
     }
     return s_shader;
 }
@@ -81,10 +89,10 @@ ShaderPassPtr ShaderManager::Gizmo()
     static ShaderPassPtr s_shader;
     if (!s_shader)
     {
-        s_shader = CreateShader("gizmo",
-                                L"gizmo.hlsl", "VSMain",
-                                L"gizmo.hlsl", "PSMain",
-                                nullptr);
+        s_shader = CreateShader(
+            "gizmo",
+            L"gizmo.hlsl", "VSMain", nullptr,
+            L"gizmo.hlsl", "PSMain", nullptr);
     }
     return s_shader;
 }
@@ -94,10 +102,10 @@ ShaderPassPtr ShaderManager::Grid()
     static ShaderPassPtr s_shader;
     if (!s_shader)
     {
-        s_shader = CreateShader("grid",
-                                L"grid.hlsl", "VSMain",
-                                L"grid.hlsl", "PSMain",
-                                nullptr);
+        s_shader = CreateShader(
+            "grid",
+            L"grid.hlsl", "VSMain", nullptr,
+            L"grid.hlsl", "PSMain", nullptr);
     }
     return s_shader;
 }

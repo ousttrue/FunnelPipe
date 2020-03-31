@@ -99,7 +99,9 @@ private:
                     auto vs = material->Shader ? material->Shader->VS : nullptr;
                     if (vs)
                     {
+                        auto ns = 1.0f;
                         auto m = node->World().RowMatrix();
+                        std::array<float, 2> mr = {1, 1};
                         framedata::CBValue values[] = {
                             {.semantic = framedata::ConstantSemantics::NODE_WORLD,
                              .p = &m,
@@ -107,6 +109,26 @@ private:
                             {.semantic = framedata::ConstantSemantics::MATERIAL_COLOR,
                              .p = material->Color.data(),
                              .size = sizeof(material->Color)},
+                            {
+                                framedata::ConstantSemantics::MATERIAL_NORMAL_SCALE,
+                                &ns,
+                                sizeof(ns),
+                            },
+                            {
+                                framedata::ConstantSemantics::MATERIAL_NORMAL_SCALE,
+                                material->Emissive.data(),
+                                sizeof(material->Emissive),
+                            },
+                            {
+                                framedata::ConstantSemantics::MATERIAL_OCCLUSION_STRENGTH,
+                                &ns,
+                                sizeof(ns),
+                            },
+                            {
+                                framedata::ConstantSemantics::MATERIAL_METALLIC_ROUGHNESS,
+                                &mr,
+                                sizeof(mr),
+                            },
                         };
                         framedata->PushCB(vs->DrawCB(), values, _countof(values));
                         framedata->PushDraw(mesh, submesh);
