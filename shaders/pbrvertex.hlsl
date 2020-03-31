@@ -1,18 +1,22 @@
 //#define NORMALS
 //#define UV
+#pragma pack_matrix( row_major )
 
 // A constant buffer that stores the three basic column-major matrices for composing geometry.
-cbuffer ModelViewProjectionConstantBuffer : register(b0)
+cbuffer ViewProjectionConstantBuffer : register(b0)
 {
-    matrix model;
     matrix view;
     matrix projection;
+};
+cbuffer ModelConstantBuffer : register(b1)
+{
+    matrix model : NODE_WORLD;
 };
 
 // Per-vertex data used as input to the vertex shader.
 struct VertexShaderInput
 {
-    float4 position : POSITION;
+    float3 position : POSITION;
 #ifdef NORMALS
     float3 normal : NORMAL;
 #endif
@@ -39,7 +43,7 @@ PixelShaderInput main(VertexShaderInput input)
     PixelShaderInput output;
 
 	// Transform the vertex position into projected space.
-    float4 pos = mul(input.position, model);
+    float4 pos = mul(float4(input.position, 1), model);
     output.poswithoutw = float3(pos.xyz) / pos.w;
 
 #ifdef NORMALS
