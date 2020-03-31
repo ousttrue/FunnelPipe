@@ -20,14 +20,22 @@ namespace Gpu::dx12
 class RootSignature : NonCopyable
 {
     ComPtr<ID3D12RootSignature> m_rootSignature;
+
     std::unique_ptr<Heap> m_CBV_SRV_UAV_Heap;
+
+    // CBV(draw)
     std::vector<std::pair<uint32_t, uint32_t>> m_viewList;
+
+    // SRV
     struct SRVStatus
     {
         UINT index;
         bool status;
     };
     std::vector<SRVStatus> m_srvStatus;
+
+    // sampler
+    std::unique_ptr<Heap> m_Sampler_Heap;
 
     std::unordered_map<framedata::FrameMaterialPtr, std::shared_ptr<class Material>> m_materialMap;
     std::unordered_map<framedata::FrameImagePtr, std::shared_ptr<class Texture>> m_textureMap;

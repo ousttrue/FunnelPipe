@@ -15,7 +15,7 @@ namespace Gpu::dx12
 {
 
 RootSignature::RootSignature()
-    : m_CBV_SRV_UAV_Heap(new Heap)
+    : m_CBV_SRV_UAV_Heap(new Heap), m_Sampler_Heap(new Heap)
 {
 }
 
@@ -158,6 +158,27 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
         device->CreateConstantBufferView(&cbvDesc, m_CBV_SRV_UAV_Heap->CpuHandle(0));
     }
 
+    // sampler
+    m_Sampler_Heap->Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, TEXTURE_SLOTS);
+    auto handleSampler = m_Sampler_Heap->Get()->GetCPUDescriptorHandleForHeapStart();
+    for (int i = 0; i < 8; ++i)
+    {
+        D3D12_SAMPLER_DESC descSampler{
+            .Filter = D3D12_FILTER_MIN_MAG_MIP_POINT,
+            .AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+            .AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+            .AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+            .MipLODBias = 0.0F,
+            .MaxAnisotropy = 0,
+            .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
+            .MinLOD = -FLT_MAX,
+            .MaxLOD = FLT_MAX,
+        };
+
+        device->CreateSampler(&descSampler, handleSampler);
+        handleSampler.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+    }
+
     return true;
 }
 
@@ -172,7 +193,10 @@ void RootSignature::Update(const ComPtr<ID3D12Device> &device)
 void RootSignature::Begin(const ComPtr<ID3D12Device> &device, const ComPtr<ID3D12GraphicsCommandList> &commandList)
 {
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    ID3D12DescriptorHeap *ppHeaps[] = {m_CBV_SRV_UAV_Heap->Get()};
+    ID3D12DescriptorHeap *ppHeaps[] = {
+        m_CBV_SRV_UAV_Heap->Get(),
+        m_Sampler_Heap->Get(),
+    };
     commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
     commandList->SetGraphicsRootDescriptorTable(0, m_CBV_SRV_UAV_Heap->GpuHandle(0));
 }
@@ -301,6 +325,8 @@ void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
                 // not ready
                 status = false;
             }
+
+            //
         }
         m_srvStatus.back().status = status;
     }
@@ -315,6 +341,7 @@ bool RootSignature::SetTextureDescriptorTable(const ComPtr<ID3D12Device> &device
         return false;
     }
     commandList->SetGraphicsRootDescriptorTable(2, m_CBV_SRV_UAV_Heap->GpuHandle(status.index));
+    commandList->SetGraphicsRootDescriptorTable(3, m_Sampler_Heap->GpuHandle(0));
     return true;
 }
 
