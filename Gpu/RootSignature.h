@@ -20,7 +20,7 @@ namespace Gpu::dx12
 class RootSignature : NonCopyable
 {
     ComPtr<ID3D12RootSignature> m_rootSignature;
-    std::unique_ptr<Heap> m_heap;
+    std::unique_ptr<Heap> m_CBV_SRV_UAV_Heap;
     std::vector<std::pair<uint32_t, uint32_t>> m_viewList;
     struct SRVStatus
     {

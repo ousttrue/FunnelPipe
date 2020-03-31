@@ -7,7 +7,7 @@
 #include <d3dcompiler.h>
 #include <algorithm>
 
-// VIEW_SLOTS=1;
+const int FRAME_SLOTS = 1;
 const int DRAW_SLOTS = 1024;
 const int TEXTURE_SLOTS = 1024;
 
@@ -15,7 +15,7 @@ namespace Gpu::dx12
 {
 
 RootSignature::RootSignature()
-    : m_heap(new Heap)
+    : m_CBV_SRV_UAV_Heap(new Heap)
 {
 }
 
@@ -145,8 +145,9 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
     m_viewConstantsBuffer.AllRange();
 
     m_drawConstantsBuffer.Initialize(device, 1024 * DRAW_SLOTS);
-    auto count = 1 + DRAW_SLOTS + TEXTURE_SLOTS;
-    m_heap->Initialize(device, count);
+    m_CBV_SRV_UAV_Heap->Initialize(device,
+                                   D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+                                   FRAME_SLOTS + DRAW_SLOTS + TEXTURE_SLOTS);
 
     {
         auto [offset, size] = m_viewConstantsBuffer.Range(0);
@@ -154,7 +155,7 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
             .BufferLocation = m_viewConstantsBuffer.Resource()->GetGPUVirtualAddress() + offset,
             .SizeInBytes = size,
         };
-        device->CreateConstantBufferView(&cbvDesc, m_heap->CpuHandle(0));
+        device->CreateConstantBufferView(&cbvDesc, m_CBV_SRV_UAV_Heap->CpuHandle(0));
     }
 
     return true;
@@ -171,9 +172,9 @@ void RootSignature::Update(const ComPtr<ID3D12Device> &device)
 void RootSignature::Begin(const ComPtr<ID3D12Device> &device, const ComPtr<ID3D12GraphicsCommandList> &commandList)
 {
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    ID3D12DescriptorHeap *ppHeaps[] = {m_heap->Get()};
+    ID3D12DescriptorHeap *ppHeaps[] = {m_CBV_SRV_UAV_Heap->Get()};
     commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-    commandList->SetGraphicsRootDescriptorTable(0, m_heap->GpuHandle(0));
+    commandList->SetGraphicsRootDescriptorTable(0, m_CBV_SRV_UAV_Heap->GpuHandle(0));
 }
 
 std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> &device, const std::shared_ptr<framedata::FrameMaterial> &sceneMaterial)
@@ -238,11 +239,11 @@ void RootSignature::SetDrawDescriptorTable(const ComPtr<ID3D12Device> &device,
             .BufferLocation = m_drawConstantsBuffer.Resource()->GetGPUVirtualAddress() + offset,
             .SizeInBytes = size,
         };
-        device->CreateConstantBufferView(&cbvDesc, m_heap->CpuHandle(1 + nodeIndex));
+        device->CreateConstantBufferView(&cbvDesc, m_CBV_SRV_UAV_Heap->CpuHandle(1 + nodeIndex));
         m_viewList[nodeIndex] = {offset, size};
     }
 
-    commandList->SetGraphicsRootDescriptorTable(1, m_heap->GpuHandle(1 + nodeIndex));
+    commandList->SetGraphicsRootDescriptorTable(1, m_CBV_SRV_UAV_Heap->GpuHandle(1 + nodeIndex));
 }
 
 void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
@@ -271,7 +272,7 @@ void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
         m_textures.push_back(texture);
     }
 
-    UINT index = 1 + DRAW_SLOTS;
+    UINT index = FRAME_SLOTS + DRAW_SLOTS;
     for (auto &srv : framedata.SRVViews)
     {
         bool status = true;
@@ -293,7 +294,7 @@ void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
             auto gpuTexture = m_textures[srv.list[i]];
             if (gpuTexture)
             {
-                device->CreateShaderResourceView(gpuTexture->Resource().Get(), &desc, m_heap->CpuHandle(index));
+                device->CreateShaderResourceView(gpuTexture->Resource().Get(), &desc, m_CBV_SRV_UAV_Heap->CpuHandle(index));
             }
             else
             {
@@ -308,12 +309,12 @@ void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
 bool RootSignature::SetTextureDescriptorTable(const ComPtr<ID3D12Device> &device,
                                               const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT materialIndex)
 {
-    auto &status =m_srvStatus[materialIndex];
+    auto &status = m_srvStatus[materialIndex];
     if (!status.status)
     {
         return false;
     }
-    commandList->SetGraphicsRootDescriptorTable(2, m_heap->GpuHandle(status.index));
+    commandList->SetGraphicsRootDescriptorTable(2, m_CBV_SRV_UAV_Heap->GpuHandle(status.index));
     return true;
 }
 
