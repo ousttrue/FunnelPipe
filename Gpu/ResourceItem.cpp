@@ -1,20 +1,7 @@
 #include "ResourceItem.h"
 #include "CommandList.h"
-
+#include <FrameData.h>
 #include <system_error>
-
-std::string ToUtf8(std::wstring const &src)
-{
-    auto const dest_size = ::WideCharToMultiByte(CP_UTF8, 0U, src.data(), -1, nullptr, 0, nullptr, nullptr);
-    std::vector<char> dest(dest_size, '\0');
-    if (::WideCharToMultiByte(CP_UTF8, 0U, src.data(), -1, dest.data(), dest.size(), nullptr, nullptr) == 0)
-    {
-        throw std::system_error{static_cast<int>(::GetLastError()), std::system_category()};
-    }
-    dest.resize(std::char_traits<char>::length(dest.data()));
-    dest.shrink_to_fit();
-    return std::string(dest.begin(), dest.end());
-}
 
 namespace Gpu::dx12
 {
@@ -28,7 +15,7 @@ ResourceItem::ResourceItem(
     m_state.Upload = UploadStates::None;
     resource->SetName(name);
 
-    m_name = ToUtf8(name);
+    m_name = UnicodeToUtf8(name);
 }
 
 void ResourceItem::MapCopyUnmap(const void *p, UINT byteLength, UINT stride)
@@ -204,6 +191,36 @@ std::shared_ptr<ResourceItem> ResourceItem::CreateStaticTexture(const ComPtr<ID3
         .Width = width,
         .Height = height,
         .DepthOrArraySize = 1,
+        .MipLevels = 1,
+        .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+        .SampleDesc = {1, 0},
+        .Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+        .Flags = D3D12_RESOURCE_FLAG_NONE,
+    };
+    ComPtr<ID3D12Resource> resource;
+    ThrowIfFailed(device->CreateCommittedResource(
+        &prop,
+        D3D12_HEAP_FLAG_NONE,
+        &desc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr,
+        IID_PPV_ARGS(&resource)));
+
+    return std::shared_ptr<ResourceItem>(
+        new ResourceItem(resource, D3D12_RESOURCE_STATE_COPY_DEST, name));
+}
+
+std::shared_ptr<ResourceItem> ResourceItem::CreateStaticCubemap(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name)
+{
+    D3D12_HEAP_PROPERTIES prop{
+        .Type = D3D12_HEAP_TYPE_DEFAULT,
+    };
+    D3D12_RESOURCE_DESC desc{
+        .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+        .Alignment = 0,
+        .Width = width,
+        .Height = height,
+        .DepthOrArraySize = 6, // cube !
         .MipLevels = 1,
         .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
         .SampleDesc = {1, 0},

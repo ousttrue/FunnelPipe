@@ -230,14 +230,29 @@ std::shared_ptr<class Texture> RootSignature::GetOrCreate(
         return found->second;
     }
 
-    auto image = texture->Image;
-
     // create texture
     auto gpuTexture = std::make_shared<Texture>();
+
+    if (texture->Images.size() == 6)
     {
+        // cube
+        auto image = texture->Images.front();
+        auto resource = ResourceItem::CreateStaticCubemap(device, image->width, image->height, Utf8ToUnicode(image->name).c_str());
+        gpuTexture->ImageBuffer(resource);
+        // TODO
+        // uploader->EnqueueUpload(resource, image->buffer.data(), (UINT)image->buffer.size(), image->width * 4);
+    }
+    else if (texture->Images.size() == 1)
+    {
+        // 2d
+        auto image = texture->Images.front();
         auto resource = ResourceItem::CreateStaticTexture(device, image->width, image->height, Utf8ToUnicode(image->name).c_str());
         gpuTexture->ImageBuffer(resource);
         uploader->EnqueueUpload(resource, image->buffer.data(), (UINT)image->buffer.size(), image->width * 4);
+    }
+    else
+    {
+        throw;
     }
 
     m_textureMap.insert(std::make_pair(texture, gpuTexture));
@@ -308,19 +323,37 @@ void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
         for (int i = 0; i < 8; ++i, ++index)
         {
             // create view
-            D3D12_SHADER_RESOURCE_VIEW_DESC desc{
-                .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-                .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
-                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Texture2D = {
-                    .MostDetailedMip = 0,
-                    .MipLevels = 1,
-                },
-            };
             auto gpuTexture = m_textures[srv.list[i]];
             if (gpuTexture)
             {
-                device->CreateShaderResourceView(gpuTexture->Resource().Get(), &desc, m_CBV_SRV_UAV_Heap->CpuHandle(index));
+                if (gpuTexture->IsCubeMap)
+                {
+                    assert(gpuTexture->Resource()->GetDesc().DepthOrArraySize == 6);
+                    D3D12_SHADER_RESOURCE_VIEW_DESC desc{
+                        .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+                        .ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE,
+                        .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                        .TextureCube = {
+                            .MostDetailedMip = 0,
+                            .MipLevels = 1,
+                            .ResourceMinLODClamp = 0.0f,
+                        },
+                    };
+                    device->CreateShaderResourceView(gpuTexture->Resource().Get(), &desc, m_CBV_SRV_UAV_Heap->CpuHandle(index));
+                }
+                else
+                {
+                    D3D12_SHADER_RESOURCE_VIEW_DESC desc{
+                        .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+                        .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+                        .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                        .Texture2D = {
+                            .MostDetailedMip = 0,
+                            .MipLevels = 1,
+                        },
+                    };
+                    device->CreateShaderResourceView(gpuTexture->Resource().Get(), &desc, m_CBV_SRV_UAV_Heap->CpuHandle(index));
+                }
             }
             else
             {

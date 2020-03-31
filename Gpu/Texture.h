@@ -14,6 +14,8 @@ class Texture : NonCopyable
 public:
     std::shared_ptr<class ResourceItem> m_imageBuffer;
 
+    bool IsCubeMap = false;
+
     const ComPtr<ID3D12Resource> &Resource() const;
 
     void ImageBuffer(const std::shared_ptr<class ResourceItem> &item)

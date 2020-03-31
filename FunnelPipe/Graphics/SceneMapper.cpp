@@ -40,7 +40,7 @@ std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &devic
         std::shared_ptr<ResourceItem> resource;
         if (vertices->isDynamic)
         {
-            resource = ResourceItem::CreateUpload(device, (UINT)vertices->buffer.size(), Utf8ToUnicode(sceneMesh->name).c_str());
+            resource = ResourceItem::CreateDynamic(device, (UINT)vertices->buffer.size(), Utf8ToUnicode(sceneMesh->name).c_str());
             // not enqueue
         }
         // else if (sceneMesh->skin)
@@ -50,7 +50,7 @@ std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &devic
         // }
         else
         {
-            resource = ResourceItem::CreateDefault(device, (UINT)vertices->buffer.size(), Utf8ToUnicode(sceneMesh->name).c_str());
+            resource = ResourceItem::CreateStatic(device, (UINT)vertices->buffer.size(), Utf8ToUnicode(sceneMesh->name).c_str());
             m_uploader->EnqueueUpload(resource, vertices->buffer.data(), (UINT)vertices->buffer.size(), vertices->stride);
         }
 
@@ -68,13 +68,13 @@ std::shared_ptr<Mesh> SceneMapper::GetOrCreate(const ComPtr<ID3D12Device> &devic
     {
         if (indices->isDynamic)
         {
-            auto resource = ResourceItem::CreateUpload(device, (UINT)indices->buffer.size(), Utf8ToUnicode(sceneMesh->name).c_str());
+            auto resource = ResourceItem::CreateDynamic(device, (UINT)indices->buffer.size(), Utf8ToUnicode(sceneMesh->name).c_str());
             gpuMesh->IndexBuffer(resource);
             // not enqueue
         }
         else
         {
-            auto resource = ResourceItem::CreateDefault(device, (UINT)indices->buffer.size(), Utf8ToUnicode(sceneMesh->name).c_str());
+            auto resource = ResourceItem::CreateStatic(device, (UINT)indices->buffer.size(), Utf8ToUnicode(sceneMesh->name).c_str());
             gpuMesh->IndexBuffer(resource);
             m_uploader->EnqueueUpload(resource, indices->buffer.data(), (UINT)indices->buffer.size(), indices->stride);
         }

@@ -108,11 +108,9 @@ public:
     std::function<void()> EnqueueTransition(const ComPtr<ID3D12GraphicsCommandList> &commandList, D3D12_RESOURCE_STATES state);
     void EnqueueUpload(class CommandList *commandList, const std::shared_ptr<class ResourceItem> &upload,
                        const void *p, UINT byteLength, UINT stride);
-    // dynamic
     static std::shared_ptr<ResourceItem> CreateDynamic(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name);
-    // static
     static std::shared_ptr<ResourceItem> CreateStatic(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name);
-    // static texture
     static std::shared_ptr<ResourceItem> CreateStaticTexture(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name);
+    static std::shared_ptr<ResourceItem> CreateStaticCubemap(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name);
 };
 } // namespace Gpu::dx12

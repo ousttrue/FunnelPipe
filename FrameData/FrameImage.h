@@ -19,8 +19,17 @@ public:
     // empty
     static std::shared_ptr<FrameImage> Create();
 
-    // default 2x2 white
-    static std::shared_ptr<FrameImage> White();
+    static std::shared_ptr<FrameImage> CreateRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+
+    static std::shared_ptr<FrameImage> White()
+    {
+        static std::shared_ptr<FrameImage> s_image;
+        if (!s_image)
+        {
+            s_image = CreateRGBA(255, 255, 255, 255);
+        }
+        return s_image;
+    }
 
     // load
     static std::shared_ptr<FrameImage> Load(const uint8_t *p, int size);

@@ -101,13 +101,30 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
             auto colorTexture = material->ColorTexture;
             if (colorTexture)
             {
-                auto colorImage = colorTexture->Image;
-                ImGui::Text("colorImage: %s: %d x %d",
-                            colorImage->name.c_str(),
-                            colorImage->width, colorImage->height);
-                auto texture = getTexture(colorTexture);
-                texture->AddRef();
-                ImGui::Image((ImTextureID)texture.Get(), ImVec2(150, 150));
+                switch (colorTexture->Images.size())
+                {
+                case 1:
+                {
+                    auto colorImage = colorTexture->Images.front();
+                    ImGui::Text("colorImage: %s: %d x %d",
+                                colorImage->name.c_str(),
+                                colorImage->width, colorImage->height);
+                    auto texture = getTexture(colorTexture);
+                    texture->AddRef();
+                    ImGui::Image((ImTextureID)texture.Get(), ImVec2(150, 150));
+                }
+                break;
+
+                case 6:
+                {
+                    // TODO
+                    ImGui::Text("colorImage: cubemap");
+                }
+                break;
+
+                default:
+                    throw;
+                }
             }
             else
             {

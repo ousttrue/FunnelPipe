@@ -14,10 +14,10 @@ struct FrameTexture
 {
     std::string Name;
     TextureTypes TextureType = TextureTypes::Textue2D;
-    FrameImagePtr Image;
+    std::vector<FrameImagePtr> Images;
 
-    // default 2x2 white
     static std::shared_ptr<FrameTexture> White();
+    static std::shared_ptr<FrameTexture> Cube();
 };
 using FrameTexturePtr = std::shared_ptr<FrameTexture>;
 

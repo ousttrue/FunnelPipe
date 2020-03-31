@@ -188,8 +188,8 @@ public:
             texture->Name = gltfTexture.name;
 
             // TO_PNG
-            texture->Image = framedata::FrameImage::Load(bytes.p, bytes.size);
-            texture->Image->name = gltfImage.name;
+            texture->Images.push_back(framedata::FrameImage::Load(bytes.p, bytes.size));
+            texture->Images.back()->name = gltfImage.name;
 
             // TODO: sampler
 

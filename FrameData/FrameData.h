@@ -81,18 +81,7 @@ struct FrameData
     // texture の slot 割り当て
     std::vector<FrameTexturePtr> Textures;
     std::unordered_map<FrameTexturePtr, size_t> TextureMap;
-    size_t PushTexture(const FrameTexturePtr &texture)
-    {
-        auto found = TextureMap.find(texture);
-        if (found != TextureMap.end())
-        {
-            return found->second;
-        }
-        auto index = Textures.size();
-        Textures.push_back(texture);
-        TextureMap.insert(std::make_pair(texture, index));
-        return index;
-    }
+    size_t PushTexture(const FrameTexturePtr &texture);
 
     // material毎の slot 割り当て
     union SRVView {
@@ -116,45 +105,8 @@ struct FrameData
         }
     };
     std::vector<SRVView> SRVViews;
-    // std::vector<FrameMaterialPtr> Materials;
     std::unordered_map<FrameMaterialPtr, size_t> MaterialMap;
-    size_t PushMaterial(const framedata::FrameMaterialPtr &material)
-    {
-        auto found = MaterialMap.find(material);
-        if (found != MaterialMap.end())
-        {
-            return found->second;
-        }
-        auto index = SRVViews.size();
-
-        auto white = PushTexture(FrameTexture::White());
-
-        SRVViews.push_back(SRVView(
-            (uint16_t)(material->ColorTexture ? PushTexture(material->ColorTexture) : white),
-            (uint16_t)white,
-            (uint16_t)white,
-            (uint16_t)white,
-            (uint16_t)white,
-            (uint16_t)white,
-            (uint16_t)white,
-            (uint16_t)white));
-
-        if (material->Shader == ShaderManager::Instance().GltfPBR())
-        {
-            // Texture2D baseColourTexture : register(t0);
-            // Texture2D normalTexture : register(t1);
-            // Texture2D emissionTexture : register(t2);
-            // Texture2D occlusionTexture : register(t3);
-            // Texture2D metallicRoughnessTexture : register(t4);
-            // TextureCube envDiffuseTexture : register(t5);
-            // Texture2D brdfLutTexture : register(t6);
-            // TextureCube envSpecularTexture : register(t7);
-            auto a = 0;
-        }
-
-        MaterialMap.insert(std::make_pair(material, index));
-        return index;
-    }
+    size_t PushMaterial(const framedata::FrameMaterialPtr &material);
 
     struct DrawItem
     {

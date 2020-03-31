@@ -1,6 +1,7 @@
 #include "FrameImage.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <sstream>
 
 namespace framedata
 {
@@ -10,18 +11,27 @@ std::shared_ptr<FrameImage> FrameImage::Create()
     return FrameImagePtr(new FrameImage);
 }
 
-std::shared_ptr<FrameImage> FrameImage::White()
+std::shared_ptr<FrameImage> FrameImage::CreateRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-    static FrameImagePtr s_image;
-    if (!s_image)
+    FrameImagePtr image;
+    // if (!s_image)
     {
-        s_image = FrameImagePtr(new FrameImage);
-        s_image->name = "(white)";
-        s_image->width = 64;
-        s_image->height = 64;
-        s_image->buffer.resize(s_image->width * s_image->height * 4, 255);
+        image = FrameImagePtr(new FrameImage);
+        std::stringstream ss;
+        ss << "(" << r << ", " << g << ", " << b << ", " << a << ")";
+        image->name = ss.str();
+        image->width = 64;
+        image->height = 64;
+        image->buffer.resize(image->width * image->height * 4);
+        for (auto it = image->buffer.begin(); it != image->buffer.end();)
+        {
+            *(it++) = r;
+            *(it++) = g;
+            *(it++) = b;
+            *(it++) = a;
+        }
     }
-    return s_image;
+    return image;
 }
 
 std::shared_ptr<FrameImage> FrameImage::Load(const uint8_t *p, int size)

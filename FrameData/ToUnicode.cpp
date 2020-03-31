@@ -39,3 +39,15 @@ static std::wstring multi_to_wide_winapi(std::string const &src)
     return std::wstring(dest.begin(), dest.end());
 }
 
+std::string UnicodeToUtf8(std::wstring const &src)
+{
+    auto const dest_size = ::WideCharToMultiByte(CP_UTF8, 0U, src.data(), -1, nullptr, 0, nullptr, nullptr);
+    std::vector<char> dest(dest_size, '\0');
+    if (::WideCharToMultiByte(CP_UTF8, 0U, src.data(), -1, dest.data(), (UINT)dest.size(), nullptr, nullptr) == 0)
+    {
+        throw std::system_error{static_cast<int>(::GetLastError()), std::system_category()};
+    }
+    dest.resize(std::char_traits<char>::length(dest.data()));
+    dest.shrink_to_fit();
+    return std::string(dest.begin(), dest.end());
+}
