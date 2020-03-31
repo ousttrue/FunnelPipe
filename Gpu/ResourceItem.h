@@ -113,6 +113,6 @@ public:
     // static
     static std::shared_ptr<ResourceItem> CreateDefault(const ComPtr<ID3D12Device> &device, UINT byteLength, LPCWSTR name);
     // static image
-    static std::shared_ptr<ResourceItem> CreateDefaultImage(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name);
+    static std::shared_ptr<ResourceItem> CreateDefaultTexture(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name);
 };
 } // namespace Gpu::dx12

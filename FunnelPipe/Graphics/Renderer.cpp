@@ -148,10 +148,10 @@ public:
                  framedata.ViewClearColor.data(), framedata);
     }
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> GetTexture(const framedata::FrameImagePtr &image)
+    Microsoft::WRL::ComPtr<ID3D12Resource> GetTexture(const framedata::FrameTexturePtr &texture)
     {
-        auto texture = m_rootSignature->GetOrCreate(m_device, image, m_sceneMapper->GetUploader());
-        return texture->Resource();
+        auto resource = m_rootSignature->GetOrCreate(m_device, texture, m_sceneMapper->GetUploader());
+        return resource->Resource();
     }
 
 private:
@@ -326,7 +326,7 @@ void Renderer::View(const framedata::FrameData &framedata)
     m_impl->View(framedata);
 }
 
-Microsoft::WRL::ComPtr<ID3D12Resource> Renderer::GetTexture(const framedata::FrameImagePtr &image)
+Microsoft::WRL::ComPtr<ID3D12Resource> Renderer::GetTexture(const framedata::FrameTexturePtr &texture)
 {
-    return m_impl->GetTexture(image);
+    return m_impl->GetTexture(texture);
 }

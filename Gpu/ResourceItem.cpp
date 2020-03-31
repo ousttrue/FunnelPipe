@@ -193,7 +193,7 @@ std::shared_ptr<ResourceItem> ResourceItem::CreateDefault(const ComPtr<ID3D12Dev
         new ResourceItem(resource, D3D12_RESOURCE_STATE_COPY_DEST, name));
 }
 
-std::shared_ptr<ResourceItem> ResourceItem::CreateDefaultImage(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name)
+std::shared_ptr<ResourceItem> ResourceItem::CreateDefaultTexture(const ComPtr<ID3D12Device> &device, UINT width, UINT height, LPCWSTR name)
 {
     D3D12_HEAP_PROPERTIES prop{
         .Type = D3D12_HEAP_TYPE_DEFAULT,

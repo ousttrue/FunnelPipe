@@ -3,7 +3,7 @@
 #include <string>
 #include <array>
 #include <stdint.h>
-#include "FrameImage.h"
+#include "FrameTexture.h"
 #include "ShaderPass.h"
 
 namespace framedata
@@ -24,7 +24,7 @@ struct FrameMaterial
 
     AlphaMode AlphaMode{};
     float AlphaCutoff = 0;
-    FrameImagePtr ColorImage;
+    FrameTexturePtr ColorTexture;
     std::array<float, 4> Color = {1, 1, 1, 1};
 };
 using FrameMaterialPtr = std::shared_ptr<FrameMaterial>;

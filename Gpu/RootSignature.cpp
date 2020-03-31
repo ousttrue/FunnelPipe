@@ -221,24 +221,26 @@ std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> 
 
 std::shared_ptr<class Texture> RootSignature::GetOrCreate(
     const ComPtr<ID3D12Device> &device,
-    const framedata::FrameImagePtr &image,
+    const framedata::FrameTexturePtr &texture,
     Uploader *uploader)
 {
-    auto found = m_textureMap.find(image);
+    auto found = m_textureMap.find(texture);
     if (found != m_textureMap.end())
     {
         return found->second;
     }
 
+    auto image = texture->Image;
+
     // create texture
     auto gpuTexture = std::make_shared<Texture>();
     {
-        auto resource = ResourceItem::CreateDefaultImage(device, image->width, image->height, Utf8ToUnicode(image->name).c_str());
+        auto resource = ResourceItem::CreateDefaultTexture(device, image->width, image->height, Utf8ToUnicode(image->name).c_str());
         gpuTexture->ImageBuffer(resource);
         uploader->EnqueueUpload(resource, image->buffer.data(), (UINT)image->buffer.size(), image->width * 4);
     }
 
-    m_textureMap.insert(std::make_pair(image, gpuTexture));
+    m_textureMap.insert(std::make_pair(texture, gpuTexture));
 
     return gpuTexture;
 }
@@ -278,22 +280,22 @@ void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
     m_textures.clear();
     m_srvStatus.clear();
 
-    for (auto &image : framedata.Images)
+    for (auto &texture : framedata.Textures)
     {
-        auto texture = GetOrCreate(device, image, uploader);
-        if (texture)
+        auto gpuTexture = GetOrCreate(device, texture, uploader);
+        if (gpuTexture)
         {
-            auto [isDrawable, callback] = texture->IsDrawable(commandList->Get());
+            auto [isDrawable, callback] = gpuTexture->IsDrawable(commandList->Get());
             if (callback)
             {
                 commandList->AddOnCompleted(callback);
             }
             if (!isDrawable)
             {
-                texture = nullptr;
+                gpuTexture = nullptr;
             }
         }
-        m_textures.push_back(texture);
+        m_textures.push_back(gpuTexture);
     }
 
     UINT index = FRAME_SLOTS + DRAW_SLOTS;

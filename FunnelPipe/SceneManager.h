@@ -15,7 +15,7 @@ class SceneManager
     std::weak_ptr<hierarchy::SceneNode> m_selected;
 
 public:
-    using GetTextureFunc = std::function<ComPtr<ID3D12Resource>(const framedata::FrameImagePtr &)>;
+    using GetTextureFunc = std::function<ComPtr<ID3D12Resource>(const framedata::FrameTexturePtr &)>;
     SceneManager(int argc, char **argv);
     ~SceneManager();
     void ImGui(const GetTextureFunc &getTexture);

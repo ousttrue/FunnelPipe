@@ -79,18 +79,18 @@ struct FrameData
     std::vector<MeshItem> Meshlist;
 
     // texture の slot 割り当て
-    std::vector<FrameImagePtr> Images;
-    std::unordered_map<FrameImagePtr, size_t> ImageMap;
-    size_t PushImage(const FrameImagePtr &image)
+    std::vector<FrameTexturePtr> Textures;
+    std::unordered_map<FrameTexturePtr, size_t> TextureMap;
+    size_t PushTexture(const FrameTexturePtr &texture)
     {
-        auto found = ImageMap.find(image);
-        if (found != ImageMap.end())
+        auto found = TextureMap.find(texture);
+        if (found != TextureMap.end())
         {
             return found->second;
         }
-        auto index = Images.size();
-        Images.push_back(image);
-        ImageMap.insert(std::make_pair(image, index));
+        auto index = Textures.size();
+        Textures.push_back(texture);
+        TextureMap.insert(std::make_pair(texture, index));
         return index;
     }
 
@@ -127,10 +127,10 @@ struct FrameData
         }
         auto index = SRVViews.size();
 
-        auto white = PushImage(FrameImage::White());
+        auto white = PushTexture(FrameTexture::White());
 
         SRVViews.push_back(SRVView(
-            (uint16_t)(material->ColorImage ? PushImage(material->ColorImage) : white),
+            (uint16_t)(material->ColorTexture ? PushTexture(material->ColorTexture) : white),
             (uint16_t)white,
             (uint16_t)white,
             (uint16_t)white,
@@ -138,6 +138,20 @@ struct FrameData
             (uint16_t)white,
             (uint16_t)white,
             (uint16_t)white));
+
+        if (material->Shader == ShaderManager::Instance().GltfPBR())
+        {
+            // Texture2D baseColourTexture : register(t0);
+            // Texture2D normalTexture : register(t1);
+            // Texture2D emissionTexture : register(t2);
+            // Texture2D occlusionTexture : register(t3);
+            // Texture2D metallicRoughnessTexture : register(t4);
+            // TextureCube envDiffuseTexture : register(t5);
+            // Texture2D brdfLutTexture : register(t6);
+            // TextureCube envSpecularTexture : register(t7);
+            auto a = 0;
+        }
+
         MaterialMap.insert(std::make_pair(material, index));
         return index;
     }
@@ -172,8 +186,8 @@ struct FrameData
         CBRanges.clear();
         Drawlist.clear();
 
-        Images.clear();
-        ImageMap.clear();
+        Textures.clear();
+        TextureMap.clear();
         MaterialMap.clear();
         SRVViews.clear();
     }

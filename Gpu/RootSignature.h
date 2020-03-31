@@ -38,7 +38,7 @@ class RootSignature : NonCopyable
     std::unique_ptr<Heap> m_Sampler_Heap;
 
     std::unordered_map<framedata::FrameMaterialPtr, std::shared_ptr<class Material>> m_materialMap;
-    std::unordered_map<framedata::FrameImagePtr, std::shared_ptr<class Texture>> m_textureMap;
+    std::unordered_map<framedata::FrameTexturePtr, std::shared_ptr<class Texture>> m_textureMap;
 
 public:
     RootSignature();
@@ -47,7 +47,7 @@ public:
     void Update(const ComPtr<ID3D12Device> &device);
     void Begin(const ComPtr<ID3D12Device> &device, const ComPtr<ID3D12GraphicsCommandList> &commandList);
     std::shared_ptr<class Material> GetOrCreate(const ComPtr<ID3D12Device> &device, const framedata::FrameMaterialPtr &material);
-    std::shared_ptr<class Texture> GetOrCreate(const ComPtr<ID3D12Device> &device, const framedata::FrameImagePtr &image, class Uploader *uploader);
+    std::shared_ptr<class Texture> GetOrCreate(const ComPtr<ID3D12Device> &device, const framedata::FrameTexturePtr &image, class Uploader *uploader);
 
     // each Frame
     Gpu::dx12::ConstantBuffer m_viewConstantsBuffer;

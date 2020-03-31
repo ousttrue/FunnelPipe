@@ -98,13 +98,14 @@ static void MaterialList(const hierarchy::SceneModelPtr &model,
                 ImGui::Text("alphaCutoff: %f", material->AlphaCutoff);
             }
 
-            auto colorImage = material->ColorImage;
-            if (colorImage)
+            auto colorTexture = material->ColorTexture;
+            if (colorTexture)
             {
+                auto colorImage = colorTexture->Image;
                 ImGui::Text("colorImage: %s: %d x %d",
                             colorImage->name.c_str(),
                             colorImage->width, colorImage->height);
-                auto texture = getTexture(colorImage);
+                auto texture = getTexture(colorTexture);
                 texture->AddRef();
                 ImGui::Image((ImTextureID)texture.Get(), ImVec2(150, 150));
             }

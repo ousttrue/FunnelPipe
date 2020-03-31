@@ -175,18 +175,25 @@ public:
     {
     }
 
-    void LoadImages()
+    void LoadTextures()
     {
-        m_model->images.reserve(m_gltf.images.size());
-        for (auto &gltfImage : m_gltf.images)
+        m_model->textures.reserve(m_gltf.textures.size());
+        for (auto &gltfTexture : m_gltf.textures)
         {
+            auto &gltfImage = m_gltf.images[gltfTexture.source.value()];
             auto &bufferView = m_gltf.bufferViews[gltfImage.bufferView.value()];
             auto bytes = m_bin.get_bytes(bufferView);
 
+            auto texture = std::make_shared<framedata::FrameTexture>();
+            texture->Name = gltfTexture.name;
+
             // TO_PNG
-            auto image = framedata::FrameImage::Load(bytes.p, bytes.size);
-            image->name = gltfImage.name;
-            m_model->images.push_back(image);
+            texture->Image = framedata::FrameImage::Load(bytes.p, bytes.size);
+            texture->Image->name = gltfImage.name;
+
+            // TODO: sampler
+
+            m_model->textures.push_back(texture);
         }
     }
 
@@ -217,15 +224,15 @@ public:
                 throw "unknown";
             }
 
-            material->ColorImage = framedata::FrameImage::White();
+            material->ColorTexture = framedata::FrameTexture::White();
             if (gltfMaterial.pbrMetallicRoughness.has_value())
             {
                 auto &pbr = gltfMaterial.pbrMetallicRoughness.value();
                 if (pbr.baseColorTexture.has_value())
                 {
                     auto &gltfTexture = m_gltf.textures[pbr.baseColorTexture.value().index.value()];
-                    auto image = m_model->images[gltfTexture.source.value()];
-                    material->ColorImage = image;
+                    auto texture = m_model->textures[gltfTexture.source.value()];
+                    material->ColorTexture = texture;
                 }
 
                 if (pbr.baseColorFactor.size() == 4)
@@ -541,7 +548,7 @@ public:
 
     SceneModelPtr Load()
     {
-        LoadImages();
+        LoadTextures();
         LoadMaterials();
         LoadNodes();
         LoadMeshes();
