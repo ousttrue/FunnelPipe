@@ -278,9 +278,9 @@ void Renderer::EndFrame()
     m_impl->EndFrame();
 }
 
-ComPtr<ID3D12Resource> Renderer::ViewTexture(size_t view)
+ID3D12Resource* Renderer::ViewTexture(size_t view)
 {
-    return m_impl->ViewTexture(view);
+    return m_impl->ViewTexture(view).Get();
 }
 
 void Renderer::View(const framedata::FrameData &framedata)

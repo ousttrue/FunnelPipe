@@ -13,7 +13,7 @@ CameraView::CameraView()
 }
 
 bool CameraView::ImGui(const screenstate::ScreenState &state,
-                       const Microsoft::WRL::ComPtr<ID3D12Resource> &texture,
+                       ID3D12Resource *texture,
                        const hierarchy::SceneNodePtr &selected,
                        framedata::FrameData *framedata)
 {

@@ -54,12 +54,14 @@ public:
             frame_metrics::scoped s("imgui");
 
             // imgui
-            auto onOpen=std::bind(&SceneManager::OpenFile, &m_scene, std::placeholders::_1);
+            auto onOpen = std::bind(&SceneManager::OpenFile, &m_scene, std::placeholders::_1);
             m_imgui.OnFrame(state, onOpen, hwnd);
 
             // view
-            auto viewTexture = m_renderer.ViewTexture((size_t)&m_frameData);
-            isShowView = m_view.ImGui(state, viewTexture, m_scene.Selected(), &m_frameData);
+            {
+                auto viewTexture = m_renderer.ViewTexture((size_t)&m_frameData);
+                isShowView = m_view.ImGui(state, viewTexture, m_scene.Selected(), &m_frameData);
+            }
 
             // model panel
             m_scene.ImGui(std::bind(&Renderer::GetTexture, &m_renderer, std::placeholders::_1));
