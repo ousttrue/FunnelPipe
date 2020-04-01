@@ -72,20 +72,15 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
             if (shader && shader->VS)
             {
                 m_gizmoBuffer = m_gizmo.End();
-                std::array<float, 16> matrix{
-                    1, 0, 0, 0, //
-                    0, 1, 0, 0, //
-                    0, 0, 1, 0, //
-                    0, 0, 0, 1, //
-                };
-                framedata::CBValue values[] =
-                    {
-                        {
-                            .semantic = framedata::ConstantSemantics::NODE_WORLD,
-                            .p = &matrix,
-                            .size = sizeof(matrix),
-                        }};
-                framedata->PushCB(shader->VS->DrawCB(), values, _countof(values));
+                framedata->PushCB(shader->VS->DrawCB());
+                framedata->SetCBVariable(shader->VS->DrawCB(),
+                                  framedata::ConstantSemantics::NODE_WORLD,
+                                  std::array<float, 16>{
+                                      1, 0, 0, 0, //
+                                      0, 1, 0, 0, //
+                                      0, 0, 1, 0, //
+                                      0, 0, 0, 1, //
+                                  });
                 framedata->Meshlist.push_back({
                     .Mesh = mesh,
                     .Vertices = {

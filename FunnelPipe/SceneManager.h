@@ -11,6 +11,7 @@ class SceneManager
     using ComPtr = Microsoft::WRL::ComPtr<T>;
 
     hierarchy::Scene m_scene;
+    hierarchy::FrameDataBuilder m_builder;
     // single selection
     std::weak_ptr<hierarchy::SceneNode> m_selected;
 

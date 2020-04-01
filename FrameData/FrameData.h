@@ -61,7 +61,26 @@ struct FrameData
     //
     std::vector<uint8_t> CB;
     std::vector<std::pair<uint32_t, uint32_t>> CBRanges;
-    std::pair<uint32_t, uint32_t> PushCB(const ConstantBuffer *cb, const CBValue *value, int count);
+    std::pair<uint32_t, uint32_t> PushCB(const ConstantBuffer *cb);
+
+    template <typename T>
+    void SetCBVariable(const ConstantBuffer *cb, framedata::ConstantSemantics semantic, const T &value)
+    {
+        auto offset = (uint32_t)CB.size();
+        if (cb)
+        {
+            auto p = CB.data() + CB.size() - CBRanges.back().second;
+            for (auto &var : cb->Variables)
+            {
+                if (var.Semantic == semantic)
+                {
+                    // copy value
+                    memcpy(p + var.Offset, &value, sizeof(T));
+                    break;
+                }
+            }
+        }
+    }
 
     struct Buffer
     {

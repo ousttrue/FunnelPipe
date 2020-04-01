@@ -7,6 +7,7 @@
 #include <nameof.hpp>
 
 SceneManager::SceneManager(int argc, char **argv)
+: m_builder(m_scene)
 {
     // watch file path
     auto path = std::filesystem::current_path();
@@ -227,6 +228,5 @@ void SceneManager::OpenFile(const std::filesystem::path &path)
 void SceneManager::UpdateFrameData(framedata::FrameData *framedata)
 {
     m_scene.Update();
-    hierarchy::FrameDataBuilder builder(m_scene);
-    builder.UpdateFrameData(framedata);
+    m_builder.UpdateFrameData(framedata);
 }

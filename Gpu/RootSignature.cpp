@@ -11,6 +11,15 @@ const int FRAME_SLOTS = 1;
 const int DRAW_SLOTS = 1024;
 const int TEXTURE_SLOTS = 1024;
 
+enum class RootDescriptorSlots
+{
+    CBV_0,
+    CBV_1,
+    CBV_2,
+    SRV,
+    Sampler,
+};
+
 namespace Gpu::dx12
 {
 
@@ -33,6 +42,7 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
 
     D3D12_DESCRIPTOR_RANGE1 ranges[] = {
         {
+            // b0
             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
             .NumDescriptors = 1,
             .BaseShaderRegister = 0,
@@ -41,6 +51,7 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
             // . OffsetInDescriptorsFromTableStart,
         },
         {
+            // b1 for VS
             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
             .NumDescriptors = 1,
             .BaseShaderRegister = 1,
@@ -49,6 +60,16 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
             // . OffsetInDescriptorsFromTableStart,
         },
         {
+            // b1 for PS
+            .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
+            .NumDescriptors = 1,
+            .BaseShaderRegister = 1,
+            .RegisterSpace = 0,
+            .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC,
+            // . OffsetInDescriptorsFromTableStart,
+        },
+        {
+            // t0-t7
             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
             .NumDescriptors = 8,
             .BaseShaderRegister = 0,
@@ -56,6 +77,7 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
             // .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC,
         },
         {
+            // s0-s7
             .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
             .NumDescriptors = 8,
             .BaseShaderRegister = 0,
@@ -64,7 +86,7 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
     };
 
     D3D12_ROOT_PARAMETER1 rootParameters[] = {
-        // scene
+        // b0
         {
             .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
             .DescriptorTable = {
@@ -73,16 +95,16 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
             },
             .ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL,
         },
-        // world
+        // b1 for VS
         {
             .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
             .DescriptorTable = {
                 .NumDescriptorRanges = 1,
                 .pDescriptorRanges = &ranges[1],
             },
-            .ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL,
+            .ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
         },
-        // SRV
+        // b1 for PS
         {
             .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
             .DescriptorTable = {
@@ -91,12 +113,21 @@ bool RootSignature::Initialize(const ComPtr<ID3D12Device> &device)
             },
             .ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL,
         },
-        // Sampler
+        // t0-t7
         {
             .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
             .DescriptorTable = {
                 .NumDescriptorRanges = 1,
                 .pDescriptorRanges = &ranges[3],
+            },
+            .ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL,
+        },
+        // s0-s7
+        {
+            .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
+            .DescriptorTable = {
+                .NumDescriptorRanges = 1,
+                .pDescriptorRanges = &ranges[4],
             },
             .ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL,
         },
@@ -198,7 +229,9 @@ void RootSignature::Begin(const ComPtr<ID3D12Device> &device, const ComPtr<ID3D1
         m_Sampler_Heap->Get(),
     };
     commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-    commandList->SetGraphicsRootDescriptorTable(0, m_CBV_SRV_UAV_Heap->GpuHandle(0));
+    commandList->SetGraphicsRootDescriptorTable(
+        static_cast<UINT>(RootDescriptorSlots::CBV_0),
+        m_CBV_SRV_UAV_Heap->GpuHandle(0));
 }
 
 std::shared_ptr<Material> RootSignature::GetOrCreate(const ComPtr<ID3D12Device> &device, const std::shared_ptr<framedata::FrameMaterial> &sceneMaterial)
@@ -284,7 +317,9 @@ void RootSignature::SetDrawDescriptorTable(const ComPtr<ID3D12Device> &device,
         m_viewList[nodeIndex] = {offset, size};
     }
 
-    commandList->SetGraphicsRootDescriptorTable(1, m_CBV_SRV_UAV_Heap->GpuHandle(1 + nodeIndex));
+    commandList->SetGraphicsRootDescriptorTable(
+        static_cast<UINT>(RootDescriptorSlots::CBV_1),
+        m_CBV_SRV_UAV_Heap->GpuHandle(1 + nodeIndex));
 }
 
 void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,
@@ -375,8 +410,12 @@ bool RootSignature::SetTextureDescriptorTable(const ComPtr<ID3D12Device> &device
     {
         return false;
     }
-    commandList->SetGraphicsRootDescriptorTable(2, m_CBV_SRV_UAV_Heap->GpuHandle(status.index));
-    commandList->SetGraphicsRootDescriptorTable(3, m_Sampler_Heap->GpuHandle(0));
+    commandList->SetGraphicsRootDescriptorTable(
+        static_cast<UINT>(RootDescriptorSlots::SRV),
+        m_CBV_SRV_UAV_Heap->GpuHandle(status.index));
+    commandList->SetGraphicsRootDescriptorTable(
+        static_cast<UINT>(RootDescriptorSlots::Sampler),
+        m_Sampler_Heap->GpuHandle(0));
     return true;
 }
 
