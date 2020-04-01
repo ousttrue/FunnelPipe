@@ -66,10 +66,12 @@ public:
 
             // update framedata
             m_frameData.Clear();
-            m_scene.UpdateFrameData(&m_frameData);
-            m_view.UpdateFrameData(&m_frameData);
-
-            m_imgui.FrameData(m_frameData);
+            if (isShowView)
+            {
+                m_scene.UpdateFrameData(&m_frameData);
+                m_view.UpdateFrameData(&m_frameData);
+                m_imgui.FrameData(m_frameData);
+            }
         }
 
         // renderering
