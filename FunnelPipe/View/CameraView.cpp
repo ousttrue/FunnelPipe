@@ -75,8 +75,9 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
                 auto vs = shader->VS;
                 if (vs)
                 {
-                    framedata->PushCB(vs->DrawCB());
-                    framedata->SetCBVariable(vs->DrawCB(),
+                    auto cb = vs->CB(1);
+                    framedata->PushCB(cb);
+                    framedata->SetCBVariable(cb,
                                              framedata::ConstantSemantics::NODE_WORLD,
                                              std::array<float, 16>{
                                                  1, 0, 0, 0, //
@@ -85,12 +86,12 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
                                                  0, 0, 0, 1, //
                                              });
                 }
-                /*
                 auto ps = shader->PS;
                 if (ps)
                 {
-                    framedata->PushCB(ps->DrawCB());
-                    framedata->SetCBVariable(ps->DrawCB(),
+                    auto cb = ps->CB(1);
+                    framedata->PushCB(cb);
+                    framedata->SetCBVariable(cb,
                                              framedata::ConstantSemantics::NODE_WORLD,
                                              std::array<float, 16>{
                                                  1, 0, 0, 0, //
@@ -99,7 +100,6 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
                                                  0, 0, 0, 1, //
                                              });
                 }
-                */
             }
             framedata->Meshlist.push_back({
                 .Mesh = mesh,

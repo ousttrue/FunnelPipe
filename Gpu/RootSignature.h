@@ -55,7 +55,9 @@ public:
     Gpu::dx12::ConstantBuffer m_drawConstantsBuffer;
 
     void SetDrawDescriptorTable(const ComPtr<ID3D12Device> &device,
-                                const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT nodeIndex);
+                                const ComPtr<ID3D12GraphicsCommandList> &commandList, 
+                                D3D12_SHADER_VERSION_TYPE shaderType,
+                                UINT drawIndex);
 
     void UpdateSRV(const ComPtr<ID3D12Device> &device,
                    Gpu::dx12::CommandList *commandList,

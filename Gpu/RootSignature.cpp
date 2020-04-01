@@ -294,32 +294,44 @@ std::shared_ptr<class Texture> RootSignature::GetOrCreate(
 }
 
 void RootSignature::SetDrawDescriptorTable(const ComPtr<ID3D12Device> &device,
-                                           const ComPtr<ID3D12GraphicsCommandList> &commandList, UINT nodeIndex)
+                                           const ComPtr<ID3D12GraphicsCommandList> &commandList,
+                                           D3D12_SHADER_VERSION_TYPE shaderType,
+                                           UINT drawIndex)
 {
     std::pair<uint32_t, uint32_t> view = {};
-    if (nodeIndex < m_viewList.size())
+    if (drawIndex < m_viewList.size())
     {
-        view = m_viewList[nodeIndex];
+        view = m_viewList[drawIndex];
     }
     else
     {
-        m_viewList.resize(nodeIndex + 1);
+        m_viewList.resize(drawIndex + 1);
     }
 
-    auto [offset, size] = m_drawConstantsBuffer.Range(nodeIndex);
+    auto [offset, size] = m_drawConstantsBuffer.Range(drawIndex);
     if (view.first != offset || view.second != size)
     {
         D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {
             .BufferLocation = m_drawConstantsBuffer.Resource()->GetGPUVirtualAddress() + offset,
             .SizeInBytes = size,
         };
-        device->CreateConstantBufferView(&cbvDesc, m_CBV_SRV_UAV_Heap->CpuHandle(1 + nodeIndex));
-        m_viewList[nodeIndex] = {offset, size};
+        device->CreateConstantBufferView(&cbvDesc, m_CBV_SRV_UAV_Heap->CpuHandle(1 + drawIndex));
+        m_viewList[drawIndex] = {offset, size};
     }
 
-    commandList->SetGraphicsRootDescriptorTable(
-        static_cast<UINT>(RootDescriptorSlots::CBV_1),
-        m_CBV_SRV_UAV_Heap->GpuHandle(1 + nodeIndex));
+    switch (shaderType)
+    {
+    case D3D12_SHADER_VERSION_TYPE::D3D12_SHVER_VERTEX_SHADER:
+        commandList->SetGraphicsRootDescriptorTable(
+            static_cast<UINT>(RootDescriptorSlots::CBV_1),
+            m_CBV_SRV_UAV_Heap->GpuHandle(1 + drawIndex));
+        break;
+    case D3D12_SHADER_VERSION_TYPE::D3D12_SHVER_PIXEL_SHADER:
+        commandList->SetGraphicsRootDescriptorTable(
+            static_cast<UINT>(RootDescriptorSlots::CBV_2),
+            m_CBV_SRV_UAV_Heap->GpuHandle(1 + drawIndex));
+        break;
+    }
 }
 
 void RootSignature::UpdateSRV(const ComPtr<ID3D12Device> &device,

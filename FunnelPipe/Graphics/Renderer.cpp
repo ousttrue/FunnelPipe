@@ -253,7 +253,9 @@ private:
             return;
         }
 
-        m_rootSignature->SetDrawDescriptorTable(m_device, commandList, i);
+        auto cbIndex = i * 2;
+        m_rootSignature->SetDrawDescriptorTable(m_device, commandList, D3D12_SHVER_VERTEX_SHADER, cbIndex);
+        m_rootSignature->SetDrawDescriptorTable(m_device, commandList, D3D12_SHVER_PIXEL_SHADER, cbIndex + 1);
 
         auto &submesh = info.Submesh;
         auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);

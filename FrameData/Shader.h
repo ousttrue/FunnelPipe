@@ -45,12 +45,12 @@ public:
         };
     }
 
-    const ConstantBuffer *DrawCB() const
+    // register(b0), register(b1), register(b2)...
+    const ConstantBuffer *CB(int reg) const
     {
         for (auto &cb : m_cblist)
         {
-            // register(b1)
-            if (cb.reg == 1)
+            if (cb.reg == reg)
             {
                 return &cb;
             }
