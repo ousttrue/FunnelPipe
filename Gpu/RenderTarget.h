@@ -32,6 +32,7 @@ public:
         m_resources.clear();
     }
 
+private:
     bool Resize(UINT width, UINT height)
     {
         if (m_viewport.Width == width && m_viewport.Height == height)
@@ -52,11 +53,12 @@ public:
         return true;
     }
 
+public:
     void Initialize(const ComPtr<IDXGISwapChain3> &swapChain,
                     const ComPtr<ID3D12Device> &device,
                     UINT frameCount);
 
-    void Initialize(UINT width, UINT height,
+    bool Initialize(UINT width, UINT height,
                     const ComPtr<ID3D12Device> &device,
                     UINT frameCount);
 

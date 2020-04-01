@@ -128,7 +128,11 @@ public:
     void View(const framedata::FrameData &framedata)
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&framedata);
-        UpdateView(viewRenderTarget, framedata);
+        if(!viewRenderTarget->Initialize(framedata.ViewWidth(), framedata.ViewHeight(), m_device, BACKBUFFER_COUNT))
+        {
+            return;
+        }
+        m_rootSignature->m_viewConstantsBuffer.CopyToGpu(framedata.ViewConstantBuffer);
         UpdateMeshes(framedata);
         m_rootSignature->UpdateSRV(m_device, m_commandlist.get(), framedata, m_sceneMapper->GetUploader());
         DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget,
@@ -192,12 +196,6 @@ private:
     void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
                     const framedata::FrameData &framedata)
     {
-        m_rootSignature->m_viewConstantsBuffer.CopyToGpu(framedata.ViewConstantBuffer);
-
-        if (viewRenderTarget->Resize(framedata.ViewWidth(), framedata.ViewHeight()))
-        {
-            viewRenderTarget->Initialize(framedata.ViewWidth(), framedata.ViewHeight(), m_device, BACKBUFFER_COUNT);
-        }
     }
 
     void DrawView(const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
