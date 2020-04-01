@@ -75,8 +75,8 @@ bool View(framedata::FrameData *view, const screenstate::ScreenState &state,
         // auto frameHeight = ImGui::GetFrameHeight();
 
         *viewState = state;
-        viewState->Width = (int)size.x;
-        viewState->Height = (int)size.y;
+        viewState->Width = size.x < 0 ? 0 : (int)size.x;
+        viewState->Height = size.y < 0 ? 0 : (int)size.y;
         viewState->MouseX = state.MouseX - (int)pos.x;
         viewState->MouseY = state.MouseY - (int)pos.y - (int)cursor.y;
 

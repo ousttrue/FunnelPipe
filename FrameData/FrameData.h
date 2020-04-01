@@ -48,8 +48,22 @@ struct FrameData
 {
     size_t ViewID;
     ViewConstants ViewConstantBuffer;
-    uint32_t ViewWidth() const { return (uint32_t)ViewConstantBuffer.b0ScreenSize[0]; }
-    uint32_t ViewHeight() const { return (uint32_t)ViewConstantBuffer.b0ScreenSize[1]; }
+    uint32_t ViewWidth() const
+    {
+        if (ViewConstantBuffer.b0ScreenSize[0] < 0)
+        {
+            return 0;
+        }
+        return (uint32_t)ViewConstantBuffer.b0ScreenSize[0];
+    }
+    uint32_t ViewHeight() const
+    {
+        if (ViewConstantBuffer.b0ScreenSize[1] < 0)
+        {
+            return 0;
+        }
+        return (uint32_t)ViewConstantBuffer.b0ScreenSize[1];
+    }
     std::array<float, 4> ViewClearColor = {0, 0, 0, 1};
     bool ShowGrid = true;
     bool ShowGizmo = true;
