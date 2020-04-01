@@ -96,17 +96,35 @@ private:
                 auto &material = submesh.material;
                 if (filter(material))
                 {
-                    auto vs = material->Shader ? material->Shader->VS : nullptr;
-                    if (vs)
+                    auto shader = material->Shader;
+                    if (shader)
                     {
-                        framedata->PushCB(vs->DrawCB());
-                        framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::NODE_WORLD, node->World().RowMatrix());
-                        framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_COLOR, material->Color);
-                        framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_NORMAL_SCALE, 1.0f);
-                        framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_EMISSIVE, material->Emissive);
-                        framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_OCCLUSION_STRENGTH, 1.0f);
-                        framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_METALLIC_ROUGHNESS, std::array<float, 2>{1, 1});                        
-                        framedata->PushDraw(mesh, submesh);
+                        auto vs = shader->VS;
+                        if (vs)
+                        {
+                            framedata->PushCB(vs->DrawCB());
+                            framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::NODE_WORLD, node->World().RowMatrix());
+                            framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_COLOR, material->Color);
+                            framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_NORMAL_SCALE, 1.0f);
+                            framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_EMISSIVE, material->Emissive);
+                            framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_OCCLUSION_STRENGTH, 1.0f);
+                            framedata->SetCBVariable(vs->DrawCB(), framedata::ConstantSemantics::MATERIAL_METALLIC_ROUGHNESS, std::array<float, 2>{1, 1});
+                            framedata->PushDraw(mesh, submesh);
+                        }
+                        /*
+                        auto ps = shader->PS;
+                        if(ps)                       
+                        {
+                            framedata->PushCB(ps->DrawCB());
+                            framedata->SetCBVariable(ps->DrawCB(), framedata::ConstantSemantics::NODE_WORLD, node->World().RowMatrix());
+                            framedata->SetCBVariable(ps->DrawCB(), framedata::ConstantSemantics::MATERIAL_COLOR, material->Color);
+                            framedata->SetCBVariable(ps->DrawCB(), framedata::ConstantSemantics::MATERIAL_NORMAL_SCALE, 1.0f);
+                            framedata->SetCBVariable(ps->DrawCB(), framedata::ConstantSemantics::MATERIAL_EMISSIVE, material->Emissive);
+                            framedata->SetCBVariable(ps->DrawCB(), framedata::ConstantSemantics::MATERIAL_OCCLUSION_STRENGTH, 1.0f);
+                            framedata->SetCBVariable(ps->DrawCB(), framedata::ConstantSemantics::MATERIAL_METALLIC_ROUGHNESS, std::array<float, 2>{1, 1});
+                            framedata->PushDraw(mesh, submesh);
+                        }
+                        */
                     }
                 }
             }

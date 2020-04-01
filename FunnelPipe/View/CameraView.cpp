@@ -68,34 +68,53 @@ void CameraView::UpdateFrameData(framedata::FrameData *framedata)
         auto mesh = m_gizmo.GetMesh();
         if (mesh && !mesh->submeshes.empty())
         {
+            m_gizmoBuffer = m_gizmo.End();
             auto shader = mesh->submeshes[0].material->Shader;
-            if (shader && shader->VS)
+            if (shader)
             {
-                m_gizmoBuffer = m_gizmo.End();
-                framedata->PushCB(shader->VS->DrawCB());
-                framedata->SetCBVariable(shader->VS->DrawCB(),
-                                  framedata::ConstantSemantics::NODE_WORLD,
-                                  std::array<float, 16>{
-                                      1, 0, 0, 0, //
-                                      0, 1, 0, 0, //
-                                      0, 0, 1, 0, //
-                                      0, 0, 0, 1, //
-                                  });
-                framedata->Meshlist.push_back({
-                    .Mesh = mesh,
-                    .Vertices = {
-                        .Ptr = m_gizmoBuffer.pVertices,
-                        .Size = m_gizmoBuffer.verticesBytes,
-                        .Stride = m_gizmoBuffer.vertexStride,
-                    },
-                    .Indices = {
-                        .Ptr = m_gizmoBuffer.pIndices,
-                        .Size = m_gizmoBuffer.indicesBytes,
-                        .Stride = m_gizmoBuffer.indexStride,
-                    },
-                });
-                framedata->PushDraw(mesh, 0);
+                auto vs = shader->VS;
+                if (vs)
+                {
+                    framedata->PushCB(vs->DrawCB());
+                    framedata->SetCBVariable(vs->DrawCB(),
+                                             framedata::ConstantSemantics::NODE_WORLD,
+                                             std::array<float, 16>{
+                                                 1, 0, 0, 0, //
+                                                 0, 1, 0, 0, //
+                                                 0, 0, 1, 0, //
+                                                 0, 0, 0, 1, //
+                                             });
+                }
+                /*
+                auto ps = shader->PS;
+                if (ps)
+                {
+                    framedata->PushCB(ps->DrawCB());
+                    framedata->SetCBVariable(ps->DrawCB(),
+                                             framedata::ConstantSemantics::NODE_WORLD,
+                                             std::array<float, 16>{
+                                                 1, 0, 0, 0, //
+                                                 0, 1, 0, 0, //
+                                                 0, 0, 1, 0, //
+                                                 0, 0, 0, 1, //
+                                             });
+                }
+                */
             }
+            framedata->Meshlist.push_back({
+                .Mesh = mesh,
+                .Vertices = {
+                    .Ptr = m_gizmoBuffer.pVertices,
+                    .Size = m_gizmoBuffer.verticesBytes,
+                    .Stride = m_gizmoBuffer.vertexStride,
+                },
+                .Indices = {
+                    .Ptr = m_gizmoBuffer.pIndices,
+                    .Size = m_gizmoBuffer.indicesBytes,
+                    .Stride = m_gizmoBuffer.indexStride,
+                },
+            });
+            framedata->PushDraw(mesh, 0);
         }
     }
 }
