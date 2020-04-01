@@ -4,11 +4,12 @@
 #include <frame_metrics.h>
 
 CameraView::CameraView()
-    : m_light(new hierarchy::SceneLight)
+    : m_light(new hierarchy::SceneDirectionalLight),
+      m_cubemap(new hierarchy::SceneCubemap)
 {
     m_camera.zNear = 0.01f;
     m_light->LightDirection = falg::Normalize(std::array<float, 3>{1, 2, 3});
-    m_light->LightColor = {3, 3, 3};
+    m_light->LightColor = {3, 3, 3};   
 }
 
 bool CameraView::ImGui(const screenstate::ScreenState &state,
