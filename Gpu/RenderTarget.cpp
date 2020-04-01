@@ -51,7 +51,7 @@ void RenderTargetChain::Initialize(const ComPtr<IDXGISwapChain3> &swapChain,
 
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
     ThrowIfFailed(swapChain->GetDesc1(&swapChainDesc));
-    Resize(swapChainDesc.Width, swapChainDesc.Height);
+    SetSize(swapChainDesc.Width, swapChainDesc.Height);
 
     CreateHeap(device);
     auto rtv = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -74,22 +74,11 @@ void RenderTargetChain::Initialize(const ComPtr<IDXGISwapChain3> &swapChain,
     m_isSwapchain = true;
 }
 
-bool RenderTargetChain::Initialize(UINT width, UINT height,
+void RenderTargetChain::Initialize(UINT width, UINT height,
                                    const ComPtr<ID3D12Device> &device,
                                    UINT frameCount)
 {
-    if (width == 0 || height == 0)
-    {
-        // cannot initialize
-        return false;
-    }
-    
-    if (!Resize(width, height))
-    {
-        // already created
-        return true;
-    }
-
+    SetSize(width, height);
     m_resources.resize(frameCount);
 
     CreateHeap(device);
@@ -137,8 +126,6 @@ bool RenderTargetChain::Initialize(UINT width, UINT height,
         device->CreateDepthStencilView(resource.depthStencil.Get(), nullptr, dsv);
         dsv.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     }
-
-    return true;
 }
 
 bool RenderTargetChain::Begin(UINT frameIndex,

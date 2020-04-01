@@ -27,19 +27,20 @@ class RenderTargetChain
     bool m_isSwapchain = false;
 
 public:
-    void Release()
+    bool Release()
     {
-        m_resources.clear();
-    }
-
-private:
-    bool Resize(UINT width, UINT height)
-    {
-        if (m_viewport.Width == width && m_viewport.Height == height)
+        if(m_resources.empty())
         {
             return false;
         }
+        m_resources.clear();
+        SetSize(0, 0);
+        return true;
+    }
 
+private:
+    void SetSize(UINT width, UINT height)
+    {
         m_viewport = {
             .Width = (float)width,
             .Height = (float)height,
@@ -50,7 +51,6 @@ private:
             .right = (LONG)width,
             .bottom = (LONG)height,
         };
-        return true;
     }
 
 public:
@@ -58,7 +58,12 @@ public:
                     const ComPtr<ID3D12Device> &device,
                     UINT frameCount);
 
-    bool Initialize(UINT width, UINT height,
+    bool SizeChanged(UINT width, UINT height) const
+    {
+        return m_viewport.Width != width || m_viewport.Height != height;
+    }
+
+    void Initialize(UINT width, UINT height,
                     const ComPtr<ID3D12Device> &device,
                     UINT frameCount);
 

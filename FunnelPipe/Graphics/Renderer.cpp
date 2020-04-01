@@ -125,17 +125,45 @@ public:
         return resource->renderTarget;
     }
 
+    UINT m_viewWidth = 0;
+    UINT m_viewHeight = 0;
     void View(const framedata::FrameData &framedata)
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&framedata);
-        if(!viewRenderTarget->Initialize(framedata.ViewWidth(), framedata.ViewHeight(), m_device, BACKBUFFER_COUNT))
+        int width = framedata.ViewWidth();
+        int height = framedata.ViewHeight();
+        int frameIndex = m_swapchain->CurrentFrameIndex();
+        // if (viewRenderTarget->SizeChanged(width, height))
+        // {
+        //     // clear
+        //     // m_queue->SyncFence();
+        //     if (viewRenderTarget->Release())
+        //     {
+        //         return;
+        //     }
+        // }
+        bool changed = width != m_viewWidth || height != m_viewHeight;
+        m_viewWidth = width;
+        m_viewHeight = height;
+        if (changed)
+        {
+            viewRenderTarget->Release();
+            return;
+        }
+        if (width == 0 || height == 0)
         {
             return;
         }
+
+        if (!viewRenderTarget->Resource(frameIndex))
+        {
+            viewRenderTarget->Initialize(width, height, m_device, BACKBUFFER_COUNT);
+        }
+
         m_rootSignature->m_viewConstantsBuffer.CopyToGpu(framedata.ViewConstantBuffer);
         UpdateMeshes(framedata);
         m_rootSignature->UpdateSRV(m_device, m_commandlist.get(), framedata, m_sceneMapper->GetUploader());
-        DrawView(m_commandlist->Get(), m_swapchain->CurrentFrameIndex(), viewRenderTarget,
+        DrawView(m_commandlist->Get(), frameIndex, viewRenderTarget,
                  framedata.ViewClearColor.data(), framedata);
     }
 
@@ -191,11 +219,6 @@ private:
         m_rootSignature->m_drawConstantsBuffer.Assign((const std::pair<UINT, UINT> *)framedata.CBRanges.data(),
                                                       (uint32_t)framedata.CBRanges.size());
         m_rootSignature->m_drawConstantsBuffer.CopyToGpu(framedata.CB.data(), framedata.CB.size());
-    }
-
-    void UpdateView(const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
-                    const framedata::FrameData &framedata)
-    {
     }
 
     void DrawView(const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
@@ -278,7 +301,7 @@ void Renderer::EndFrame()
     m_impl->EndFrame();
 }
 
-ID3D12Resource* Renderer::ViewTexture(size_t view)
+ID3D12Resource *Renderer::ViewTexture(size_t view)
 {
     return m_impl->ViewTexture(view).Get();
 }

@@ -7,6 +7,7 @@
 #include <imgui.h>
 #include "ImGuiDX12FrameResources.h"
 #include <plog/Log.h>
+#include <iostream>
 
 template <class T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
@@ -37,7 +38,6 @@ class ImGuiDX12Impl
     UINT m_frameIndex = UINT_MAX;
 
     std::unordered_map<ID3D12Resource *, size_t> m_textureDescriptorMap;
-    ID3D12Resource *m_descriptors[NUM_DESCRIPTORS] = {};
 
     size_t GetOrCreateTexture(ID3D12Resource *resource)
     {
@@ -64,26 +64,15 @@ class ImGuiDX12Impl
             },
         };
 
-        auto index = 0;
+        auto index = m_textureDescriptorMap.size();
 
-        for (; index < NUM_DESCRIPTORS; ++index)
-        {
-            if (!m_descriptors[index])
-            {
-                break;
-            }
-        }
-        if (index >= NUM_DESCRIPTORS)
-        {
-            throw;
-        }
-        m_descriptors[index] = resource;
-
+        // set
         auto handle = m_pHeap->GetCPUDescriptorHandleForHeapStart();
         handle.ptr += index * m_increment;
         device->CreateShaderResourceView(resource,
                                          &srvDesc, handle);
 
+        // LOGD << resource << "=>" << index;
         m_textureDescriptorMap.insert(std::make_pair(resource, index));
 
         return index;
@@ -100,6 +89,10 @@ class ImGuiDX12Impl
         if (texture == m_pFontTextureResource.Get())
         {
             // OK
+            auto index = GetOrCreateTexture(texture);
+            *handle = m_pHeap->GetGPUDescriptorHandleForHeapStart();
+            handle->ptr += (size_t)index * m_increment;
+            return true;
         }
         else
         {
@@ -107,24 +100,27 @@ class ImGuiDX12Impl
             ref = texture->Release();
             if (ref == 0)
             {
-                LOGD << "remove texture";
-                auto it = m_textureDescriptorMap.find(texture);
-                if (it != m_textureDescriptorMap.end())
-                {
-                    m_descriptors[it->second] = nullptr;
-                    m_textureDescriptorMap.erase(it);
-                }
+                // auto it = m_textureDescriptorMap.find(texture);
+                // if (it == m_textureDescriptorMap.end())
+                // {
+                //     LOGE << texture << " not found";
+                // }
+                // else
+                // {
+                //     LOGD << "remove texture " << texture << "=>" << it->second;
+                //     m_descriptors[it->second] = nullptr;
+                //     m_textureDescriptorMap.erase(it);
+                // }
                 return false;
             }
         }
 
+        // std::cerr << texture << ":" << ref << std::endl;
         auto index = GetOrCreateTexture(texture);
-        // if (ref >= 0)
-        // {
-        //     LOGD << ref << "=>" << index;
-        // }
         *handle = m_pHeap->GetGPUDescriptorHandleForHeapStart();
         handle->ptr += (size_t)index * m_increment;
+
+        // return false;
         return true;
     }
 
@@ -227,6 +223,9 @@ public:
         int global_vtx_offset = 0;
         int global_idx_offset = 0;
         ImVec2 clip_off = draw_data->DisplayPos;
+
+        m_textureDescriptorMap.clear();
+
         for (int n = 0; n < draw_data->CmdListsCount; n++)
         {
             const ImDrawList *cmd_list = draw_data->CmdLists[n];
@@ -250,13 +249,14 @@ public:
                 {
                     // Apply Scissor, Bind texture, Draw
                     const D3D12_RECT r = {(LONG)(pcmd->ClipRect.x - clip_off.x), (LONG)(pcmd->ClipRect.y - clip_off.y), (LONG)(pcmd->ClipRect.z - clip_off.x), (LONG)(pcmd->ClipRect.w - clip_off.y)};
+                    auto resource = (ID3D12Resource *)pcmd->TextureId;
                     D3D12_GPU_DESCRIPTOR_HANDLE handle;
-                    if (TryGetHandle((ID3D12Resource *)pcmd->TextureId, &handle))
+                    if (TryGetHandle(resource, &handle))
                     {
                         ctx->SetGraphicsRootDescriptorTable(1, handle);
+                        ctx->RSSetScissorRects(1, &r);
+                        ctx->DrawIndexedInstanced(pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
                     }
-                    ctx->RSSetScissorRects(1, &r);
-                    ctx->DrawIndexedInstanced(pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
                 }
             }
             global_idx_offset += cmd_list->IdxBuffer.Size;
