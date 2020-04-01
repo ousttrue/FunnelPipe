@@ -27,9 +27,6 @@ class Impl
 
     ImGuiDX12 m_imguiDX12;
 
-    // scene
-    std::unique_ptr<hierarchy::SceneLight> m_light;
-
 public:
     Impl(int maxModelCount)
         : m_queue(new Gpu::dx12::CommandQueue),
@@ -37,8 +34,7 @@ public:
           m_backbuffer(new Gpu::dx12::RenderTargetChain),
           m_commandlist(new Gpu::dx12::CommandList),
           m_sceneMapper(new Gpu::dx12::SceneMapper),
-          m_rootSignature(new Gpu::dx12::RootSignature),
-          m_light(new hierarchy::SceneLight)
+          m_rootSignature(new Gpu::dx12::RootSignature)
     {
     }
 
@@ -128,15 +124,6 @@ public:
         }
         return resource->renderTarget;
     }
-
-    // size_t ViewTextureID(size_t id)
-    // {
-    //     // view texture for current frame
-    //     auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget(id);
-    //     auto resource = viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
-    //     size_t texture = resource ? m_imguiDX12.GetOrCreateTexture(m_device.Get(), resource->renderTarget.Get()) : -1;
-    //     return texture;
-    // }
 
     void View(const framedata::FrameData &framedata)
     {
@@ -260,30 +247,10 @@ private:
         auto &submesh = info.Submesh;
         auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
 
-        // texture setup
-        // if (submesh.material->ColorImage)
-        // {
-        //     auto [texture, textureSlot] = m_rootSignature->GetOrCreate(m_device, submesh.material->ColorImage,
-        //                                                                m_sceneMapper->GetUploader());
-        //     if (texture)
-        //     {
-        //         auto [isDrawable, callback] = texture->IsDrawable(commandList);
-        //         if (callback)
-        //         {
-        //             m_commandlist->AddOnCompleted(callback);
-        //         }
-        //         if (isDrawable)
-        //         {
-        //             m_rootSignature->SetTextureDescriptorTable(m_device, commandList, textureSlot);
-        //         }
-        //     }
-        // }
         m_rootSignature->SetTextureDescriptorTable(m_device, commandList, info.MaterialIndex);
+        if (material->SetPipeline(commandList))
         {
-            if (material->Set(commandList))
-            {
-                commandList->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
-            }
+            commandList->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
         }
     }
 };
@@ -312,11 +279,6 @@ void Renderer::EndFrame()
 {
     m_impl->EndFrame();
 }
-
-// size_t Renderer::ViewTextureID(size_t view)
-// {
-//     return m_impl->ViewTextureID(view);
-// }
 
 ComPtr<ID3D12Resource> Renderer::ViewTexture(size_t view)
 {

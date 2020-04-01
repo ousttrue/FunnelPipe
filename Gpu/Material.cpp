@@ -133,7 +133,7 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
     return true;
 } // namespace Gpu::dx12
 
-bool Material::Set(const ComPtr<ID3D12GraphicsCommandList> &commandList)
+bool Material::SetPipeline(const ComPtr<ID3D12GraphicsCommandList> &commandList)
 {
     if (!m_pipelineState)
     {

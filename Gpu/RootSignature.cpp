@@ -272,6 +272,7 @@ std::shared_ptr<class Texture> RootSignature::GetOrCreate(
         auto image = texture->Images.front();
         auto resource = ResourceItem::CreateStaticCubemap(device, image->width, image->height, Utf8ToUnicode(image->name).c_str());
         gpuTexture->ImageBuffer(resource);
+        gpuTexture->IsCubeMap = true;
         // TODO
         // uploader->EnqueueUpload(resource, image->buffer.data(), (UINT)image->buffer.size(), image->width * 4);
     }

@@ -20,7 +20,7 @@ static uint32_t s_colors[] = {
 
 #include <shobjidl.h>
 #include <wrl/client.h>
-std::wstring OpenFileDialog(const std::wstring &folder)
+std::wstring OpenFileDialog(const std::wstring &folder, void *hwnd)
 {
     Microsoft::WRL::ComPtr<IFileOpenDialog> pFileOpen;
     if (FAILED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
@@ -43,7 +43,7 @@ std::wstring OpenFileDialog(const std::wstring &folder)
     // {
     //     return L"";
     // }
-    if (FAILED(pFileOpen->Show(NULL)))
+    if (FAILED(pFileOpen->Show((HWND)hwnd)))
     {
         return L"";
     }
@@ -255,7 +255,7 @@ static void ImGui_Impl_Win32_UpdateMouseCursor()
 // Note that you already dock windows into each others _without_ a DockSpace() by just moving windows
 // from their title bar (or by holding SHIFT if io.ConfigDockingWithShift is set).
 // DockSpace() is only useful to construct to a central location for your application.
-static void DockSpace(const std::function<void(const std::filesystem::path)> &open)
+static void DockSpace(const std::function<void(const std::filesystem::path)> &open, void *hwnd)
 {
     static bool opt_fullscreen_persistant = true;
     bool opt_fullscreen = opt_fullscreen_persistant;
@@ -311,7 +311,7 @@ static void DockSpace(const std::function<void(const std::filesystem::path)> &op
         {
             if (ImGui::MenuItem("open"))
             {
-                auto path = OpenFileDialog(L"");
+                auto path = OpenFileDialog(L"", hwnd);
                 open(path);
             }
             ImGui::EndMenu();
@@ -439,7 +439,7 @@ public:
     }
 
     void NewFrame(const screenstate::ScreenState &state,
-                  const FileOpenFunc &open)
+                  const FileOpenFunc &open, void *hwnd)
     {
         // Start the Dear ImGui frame
         ImGui_Impl_ScreenState_NewFrame(state);
@@ -450,7 +450,7 @@ public:
 
         ImGui::NewFrame();
 
-        DockSpace(open);
+        DockSpace(open, hwnd);
 
         Update();
     }
@@ -517,9 +517,9 @@ void Gui::Log(const char *msg)
 }
 
 void Gui::OnFrame(const screenstate::ScreenState &state,
-                  const FileOpenFunc &open)
+                  const FileOpenFunc &open, void *hwnd)
 {
-    m_impl->NewFrame(state, open);
+    m_impl->NewFrame(state, open, hwnd);
 }
 
 void Gui::FrameData(const framedata::FrameData &framedata)

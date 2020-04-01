@@ -18,7 +18,6 @@ class ApplicationImpl
 
     SceneManager m_scene;
     CameraView m_view;
-    // Microsoft::WRL::ComPtr<ID3D12Resource> m_viewTexture;
     framedata::FrameData m_frameData;
     gui::Gui m_imgui;
 
@@ -55,7 +54,8 @@ public:
             frame_metrics::scoped s("imgui");
 
             // imgui
-            m_imgui.OnFrame(state, std::bind(&SceneManager::OpenFile, &m_scene, std::placeholders::_1));
+            auto onOpen=std::bind(&SceneManager::OpenFile, &m_scene, std::placeholders::_1);
+            m_imgui.OnFrame(state, onOpen, hwnd);
 
             // view
             auto viewTexture = m_renderer.ViewTexture((size_t)&m_frameData);

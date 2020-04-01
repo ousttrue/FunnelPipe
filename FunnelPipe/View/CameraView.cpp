@@ -4,8 +4,11 @@
 #include <frame_metrics.h>
 
 CameraView::CameraView()
+    : m_light(new hierarchy::SceneLight)
 {
     m_camera.zNear = 0.01f;
+    m_light->LightDirection = falg::Normalize(std::array<float, 3>{1, 2, 3});
+    m_light->LightColor = {3, 3, 3};
 }
 
 bool CameraView::ImGui(const screenstate::ScreenState &state,
@@ -18,11 +21,15 @@ bool CameraView::ImGui(const screenstate::ScreenState &state,
     screenstate::ScreenState viewState;
     bool isShowView = ::gui::View(framedata, state, texture, &viewState);
 
-    framedata->ViewConstantBuffer.b0ScreenSize = {(float)viewState.Width, (float)viewState.Height};
-    framedata->ViewConstantBuffer.b0Projection = m_camera.state.projection;
-    framedata->ViewConstantBuffer.b0View = m_camera.state.view;
-    framedata->ViewConstantBuffer.b0CameraPosition = m_camera.state.position;
-    framedata->ViewConstantBuffer.fovY = m_camera.state.fovYRadians;
+    auto &cb = framedata->ViewConstantBuffer;
+
+    cb.b0ScreenSize = {(float)viewState.Width, (float)viewState.Height};
+    cb.b0Projection = m_camera.state.projection;
+    cb.b0View = m_camera.state.view;
+    cb.b0CameraPosition = m_camera.state.position;
+    cb.fovY = m_camera.state.fovYRadians;
+    cb.b0LightColor = m_light->LightColor;
+    cb.b0LightDir = m_light->LightDirection;
 
     //
     // update camera

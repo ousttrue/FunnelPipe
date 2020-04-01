@@ -25,6 +25,8 @@ enum class ConstantSemantics
     MATERIAL_EMISSIVE,
     MATERIAL_OCCLUSION_STRENGTH,
     MATERIAL_METALLIC_ROUGHNESS,
+
+    // require: GetSemanticAfterColon update
 };
 
 struct ConstantVariable

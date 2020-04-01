@@ -21,7 +21,7 @@ public:
     bool Initialize(const ComPtr<ID3D12Device> &device,
                     const ComPtr<ID3D12RootSignature> &rootSignature,
                     const framedata::FrameMaterialPtr &material);
-    bool Set(const ComPtr<ID3D12GraphicsCommandList> &commandList);
+    bool SetPipeline(const ComPtr<ID3D12GraphicsCommandList> &commandList);
 };
 
 } // namespace Gpu::dx12

@@ -18,7 +18,8 @@ public:
     ~Gui();
     void Log(const char *msg);
     void OnFrame(const screenstate::ScreenState &state,
-                 const FileOpenFunc &open);
+                 const FileOpenFunc &open, 
+                 void* hwnd);
     void FrameData(const framedata::FrameData &framedata);
 };
 

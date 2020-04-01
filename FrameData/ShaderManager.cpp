@@ -69,6 +69,8 @@ ShaderPassPtr ShaderManager::GltfPBR()
             {nullptr, nullptr},
         };
         D3D_SHADER_MACRO psDefines[] = {
+            {"NORMALS", "1"},
+            {"UV", "1"},
             {"HAS_BASECOLORMAP", "1"},
             {"HAS_EMISSIVEMAP", "1"},
             {"HAS_OCCLUSIONMAP", "1"},

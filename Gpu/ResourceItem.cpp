@@ -227,17 +227,21 @@ std::shared_ptr<ResourceItem> ResourceItem::CreateStaticCubemap(const ComPtr<ID3
         .Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
         .Flags = D3D12_RESOURCE_FLAG_NONE,
     };
+
+    auto state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     ComPtr<ID3D12Resource> resource;
     ThrowIfFailed(device->CreateCommittedResource(
         &prop,
         D3D12_HEAP_FLAG_NONE,
         &desc,
-        D3D12_RESOURCE_STATE_COPY_DEST,
+        state,
         nullptr,
         IID_PPV_ARGS(&resource)));
 
-    return std::shared_ptr<ResourceItem>(
-        new ResourceItem(resource, D3D12_RESOURCE_STATE_COPY_DEST, name));
+    auto item = std::shared_ptr<ResourceItem>(
+        new ResourceItem(resource, state, name));
+    item->m_state.Upload = UploadStates::Uploaded;
+    return item;
 }
 
 } // namespace Gpu::dx12

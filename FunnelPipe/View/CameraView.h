@@ -17,6 +17,7 @@ class CameraView
     OrbitCamera m_camera;
     Gizmo m_gizmo;
     hierarchy::SceneNodePtr m_selected;
+    hierarchy::SceneLightPtr m_light;
 
 public:
     CameraView();

@@ -43,7 +43,11 @@ static ConstantSemantics GetSemanticAfterColon(const std::string &src)
     MATCH(LIGHT_COLOR);
     MATCH(NODE_WORLD);
     MATCH(MATERIAL_COLOR);
-    
+    MATCH(MATERIAL_NORMAL_SCALE);
+    MATCH(MATERIAL_EMISSIVE);
+    MATCH(MATERIAL_OCCLUSION_STRENGTH);
+    MATCH(MATERIAL_METALLIC_ROUGHNESS);
+
     return ConstantSemantics::UNKNOWN;
 }
 
