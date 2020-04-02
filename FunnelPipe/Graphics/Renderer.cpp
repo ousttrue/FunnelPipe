@@ -27,6 +27,9 @@ class Impl
 
     ImGuiDX12 m_imguiDX12;
 
+    int m_viewWidth = 0;
+    int m_viewHeight = 0;
+
 public:
     Impl(int maxModelCount)
         : m_queue(new Gpu::dx12::CommandQueue),
@@ -125,8 +128,6 @@ public:
         return resource->renderTarget;
     }
 
-    UINT m_viewWidth = 0;
-    UINT m_viewHeight = 0;
     void View(const framedata::FrameData &framedata)
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&framedata);
@@ -143,14 +144,17 @@ public:
         //     }
         // }
         bool changed = width != m_viewWidth || height != m_viewHeight;
-        m_viewWidth = width;
-        m_viewHeight = height;
         if (changed)
         {
+            if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            {
+                return;
+            }
+            m_viewWidth = width;
+            m_viewHeight = height;
             viewRenderTarget->Release();
-            return;
         }
-        if (width == 0 || height == 0)
+        if (m_width == 0 || m_height == 0)
         {
             return;
         }
