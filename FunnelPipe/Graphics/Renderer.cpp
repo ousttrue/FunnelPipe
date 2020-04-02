@@ -146,13 +146,12 @@ public:
         bool changed = width != m_viewWidth || height != m_viewHeight;
         if (changed)
         {
-            if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
             {
-                return;
+                m_viewWidth = width;
+                m_viewHeight = height;
+                viewRenderTarget->Release();
             }
-            m_viewWidth = width;
-            m_viewHeight = height;
-            viewRenderTarget->Release();
         }
         if (m_width == 0 || m_height == 0)
         {
