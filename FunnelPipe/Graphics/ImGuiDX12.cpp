@@ -39,6 +39,8 @@ class ImGuiDX12Impl
 
     std::unordered_map<ID3D12Resource *, size_t> m_textureDescriptorMap;
 
+    std::vector<ID3D12Resource *> m_removes;
+
     size_t GetOrCreateTexture(ID3D12Resource *resource)
     {
         auto found = m_textureDescriptorMap.find(resource);
@@ -85,7 +87,6 @@ class ImGuiDX12Impl
             return false;
         }
 
-        int ref = -1;
         if (texture == m_pFontTextureResource.Get())
         {
             // OK
@@ -97,8 +98,9 @@ class ImGuiDX12Impl
         else
         {
             // before ImGui::Image, AddRef
-            ref = texture->Release();
-            if (ref == 0)
+            texture->AddRef();
+            auto ref = texture->Release();
+            if (ref == 1)
             {
                 // auto it = m_textureDescriptorMap.find(texture);
                 // if (it == m_textureDescriptorMap.end())
@@ -111,7 +113,12 @@ class ImGuiDX12Impl
                 //     m_descriptors[it->second] = nullptr;
                 //     m_textureDescriptorMap.erase(it);
                 // }
-                return false;
+                m_removes.push_back(texture);
+                // return false;
+            }
+            else
+            {
+                texture->Release();
             }
         }
 
@@ -130,9 +137,19 @@ public:
     {
     }
 
-    void Remove(ID3D12Resource *resource)
+    ~ImGuiDX12Impl()
     {
-        m_textureDescriptorMap.erase(resource);
+        ReleaseRemoves();
+    }
+
+    void ReleaseRemoves()
+    {
+        for (auto &r : m_removes)
+        {
+            auto n = r->Release();
+            assert(n == 0);
+        }
+        m_removes.clear();
     }
 
     void Initialize(ID3D12Device *device)
@@ -181,6 +198,9 @@ public:
 
     void RenderDrawData(ID3D12GraphicsCommandList *ctx, ImDrawData *draw_data)
     {
+        ReleaseRemoves();
+        m_textureDescriptorMap.clear();
+
         ComPtr<ID3D12Device> device;
         ctx->GetDevice(IID_PPV_ARGS(&device));
 
@@ -223,8 +243,6 @@ public:
         int global_vtx_offset = 0;
         int global_idx_offset = 0;
         ImVec2 clip_off = draw_data->DisplayPos;
-
-        m_textureDescriptorMap.clear();
 
         for (int n = 0; n < draw_data->CmdListsCount; n++)
         {
