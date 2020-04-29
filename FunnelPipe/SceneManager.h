@@ -7,16 +7,16 @@
 
 class SceneManager
 {
-    template<class T>
-    using ComPtr = Microsoft::WRL::ComPtr<T>;
+    template <class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
     hierarchy::Scene m_scene;
     hierarchy::FrameDataBuilder m_builder;
     // single selection
     std::weak_ptr<hierarchy::SceneNode> m_selected;
 
-public:
-    using GetTextureFunc = std::function<ComPtr<ID3D12Resource>(const framedata::FrameTexturePtr &)>;
+  public:
+    using GetTextureFunc =
+        std::function<void *(const framedata::FrameTexturePtr &)>;
     SceneManager(int argc, char **argv);
     ~SceneManager();
     void ImGui(const GetTextureFunc &getTexture);
@@ -24,6 +24,6 @@ public:
     void UpdateFrameData(framedata::FrameData *framedata);
     hierarchy::SceneNodePtr Selected() const { return m_selected.lock(); }
 
-private:
+  private:
     void DrawNode(const hierarchy::SceneNodePtr &node);
 };

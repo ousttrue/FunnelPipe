@@ -17,5 +17,5 @@ public:
     ID3D12Resource* ViewTexture(size_t view);
     void View(const framedata::FrameData &framedata);
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> GetTexture(const framedata::FrameTexturePtr &texture);
+    void *GetTexture(const framedata::FrameTexturePtr &texture);
 };
