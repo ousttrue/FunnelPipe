@@ -23,7 +23,7 @@ class CameraView
 public:
     CameraView();
     bool ImGui(const screenstate::ScreenState &state,
-               ID3D12Resource *resource,
+               void *resource,
                const hierarchy::SceneNodePtr &selected,
                framedata::FrameData *framedata);
     void UpdateFrameData(framedata::FrameData *framedata);

@@ -4,5 +4,6 @@ BasedOnStyle: LLVM
 BreakBeforeBraces: Allman
 IndentCaseLabels: false
 IndentWidth: 4
+AccessModifierOffset: -4
 SortIncludes: false
 UseTab: Never

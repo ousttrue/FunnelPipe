@@ -29,7 +29,7 @@ class Impl
     int m_viewWidth = 0;
     int m_viewHeight = 0;
 
-  public:
+public:
     Impl(int maxModelCount)
         : m_queue(new Gpu::dx12::CommandQueue),
           m_swapchain(new Gpu::dx12::SwapChain),
@@ -184,7 +184,7 @@ class Impl
         return resource->Resource();
     }
 
-  private:
+private:
     void UpdateBackbuffer(HWND hwnd, int width, int height)
     {
         if (m_width != width || m_height != height)
@@ -313,9 +313,23 @@ void Renderer::BeginFrame(void *hwnd, int width, int height)
 
 void Renderer::EndFrame() { m_impl->EndFrame(); }
 
-ID3D12Resource *Renderer::ViewTexture(size_t view)
+void *Renderer::ViewTexture(size_t view)
 {
-    return m_impl->ViewTexture(view).Get();
+    auto p = m_impl->ViewTexture(view).Get();
+    if (p)
+    {
+        p->AddRef();
+    }
+    return p;
+}
+
+void Renderer::ReleaseViewTexture(void *viewTexture)
+{
+    auto p = (ID3D12Resource *)viewTexture;
+    if (p)
+    {
+        p->Release();
+    }
 }
 
 void Renderer::View(const framedata::FrameData &framedata)
