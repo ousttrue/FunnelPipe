@@ -62,13 +62,14 @@ class Impl
     ComPtr<IDXGISwapChain1> m_swapchain;
     DXGI_SWAP_CHAIN_DESC1 m_swapchainDesc = {};
 
+    ComPtr<ID3D11Texture2D> m_viewTexture;
+    ComPtr<ID3D11ShaderResourceView> m_viewSrv;
+    ComPtr<ID3D11Texture2D> m_viewDepth;
+
 public:
     Impl() {}
 
-    ~Impl()
-    {
-        ImGui_ImplDX11_Shutdown();
-    }
+    ~Impl() { ImGui_ImplDX11_Shutdown(); }
 
     void Initialize(HWND hwnd)
     {
@@ -169,9 +170,72 @@ public:
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
         m_swapchain->Present(1, DXGI_SWAP_EFFECT_DISCARD);
-        
+
         // cleanup
         m_context->OMSetRenderTargets(0, nullptr, nullptr);
+    }
+
+    ComPtr<ID3D11ShaderResourceView> ViewTexture() const { return m_viewSrv; }
+
+    void View(const framedata::FrameData &framedata)
+    {
+        if (m_viewTexture)
+        {
+            D3D11_TEXTURE2D_DESC desc;
+            m_viewTexture->GetDesc(&desc);
+            if (framedata.ViewWidth() != desc.Width ||
+                framedata.ViewHeight() != desc.Height)
+            {
+                m_viewTexture.Reset();
+            }
+        }
+        if (!m_viewTexture)
+        {
+            D3D11_TEXTURE2D_DESC desc{
+                .Width = framedata.ViewWidth(),
+                .Height = framedata.ViewHeight(),
+                .MipLevels = 1,
+                .ArraySize = 1,
+                .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+                .SampleDesc =
+                    {
+                        1,
+                        0,
+                    },
+                .Usage = D3D11_USAGE_DEFAULT,
+                .BindFlags =
+                    D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
+                .CPUAccessFlags = 0,
+                .MiscFlags = 0,
+            };
+            Gpu::ThrowIfFailed(
+                m_device->CreateTexture2D(&desc, nullptr, &m_viewTexture));
+            Gpu::ThrowIfFailed(m_device->CreateShaderResourceView(
+                m_viewTexture.Get(), nullptr, &m_viewSrv));
+
+            desc.Format = DXGI_FORMAT_D32_FLOAT;
+            desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+            Gpu::ThrowIfFailed(
+                m_device->CreateTexture2D(&desc, nullptr, &m_viewDepth));
+        }
+
+        // device
+        ComPtr<ID3D11RenderTargetView> rtv;
+        Gpu::ThrowIfFailed(m_device->CreateRenderTargetView(m_viewTexture.Get(),
+                                                            nullptr, &rtv));
+        ComPtr<ID3D11DepthStencilView> dsv;
+        Gpu::ThrowIfFailed(
+            m_device->CreateDepthStencilView(m_viewDepth.Get(), nullptr, &dsv));
+
+        // context
+        m_context->ClearRenderTargetView(rtv.Get(),
+                                         framedata.ViewClearColor.data());
+        m_context->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+        ID3D11RenderTargetView *rtvs[] = {
+            rtv.Get(),
+        };
+        m_context->OMSetRenderTargets(_countof(rtvs), rtvs, dsv.Get());
     }
 };
 
@@ -190,27 +254,15 @@ void Renderer::EndFrame() { m_impl->EndFrame(); }
 
 void *Renderer::ViewTexture(size_t view)
 {
-    return nullptr;
-    // auto p = m_impl->ViewTexture(view).Get();
-    // if (p)
-    // {
-    //     p->AddRef();
-    // }
-    // return p;
+    auto p = m_impl->ViewTexture().Get();
+    return p;
 }
 
-void Renderer::ReleaseViewTexture(void *viewTexture)
-{
-    auto p = (ID3D12Resource *)viewTexture;
-    if (p)
-    {
-        p->Release();
-    }
-}
+void Renderer::ReleaseViewTexture(void *viewTexture) {}
 
 void Renderer::View(const framedata::FrameData &framedata)
 {
-    // m_impl->View(framedata);
+    m_impl->View(framedata);
 }
 
 void *Renderer::GetTexture(const framedata::FrameTexturePtr &texture)
