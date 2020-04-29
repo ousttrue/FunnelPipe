@@ -4,9 +4,10 @@ add_executable(${TARGET_NAME}
     ${EXTERNAL_DIR}/imgui/imgui_draw.cpp
     ${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
     ${EXTERNAL_DIR}/imgui/imgui_demo.cpp
-    Graphics/DX12/Renderer.cpp
-    Graphics/DX12/ImGuiDX12.cpp
-    Graphics/DX12/ImGuiDX12FrameResources.cpp
+    # Graphics/DX12/Renderer.cpp
+    # Graphics/DX12/ImGuiDX12.cpp
+    # Graphics/DX12/ImGuiDX12FrameResources.cpp
+    Graphics/DX11/Renderer.cpp
     Graphics/SceneMapper.cpp
     Gui/Gui.cpp
     Gui/ImGuiImplScreenState.cpp
@@ -41,4 +42,6 @@ target_link_libraries(${TARGET_NAME} PRIVATE
     #
     dxgi
     d3dcompiler
+    #
+    d3d11
     )

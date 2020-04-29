@@ -5,6 +5,7 @@
         "DXGI",
         "Gltf",
         "HRESULT",
+        "IDXGI",
         "TEXCOORD",
         "countof",
         "falg",
