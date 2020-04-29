@@ -2,6 +2,8 @@
 #include <wrl/client.h>
 #include <Gpu.h>
 #include <d3d11.h>
+#include <imgui.h>
+#include <imgui_impl_dx11.h>
 
 const uint32_t BACKBUFFER_COUNT = 2;
 
@@ -63,6 +65,11 @@ class Impl
 public:
     Impl() {}
 
+    ~Impl()
+    {
+        ImGui_ImplDX11_Shutdown();
+    }
+
     void Initialize(HWND hwnd)
     {
         auto adapter = GetHardwareAdapter();
@@ -84,6 +91,13 @@ public:
             adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
             featureLevels, _countof(featureLevels), D3D11_SDK_VERSION,
             &m_device, &featureLevel, &m_context));
+
+        // IMGUI
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO &io = ImGui::GetIO();
+        ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
+        ImGui_ImplDX11_NewFrame();
     }
 
     void BeginFrame(HWND hwnd, int width, int height)
@@ -126,6 +140,9 @@ public:
 
     void EndFrame()
     {
+        // draw
+        ImGui::Render();
+
         // get backbuffer and set rtv
         ComPtr<ID3D11Texture2D> backbuffer;
         Gpu::ThrowIfFailed(
@@ -148,6 +165,11 @@ public:
         };
         m_context->OMSetRenderTargets(_countof(rtvs), rtvs, nullptr);
 
+        // draw
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+        m_swapchain->Present(1, DXGI_SWAP_EFFECT_DISCARD);
+        
         // cleanup
         m_context->OMSetRenderTargets(0, nullptr, nullptr);
     }
