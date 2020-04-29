@@ -4,9 +4,9 @@ add_executable(${TARGET_NAME}
     ${EXTERNAL_DIR}/imgui/imgui_draw.cpp
     ${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
     ${EXTERNAL_DIR}/imgui/imgui_demo.cpp
-    Graphics/Renderer.cpp
-    Graphics/ImGuiDX12.cpp
-    Graphics/ImGuiDX12FrameResources.cpp
+    Graphics/DX12/Renderer.cpp
+    Graphics/DX12/ImGuiDX12.cpp
+    Graphics/DX12/ImGuiDX12FrameResources.cpp
     Graphics/SceneMapper.cpp
     Gui/Gui.cpp
     Gui/ImGuiImplScreenState.cpp
