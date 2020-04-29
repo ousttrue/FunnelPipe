@@ -55,6 +55,35 @@ FactoryFromDevice(const ComPtr<ID3D11Device> &device)
     return pIDXGIFactory;
 }
 
+class Material
+{
+public:
+    bool Initialize(const ComPtr<ID3D11Device> &device,
+                    const framedata::FrameMaterialPtr &material)
+    {
+        // create shader
+        return true;
+    }
+
+    void SetPipeline(const ComPtr<ID3D11DeviceContext> &context)
+    {
+        // setup state
+    }
+};
+
+class Mesh
+{
+    ComPtr<ID3D11Buffer> m_vertices;
+    ComPtr<ID3D11Buffer> m_indices;
+
+public:
+    void VertexBuffer(const ComPtr<ID3D11Buffer> &buffer)
+    {
+        m_vertices = buffer;
+    }
+    void IndexBuffer(const ComPtr<ID3D11Buffer> &buffer) { m_indices = buffer; }
+};
+
 class Impl
 {
     ComPtr<ID3D11Device> m_device;
@@ -65,6 +94,7 @@ class Impl
     ComPtr<ID3D11Texture2D> m_viewTexture;
     ComPtr<ID3D11ShaderResourceView> m_viewSrv;
     ComPtr<ID3D11Texture2D> m_viewDepth;
+    ComPtr<ID3D11Buffer> m_viewConstantBuffer;
 
 public:
     Impl() {}
@@ -219,6 +249,13 @@ public:
                 m_device->CreateTexture2D(&desc, nullptr, &m_viewDepth));
         }
 
+        // update buffers
+        UpdateViewConstantBuffer(framedata.ViewConstantBuffer);
+
+        //
+        // render target
+        //
+
         // device
         ComPtr<ID3D11RenderTargetView> rtv;
         Gpu::ThrowIfFailed(m_device->CreateRenderTargetView(m_viewTexture.Get(),
@@ -231,11 +268,247 @@ public:
         m_context->ClearRenderTargetView(rtv.Get(),
                                          framedata.ViewClearColor.data());
         m_context->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
         ID3D11RenderTargetView *rtvs[] = {
             rtv.Get(),
         };
         m_context->OMSetRenderTargets(_countof(rtvs), rtvs, dsv.Get());
+
+        //
+        // draw
+        //
+        for (size_t i = 0; i < framedata.Drawlist.size(); ++i)
+        {
+            DrawMesh((UINT)i, framedata.Drawlist[i]);
+        }
+    }
+
+private:
+    template <typename T> void UpdateViewConstantBuffer(const T &buffer)
+    {
+        if (!m_viewConstantBuffer)
+        {
+            D3D11_BUFFER_DESC desc = {
+                desc.ByteWidth = sizeof(T),
+                desc.Usage = D3D11_USAGE_DEFAULT,
+                desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+            };
+            Gpu::ThrowIfFailed(
+                m_device->CreateBuffer(&desc, nullptr, &m_viewConstantBuffer));
+        }
+        m_context->UpdateSubresource(m_viewConstantBuffer.Get(), 0, nullptr,
+                                     &buffer, 0, 0);
+    }
+
+    void DrawMesh(UINT i, const framedata::FrameData::DrawItem &info)
+    {
+        auto drawable = GetOrCreateMesh(info.Mesh);
+        if (!drawable)
+        {
+            return;
+        }
+
+        auto &submesh = info.Submesh;
+        auto material = GetOrCreateMaterial(submesh.material);
+
+        ID3D11ShaderResourceView *srvs[] = {
+            GetOrCreateTexture(submesh.material->ColorTexture).Get(),
+        };
+        m_context->PSSetShaderResources(0, _countof(srvs), srvs);
+
+        material->SetPipeline(m_context);
+        m_context->DrawIndexedInstanced(submesh.drawCount, 1,
+                                        submesh.drawOffset, 0, 0);
+    }
+
+    std::unordered_map<framedata::FrameMaterialPtr,
+                       std::shared_ptr<class Material>>
+        m_materialMap;
+    std::shared_ptr<Material> GetOrCreateMaterial(
+        const std::shared_ptr<framedata::FrameMaterial> &sceneMaterial)
+    {
+        auto found = m_materialMap.find(sceneMaterial);
+        if (found != m_materialMap.end())
+        {
+            return found->second;
+        }
+
+        auto gpuMaterial = std::make_shared<Material>();
+        if (!gpuMaterial->Initialize(m_device, sceneMaterial))
+        {
+            throw;
+        }
+
+        m_materialMap.insert(std::make_pair(sceneMaterial, gpuMaterial));
+        return gpuMaterial;
+    }
+
+    std::unordered_map<framedata::FrameMeshPtr, std::shared_ptr<class Mesh>>
+        m_meshMap;
+    std::shared_ptr<Mesh>
+    GetOrCreateMesh(const std::shared_ptr<framedata::FrameMesh> &sceneMesh)
+    {
+        auto found = m_meshMap.find(sceneMesh);
+        if (found != m_meshMap.end())
+        {
+            return found->second;
+        }
+
+        auto gpuMesh = std::make_shared<Mesh>();
+
+        // vertices
+        {
+            auto vertices = sceneMesh->vertices;
+            ComPtr<ID3D11Buffer> resource;
+            if (vertices->isDynamic)
+            {
+                D3D11_BUFFER_DESC desc{
+                    .ByteWidth = static_cast<UINT>(vertices->buffer.size()),
+                    .Usage = D3D11_USAGE_DYNAMIC,
+                    .BindFlags = D3D11_BIND_VERTEX_BUFFER,
+                    .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+                    .MiscFlags = 0,
+                    .StructureByteStride = 0,
+                };
+                Gpu::ThrowIfFailed(
+                    m_device->CreateBuffer(&desc, nullptr, &resource));
+            }
+            else
+            {
+                D3D11_BUFFER_DESC desc{
+                    .ByteWidth = static_cast<UINT>(vertices->buffer.size()),
+                    .Usage = D3D11_USAGE_DEFAULT,
+                    .BindFlags = D3D11_BIND_VERTEX_BUFFER,
+                    .CPUAccessFlags = 0,
+                    .MiscFlags = 0,
+                    .StructureByteStride = 0,
+                };
+                D3D11_SUBRESOURCE_DATA data{
+                    .pSysMem = vertices->buffer.data(),
+                    .SysMemPitch = vertices->stride,
+                    .SysMemSlicePitch =
+                        static_cast<UINT>(vertices->buffer.size()),
+                };
+                Gpu::ThrowIfFailed(
+                    m_device->CreateBuffer(&desc, &data, &resource));
+            }
+
+            gpuMesh->VertexBuffer(resource);
+        }
+
+        // indices
+        auto indices = sceneMesh->indices;
+        ComPtr<ID3D11Buffer> resource;
+        if (indices)
+        {
+            if (indices->isDynamic)
+            {
+                D3D11_BUFFER_DESC desc{
+                    .ByteWidth = static_cast<UINT>(indices->buffer.size()),
+                    .Usage = D3D11_USAGE_DYNAMIC,
+                    .BindFlags = D3D11_BIND_INDEX_BUFFER,
+                    .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+                    .MiscFlags = 0,
+                    .StructureByteStride = 0,
+                };
+                Gpu::ThrowIfFailed(
+                    m_device->CreateBuffer(&desc, nullptr, &resource));
+            }
+            else
+            {
+                D3D11_BUFFER_DESC desc{
+                    .ByteWidth = static_cast<UINT>(indices->buffer.size()),
+                    .Usage = D3D11_USAGE_DEFAULT,
+                    .BindFlags = D3D11_BIND_INDEX_BUFFER,
+                    .CPUAccessFlags = 0,
+                    .MiscFlags = 0,
+                    .StructureByteStride = 0,
+                };
+                D3D11_SUBRESOURCE_DATA data{
+                    .pSysMem = indices->buffer.data(),
+                    .SysMemPitch = indices->stride,
+                    .SysMemSlicePitch =
+                        static_cast<UINT>(indices->buffer.size()),
+                };
+                Gpu::ThrowIfFailed(
+                    m_device->CreateBuffer(&desc, &data, &resource));
+            }
+            gpuMesh->IndexBuffer(resource);
+        }
+
+        m_meshMap.insert(std::make_pair(sceneMesh, gpuMesh));
+        return gpuMesh;
+    }
+
+    std::unordered_map<framedata::FrameTexturePtr,
+                       ComPtr<ID3D11ShaderResourceView>>
+        m_textureMap;
+    ComPtr<ID3D11ShaderResourceView>
+    GetOrCreateTexture(const framedata::FrameTexturePtr &texture)
+    {
+        if (!texture)
+        {
+            return nullptr;
+        }
+
+        auto found = m_textureMap.find(texture);
+        if (found != m_textureMap.end())
+        {
+            return found->second;
+        }
+
+        // create texture
+        if (texture->Images.size() == 6)
+        {
+            throw std::runtime_error("not implemented");
+            // cube
+            // auto image = texture->Images.front();
+            // auto resource = ResourceItem::CreateStaticCubemap(
+            //     device, image->width, image->height,
+            //     Utf8ToUnicode(image->name).c_str());
+            // gpuTexture->ImageBuffer(resource);
+            // gpuTexture->IsCubeMap = true;
+            // TODO
+            // uploader->EnqueueUpload(resource, image->buffer.data(),
+            // (UINT)image->buffer.size(), image->width * 4);
+        }
+        else if (texture->Images.size() == 1)
+        {
+            ComPtr<ID3D11Texture2D> gpuTexture;
+            // 2d
+            auto image = texture->Images.front();
+            D3D11_TEXTURE2D_DESC desc{
+                .Width = static_cast<UINT>(image->width),
+                .Height = static_cast<UINT>(image->height),
+                .MipLevels = 1,
+                .ArraySize = 1,
+                .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+                .SampleDesc =
+                    {
+                        1,
+                        0,
+                    },
+                .Usage = D3D11_USAGE_DEFAULT,
+                .BindFlags = D3D11_BIND_SHADER_RESOURCE,
+                .CPUAccessFlags = 0,
+                .MiscFlags = 0,
+            };
+            D3D11_SUBRESOURCE_DATA data{
+                .pSysMem = image->buffer.data(),
+                .SysMemPitch = static_cast<UINT>(image->width * 4),
+                .SysMemSlicePitch = image->size(),
+            };
+            Gpu::ThrowIfFailed(
+                m_device->CreateTexture2D(&desc, &data, &gpuTexture));
+            ComPtr<ID3D11ShaderResourceView> srv;
+            Gpu::ThrowIfFailed(m_device->CreateShaderResourceView(
+                gpuTexture.Get(), nullptr, &srv));
+            m_textureMap.insert(std::make_pair(texture, srv));
+            return srv;
+        }
+        else
+        {
+            throw;
+        }
     }
 };
 
