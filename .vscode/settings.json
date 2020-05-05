@@ -1,5 +1,4 @@
 {
-    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
     "C_Cpp.clang_format_style": "file",
     "cSpell.words": [
         "DXGI",
@@ -18,6 +17,8 @@
     "files.associations": {
         "mutex": "cpp",
         "memory": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "vector": "cpp",
+        "span": "cpp"
     },
 }

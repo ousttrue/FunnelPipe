@@ -57,17 +57,116 @@ FactoryFromDevice(const ComPtr<ID3D11Device> &device)
 
 class Material
 {
+    ComPtr<ID3D11VertexShader> m_vs;
+    ComPtr<ID3D11PixelShader> m_ps;
+    ComPtr<ID3D11InputLayout> m_layout;
+    ComPtr<ID3D11DepthStencilState> m_dss;
+    ComPtr<ID3D11RasterizerState> m_rs;
+    float m_blendFactor[4] = {1, 1, 1, 1};
+    UINT m_sampleMask = -1;
+    ComPtr<ID3D11BlendState> m_bs;
+
 public:
     bool Initialize(const ComPtr<ID3D11Device> &device,
                     const framedata::FrameMaterialPtr &material)
     {
-        // create shader
+        {
+            auto [bytecode, size] = material->Shader->VS->ByteCode();
+            if (FAILED(
+                    device->CreateVertexShader(bytecode, size, nullptr, &m_vs)))
+            {
+                return false;
+            }
+            auto layout = material->Shader->VS->InputLayout();
+            if (FAILED(device->CreateInputLayout(
+                    (const D3D11_INPUT_ELEMENT_DESC *)layout.data(),
+                    (UINT)layout.size(), bytecode, size, &m_layout)))
+            {
+                return false;
+            }
+        }
+        {
+            auto [bytecode, size] = material->Shader->PS->ByteCode();
+            if (FAILED(
+                    device->CreatePixelShader(bytecode, size, nullptr, &m_ps)))
+            {
+                return false;
+            }
+        }
+
+        {
+            D3D11_DEPTH_STENCIL_DESC desc{
+                .DepthEnable = TRUE,
+                .DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO,
+                .DepthFunc = D3D11_COMPARISON_LESS_EQUAL,
+                .StencilEnable = FALSE,
+            };
+            if (FAILED(device->CreateDepthStencilState(&desc, &m_dss)))
+            {
+                return false;
+            }
+        }
+
+        {
+            D3D11_RASTERIZER_DESC desc{
+                .FillMode = D3D11_FILL_SOLID,
+                .CullMode = D3D11_CULL_BACK,
+                .FrontCounterClockwise = TRUE,
+                // .DepthBias = 0,
+                // .DepthBiasClamp = 0,
+                // .SlopeScaledDepthBias = 0,
+                // .DepthClipEnable = FALSE,
+                // .ScissorEnable = TRUE,
+                // .MultisampleEnable = FALSE,
+                // .AntialiasedLineEnable = FALSE,
+            };
+            if (FAILED(device->CreateRasterizerState(&desc, &m_rs)))
+            {
+                return false;
+            }
+        }
+
+        {
+            D3D11_BLEND_DESC desc{
+                .AlphaToCoverageEnable = FALSE,
+                .IndependentBlendEnable = FALSE,
+                .RenderTarget =
+                    {
+                        {
+                            .BlendEnable = FALSE,
+                            // D3D11_BLEND SrcBlend;
+                            // D3D11_BLEND DestBlend;
+                            // D3D11_BLEND_OP BlendOp;
+                            // D3D11_BLEND SrcBlendAlpha;
+                            // D3D11_BLEND DestBlendAlpha;
+                            // D3D11_BLEND_OP BlendOpAlpha;
+                            // UINT8 RenderTargetWriteMask;
+                        },
+                    },
+            };
+            if (FAILED(device->CreateBlendState(&desc, &m_bs)))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
     void SetPipeline(const ComPtr<ID3D11DeviceContext> &context)
     {
-        // setup state
+        // VS
+        context->VSSetShader(m_vs.Get(), NULL, 0);
+
+        // PS
+        context->PSSetShader(m_ps.Get(), NULL, 0);
+
+        // IA InputLayout
+        context->IASetInputLayout(m_layout.Get());
+
+        context->RSSetState(m_rs.Get());
+        // context->OMSetBlendState(nullptr, m_blendFactor, m_sampleMask);
+        // context->OMSetDepthStencilState(m_dss.Get(), 0);
     }
 };
 
@@ -75,13 +174,53 @@ class Mesh
 {
     ComPtr<ID3D11Buffer> m_vertices;
     ComPtr<ID3D11Buffer> m_indices;
+    UINT m_stride = 0;
+    DXGI_FORMAT m_indexFormat = DXGI_FORMAT_UNKNOWN;
 
 public:
-    void VertexBuffer(const ComPtr<ID3D11Buffer> &buffer)
+    void VertexBuffer(const ComPtr<ID3D11Buffer> &buffer, UINT stride)
     {
         m_vertices = buffer;
+        m_stride = stride;
     }
-    void IndexBuffer(const ComPtr<ID3D11Buffer> &buffer) { m_indices = buffer; }
+
+    void IndexBuffer(const ComPtr<ID3D11Buffer> &buffer, UINT stride)
+    {
+        m_indices = buffer;
+        switch (stride)
+        {
+        case 4:
+            m_indexFormat = DXGI_FORMAT_R32_UINT;
+            break;
+
+        case 2:
+            m_indexFormat = DXGI_FORMAT_R16_UINT;
+            break;
+
+        default:
+            throw std::runtime_error("unknown index format");
+        }
+    }
+
+    void Draw(const ComPtr<ID3D11DeviceContext> &context, UINT drawCount,
+              UINT drawOffset)
+    {
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        ID3D11Buffer *buffers[] = {
+            m_vertices.Get(),
+        };
+        UINT strides[] = {
+            m_stride,
+        };
+        UINT offsets[] = {
+            0,
+        };
+        context->IASetVertexBuffers(0, _countof(buffers), buffers, strides,
+                                    offsets);
+        context->IASetIndexBuffer(m_indices.Get(), m_indexFormat, 0);
+        // context->DrawIndexedInstanced(drawCount, 1, drawOffset, 0, 0);
+        context->DrawIndexed(drawCount, drawOffset, 0);
+    }
 };
 
 class Impl
@@ -95,6 +234,7 @@ class Impl
     ComPtr<ID3D11ShaderResourceView> m_viewSrv;
     ComPtr<ID3D11Texture2D> m_viewDepth;
     ComPtr<ID3D11Buffer> m_viewConstantBuffer;
+    std::vector<ComPtr<ID3D11Buffer>> m_drawConstantBuffers;
 
 public:
     Impl() {}
@@ -251,27 +391,50 @@ public:
 
         // update buffers
         UpdateViewConstantBuffer(framedata.ViewConstantBuffer);
+        for (size_t i = 0; i < framedata.Drawlist.size(); ++i)
+        {
+            UpdateDrawConstantBuffer((UINT)i, framedata);
+        }
 
         //
         // render target
         //
+        {
+            ComPtr<ID3D11RenderTargetView> rtv;
+            Gpu::ThrowIfFailed(m_device->CreateRenderTargetView(
+                m_viewTexture.Get(), nullptr, &rtv));
+            ComPtr<ID3D11DepthStencilView> dsv;
+            Gpu::ThrowIfFailed(m_device->CreateDepthStencilView(
+                m_viewDepth.Get(), nullptr, &dsv));
 
-        // device
-        ComPtr<ID3D11RenderTargetView> rtv;
-        Gpu::ThrowIfFailed(m_device->CreateRenderTargetView(m_viewTexture.Get(),
-                                                            nullptr, &rtv));
-        ComPtr<ID3D11DepthStencilView> dsv;
-        Gpu::ThrowIfFailed(
-            m_device->CreateDepthStencilView(m_viewDepth.Get(), nullptr, &dsv));
-
-        // context
-        m_context->ClearRenderTargetView(rtv.Get(),
-                                         framedata.ViewClearColor.data());
-        m_context->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-        ID3D11RenderTargetView *rtvs[] = {
-            rtv.Get(),
-        };
-        m_context->OMSetRenderTargets(_countof(rtvs), rtvs, dsv.Get());
+            // context
+            m_context->ClearRenderTargetView(rtv.Get(),
+                                             framedata.ViewClearColor.data());
+            m_context->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH, 1.0f,
+                                             0);
+            ID3D11RenderTargetView *rtvs[] = {
+                rtv.Get(),
+            };
+            m_context->OMSetRenderTargets(_countof(rtvs), rtvs, dsv.Get());
+            D3D11_VIEWPORT vp[]{
+                {
+                    .TopLeftX = 0,
+                    .TopLeftY = 0,
+                    .Width = static_cast<float>(framedata.ViewWidth()),
+                    .Height = static_cast<float>(framedata.ViewHeight()),
+                    .MinDepth = 0.0f,
+                    .MaxDepth = 1.0f,
+                },
+            };
+            m_context->RSSetViewports(_countof(vp), vp);
+            D3D11_RECT scissor[]{{
+                .left = 0,
+                .top = 0,
+                .right = static_cast<LONG>(framedata.ViewWidth()),
+                .bottom = static_cast<LONG>(framedata.ViewHeight()),
+            }};
+            m_context->RSSetScissorRects(_countof(scissor), scissor);
+        }
 
         //
         // draw
@@ -299,6 +462,25 @@ private:
                                      &buffer, 0, 0);
     }
 
+    static const int DRAW_CB_SIZE = 256;
+    void UpdateDrawConstantBuffer(UINT i, const framedata::FrameData &data)
+    {
+        if (i >= m_drawConstantBuffers.size())
+        {
+            m_drawConstantBuffers.resize(i + 1);
+            D3D11_BUFFER_DESC desc = {
+                desc.ByteWidth = DRAW_CB_SIZE,
+                desc.Usage = D3D11_USAGE_DEFAULT,
+                desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+            };
+            Gpu::ThrowIfFailed(m_device->CreateBuffer(
+                &desc, nullptr, &m_drawConstantBuffers[i]));
+        }
+        auto range = data.CBRanges[i];
+        m_context->UpdateSubresource(m_drawConstantBuffers[i].Get(), 0, nullptr,
+                                     data.CB.data() + range.first, 0, 0);
+    }
+
     void DrawMesh(UINT i, const framedata::FrameData::DrawItem &info)
     {
         auto drawable = GetOrCreateMesh(info.Mesh);
@@ -308,16 +490,27 @@ private:
         }
 
         auto &submesh = info.Submesh;
+        if (submesh.drawCount == 0)
+        {
+            return;
+        }
+
         auto material = GetOrCreateMaterial(submesh.material);
+        material->SetPipeline(m_context);
 
         ID3D11ShaderResourceView *srvs[] = {
             GetOrCreateTexture(submesh.material->ColorTexture).Get(),
         };
         m_context->PSSetShaderResources(0, _countof(srvs), srvs);
 
-        material->SetPipeline(m_context);
-        m_context->DrawIndexedInstanced(submesh.drawCount, 1,
-                                        submesh.drawOffset, 0, 0);
+        ID3D11Buffer *constants[] = {
+            m_viewConstantBuffer.Get(),
+            m_drawConstantBuffers[i].Get(),
+        };
+        m_context->VSSetConstantBuffers(0, _countof(constants), constants);
+        m_context->PSSetConstantBuffers(0, _countof(constants), constants);
+
+        drawable->Draw(m_context, submesh.drawCount, submesh.drawOffset);
     }
 
     std::unordered_map<framedata::FrameMaterialPtr,
@@ -392,7 +585,7 @@ private:
                     m_device->CreateBuffer(&desc, &data, &resource));
             }
 
-            gpuMesh->VertexBuffer(resource);
+            gpuMesh->VertexBuffer(resource, vertices->stride);
         }
 
         // indices
@@ -432,7 +625,7 @@ private:
                 Gpu::ThrowIfFailed(
                     m_device->CreateBuffer(&desc, &data, &resource));
             }
-            gpuMesh->IndexBuffer(resource);
+            gpuMesh->IndexBuffer(resource, indices->stride);
         }
 
         m_meshMap.insert(std::make_pair(sceneMesh, gpuMesh));

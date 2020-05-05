@@ -2,6 +2,7 @@
 #include <plog/log.h>
 #include "DirectoryWatcher.h"
 #include "ToUnicode.h"
+#include <iostream>
 
 namespace framedata
 {
@@ -47,12 +48,12 @@ bool VertexShader::InputLayoutFromReflection(const ComPtr<ID3D12ShaderReflection
         pReflection->GetInputParameterDesc(i, &lParamDesc);
 
         m_semantics.push_back(lParamDesc.SemanticName);
-        D3D12_INPUT_ELEMENT_DESC lElementDesc{
+        InputLayoutElement lElementDesc{
             .SemanticName = m_semantics.back().c_str(),
             .SemanticIndex = lParamDesc.SemanticIndex,
             .InputSlot = 0,
             .AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT,
-            .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+            .InputSlotClass = INPUT_CLASSIFICATION_PER_VERTEX_DATA,
             .InstanceDataStepRate = 0,
         };
 
@@ -188,7 +189,9 @@ bool VertexShader::Compile(const std::string &source, const std::string &entrypo
     {
         if (error)
         {
-            LOGW << ToString(error);
+            auto msg = ToString(error);
+            std::cerr << msg << std::endl;
+            LOGW << msg;
         }
         else
         {

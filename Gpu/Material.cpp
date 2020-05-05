@@ -14,8 +14,7 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
         return false;
     }
 
-    int inputLayoutCount;
-    auto inputLayout = vs->inputLayout(&inputLayoutCount);
+    auto inputLayout = vs->InputLayout();
 
     m_rootSignature = rootSignature;
 
@@ -35,20 +34,21 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
     D3D12_BLEND_DESC blend{
         .AlphaToCoverageEnable = FALSE,
         .IndependentBlendEnable = FALSE,
-        .RenderTarget = {
+        .RenderTarget =
             {
-                .BlendEnable = FALSE,
-                .LogicOpEnable = FALSE,
-                .SrcBlend = D3D12_BLEND_ONE,
-                .DestBlend = D3D12_BLEND_ZERO,
-                .BlendOp = D3D12_BLEND_OP_ADD,
-                .SrcBlendAlpha = D3D12_BLEND_ONE,
-                .DestBlendAlpha = D3D12_BLEND_ZERO,
-                .BlendOpAlpha = D3D12_BLEND_OP_ADD,
-                .LogicOp = D3D12_LOGIC_OP_NOOP,
-                .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+                {
+                    .BlendEnable = FALSE,
+                    .LogicOpEnable = FALSE,
+                    .SrcBlend = D3D12_BLEND_ONE,
+                    .DestBlend = D3D12_BLEND_ZERO,
+                    .BlendOp = D3D12_BLEND_OP_ADD,
+                    .SrcBlendAlpha = D3D12_BLEND_ONE,
+                    .DestBlendAlpha = D3D12_BLEND_ZERO,
+                    .BlendOpAlpha = D3D12_BLEND_OP_ADD,
+                    .LogicOp = D3D12_LOGIC_OP_NOOP,
+                    .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+                },
             },
-        },
     };
 
     D3D12_DEPTH_STENCIL_DESC depth{
@@ -58,13 +58,15 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
         .StencilEnable = FALSE,
         .StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK,
         .StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK,
-        .FrontFace = {
-            .StencilFailOp = D3D12_STENCIL_OP_KEEP,
-            .StencilDepthFailOp = D3D12_STENCIL_OP_KEEP,
-            .StencilPassOp = D3D12_STENCIL_OP_KEEP,
-            .StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS,
-        },
-        .BackFace = {D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS},
+        .FrontFace =
+            {
+                .StencilFailOp = D3D12_STENCIL_OP_KEEP,
+                .StencilDepthFailOp = D3D12_STENCIL_OP_KEEP,
+                .StencilPassOp = D3D12_STENCIL_OP_KEEP,
+                .StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS,
+            },
+        .BackFace = {D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP,
+                     D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS},
     };
 
     switch (material->AlphaMode)
@@ -97,28 +99,32 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
     }
 
     // Describe and create the graphics pipeline state object (PSO).
+    auto [vsBytecode, vsSize] = vs->ByteCode();
+    auto [psBytecode, psSize] = material->Shader->PS->ByteCode();
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {
         .pRootSignature = rootSignature.Get(),
-        .VS = vs->ByteCode(),
-        .PS = material->Shader->PS->ByteCode(),
+        .VS = {vsBytecode, vsSize},
+        .PS = {psBytecode, psSize},
         .BlendState = blend,
         .SampleMask = UINT_MAX,
-        .RasterizerState = {
-            .FillMode = D3D12_FILL_MODE_SOLID,
-            .CullMode = D3D12_CULL_MODE_BACK,
-            // .CullMode = D3D12_CULL_MODE_NONE,
-            .FrontCounterClockwise = TRUE,
-            .DepthBias = D3D12_DEFAULT_DEPTH_BIAS,
-            .DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
-            .SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-            .DepthClipEnable = TRUE,
-            .MultisampleEnable = FALSE,
-            .AntialiasedLineEnable = FALSE,
-            .ForcedSampleCount = 0,
-            .ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF,
-        },
+        .RasterizerState =
+            {
+                .FillMode = D3D12_FILL_MODE_SOLID,
+                .CullMode = D3D12_CULL_MODE_BACK,
+                // .CullMode = D3D12_CULL_MODE_NONE,
+                .FrontCounterClockwise = TRUE,
+                .DepthBias = D3D12_DEFAULT_DEPTH_BIAS,
+                .DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
+                .SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
+                .DepthClipEnable = TRUE,
+                .MultisampleEnable = FALSE,
+                .AntialiasedLineEnable = FALSE,
+                .ForcedSampleCount = 0,
+                .ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF,
+            },
         .DepthStencilState = depth,
-        .InputLayout = {inputLayout, (UINT)inputLayoutCount},
+        .InputLayout = {(const D3D12_INPUT_ELEMENT_DESC *)inputLayout.data(),
+                        (UINT)inputLayout.size()},
         .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
         .NumRenderTargets = 1,
         .RTVFormats = {DXGI_FORMAT_R8G8B8A8_UNORM},
@@ -128,7 +134,8 @@ bool Material::Initialize(const ComPtr<ID3D12Device> &device,
         },
     };
 
-    ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
+    ThrowIfFailed(device->CreateGraphicsPipelineState(
+        &psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
     return true;
 } // namespace Gpu::dx12
