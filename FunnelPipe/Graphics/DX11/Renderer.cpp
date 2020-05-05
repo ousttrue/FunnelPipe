@@ -97,7 +97,7 @@ public:
         {
             D3D11_DEPTH_STENCIL_DESC desc{
                 .DepthEnable = TRUE,
-                .DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO,
+                .DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL,
                 .DepthFunc = D3D11_COMPARISON_LESS_EQUAL,
                 .StencilEnable = FALSE,
             };
@@ -165,8 +165,8 @@ public:
         context->IASetInputLayout(m_layout.Get());
 
         context->RSSetState(m_rs.Get());
-        // context->OMSetBlendState(nullptr, m_blendFactor, m_sampleMask);
-        // context->OMSetDepthStencilState(m_dss.Get(), 0);
+        context->OMSetBlendState(nullptr, m_blendFactor, m_sampleMask);
+        context->OMSetDepthStencilState(m_dss.Get(), 0);
     }
 };
 
@@ -183,6 +183,7 @@ public:
         m_vertices = buffer;
         m_stride = stride;
     }
+    ComPtr<ID3D11Buffer> VertexBuffer() const { return m_vertices; }
 
     void IndexBuffer(const ComPtr<ID3D11Buffer> &buffer, UINT stride)
     {
@@ -201,6 +202,7 @@ public:
             throw std::runtime_error("unknown index format");
         }
     }
+    ComPtr<ID3D11Buffer> IndexBuffer() const { return m_indices; }
 
     void Draw(const ComPtr<ID3D11DeviceContext> &context, UINT drawCount,
               UINT drawOffset)
@@ -356,7 +358,10 @@ public:
             if (framedata.ViewWidth() != desc.Width ||
                 framedata.ViewHeight() != desc.Height)
             {
-                m_viewTexture.Reset();
+                if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+                {
+                    m_viewTexture.Reset();
+                }
             }
         }
         if (!m_viewTexture)
@@ -394,6 +399,37 @@ public:
         for (size_t i = 0; i < framedata.Drawlist.size(); ++i)
         {
             UpdateDrawConstantBuffer((UINT)i, framedata);
+        }
+        // skinning
+        for (size_t i = 0; i < framedata.Meshlist.size(); ++i)
+        {
+            auto &item = framedata.Meshlist[i];
+            auto mesh = item.Mesh;
+            auto drawable = GetOrCreateMesh(item.Mesh);
+            if (drawable)
+            {
+                if (item.Skin.Ptr)
+                {
+                    m_context->UpdateSubresource(
+                        drawable->VertexBuffer().Get(), 0, nullptr,
+                        item.Skin.Ptr, item.Skin.Stride, item.Skin.Size);
+                }
+                else if (item.Vertices.Ptr)
+                {
+                    m_context->UpdateSubresource(drawable->VertexBuffer().Get(),
+                                                 0, nullptr, item.Vertices.Ptr,
+                                                 item.Vertices.Stride,
+                                                 item.Vertices.Size);
+                }
+
+                if (item.Indices.Ptr)
+                {
+                    m_context->UpdateSubresource(drawable->IndexBuffer().Get(),
+                                                 0, nullptr, item.Indices.Ptr,
+                                                 item.Indices.Stride,
+                                                 item.Indices.Size);
+                }
+            }
         }
 
         //
@@ -498,10 +534,15 @@ private:
         auto material = GetOrCreateMaterial(submesh.material);
         material->SetPipeline(m_context);
 
+        auto texture = GetOrCreateTexture(submesh.material->ColorTexture);
         ID3D11ShaderResourceView *srvs[] = {
-            GetOrCreateTexture(submesh.material->ColorTexture).Get(),
+            texture.SRV.Get(),
+        };
+        ID3D11SamplerState *samplers[] = {
+            texture.Sampler.Get(),
         };
         m_context->PSSetShaderResources(0, _countof(srvs), srvs);
+        m_context->PSSetSamplers(0, _countof(samplers), samplers);
 
         ID3D11Buffer *constants[] = {
             m_viewConstantBuffer.Get(),
@@ -556,9 +597,11 @@ private:
             {
                 D3D11_BUFFER_DESC desc{
                     .ByteWidth = static_cast<UINT>(vertices->buffer.size()),
-                    .Usage = D3D11_USAGE_DYNAMIC,
+                    // .Usage = D3D11_USAGE_DYNAMIC,
+                    .Usage = D3D11_USAGE_DEFAULT,
                     .BindFlags = D3D11_BIND_VERTEX_BUFFER,
-                    .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+                    // .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+                    .CPUAccessFlags = 0,
                     .MiscFlags = 0,
                     .StructureByteStride = 0,
                 };
@@ -597,9 +640,11 @@ private:
             {
                 D3D11_BUFFER_DESC desc{
                     .ByteWidth = static_cast<UINT>(indices->buffer.size()),
-                    .Usage = D3D11_USAGE_DYNAMIC,
+                    // .Usage = D3D11_USAGE_DYNAMIC,
+                    .Usage = D3D11_USAGE_DEFAULT,
                     .BindFlags = D3D11_BIND_INDEX_BUFFER,
-                    .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+                    // .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+                    .CPUAccessFlags = 0,
                     .MiscFlags = 0,
                     .StructureByteStride = 0,
                 };
@@ -632,15 +677,18 @@ private:
         return gpuMesh;
     }
 
-    std::unordered_map<framedata::FrameTexturePtr,
-                       ComPtr<ID3D11ShaderResourceView>>
-        m_textureMap;
-    ComPtr<ID3D11ShaderResourceView>
-    GetOrCreateTexture(const framedata::FrameTexturePtr &texture)
+public:
+    struct Texture
+    {
+        ComPtr<ID3D11ShaderResourceView> SRV;
+        ComPtr<ID3D11SamplerState> Sampler;
+    };
+    std::unordered_map<framedata::FrameTexturePtr, Texture> m_textureMap;
+    Texture GetOrCreateTexture(const framedata::FrameTexturePtr &texture)
     {
         if (!texture)
         {
-            return nullptr;
+            return {};
         }
 
         auto found = m_textureMap.find(texture);
@@ -695,8 +743,28 @@ private:
             ComPtr<ID3D11ShaderResourceView> srv;
             Gpu::ThrowIfFailed(m_device->CreateShaderResourceView(
                 gpuTexture.Get(), nullptr, &srv));
-            m_textureMap.insert(std::make_pair(texture, srv));
-            return srv;
+
+            ComPtr<ID3D11SamplerState> sampler;
+            {
+                D3D11_SAMPLER_DESC desc{
+                    .Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+                    .AddressU = D3D11_TEXTURE_ADDRESS_WRAP,
+                    .AddressV = D3D11_TEXTURE_ADDRESS_WRAP,
+                    .AddressW = D3D11_TEXTURE_ADDRESS_WRAP,
+                    // .MipLODBias = 0,
+                    // .MaxAnisotropy = 1,
+                    // .ComparisonFunc =
+                    // FLOAT BorderColor[ 4 ];
+                    // FLOAT MinLOD;
+                    // FLOAT MaxLOD;
+                };
+                Gpu::ThrowIfFailed(
+                    m_device->CreateSamplerState(&desc, &sampler));
+            }
+
+            Texture item{srv, sampler};
+            m_textureMap.insert(std::make_pair(texture, item));
+            return item;
         }
         else
         {
@@ -733,11 +801,5 @@ void Renderer::View(const framedata::FrameData &framedata)
 
 void *Renderer::GetTexture(const framedata::FrameTexturePtr &texture)
 {
-    return nullptr;
-    // auto p = m_impl->GetTexture(texture).Get();
-    // if (p)
-    // {
-    //     p->AddRef();
-    // }
-    // return p;
+    return m_impl->GetOrCreateTexture(texture).SRV.Get();
 }
