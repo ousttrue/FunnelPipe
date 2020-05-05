@@ -183,11 +183,26 @@ public:
         m_vertices = buffer;
         m_stride = stride;
     }
-    ComPtr<ID3D11Buffer> VertexBuffer() const { return m_vertices; }
+
+    void UpdateVertexBuffer(ComPtr<ID3D11DeviceContext> &context, uint8_t *p,
+                            UINT size, UINT stride)
+    {
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        Gpu::ThrowIfFailed(context->Map(m_vertices.Get(), 0,
+                                        D3D11_MAP_WRITE_DISCARD, 0, &mapped));
+        memcpy(mapped.pData, p, size);
+        context->Unmap(m_vertices.Get(), 0);
+        m_stride = stride;
+    }
 
     void IndexBuffer(const ComPtr<ID3D11Buffer> &buffer, UINT stride)
     {
         m_indices = buffer;
+        IndexStride(stride);
+    }
+
+    void IndexStride(UINT stride)
+    {
         switch (stride)
         {
         case 4:
@@ -202,7 +217,17 @@ public:
             throw std::runtime_error("unknown index format");
         }
     }
-    ComPtr<ID3D11Buffer> IndexBuffer() const { return m_indices; }
+
+    void UpdateIndexBuffer(ComPtr<ID3D11DeviceContext> &context, uint8_t *p,
+                           UINT size, UINT stride)
+    {
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        Gpu::ThrowIfFailed(context->Map(m_indices.Get(), 0,
+                                        D3D11_MAP_WRITE_DISCARD, 0, &mapped));
+        memcpy(mapped.pData, p, size);
+        context->Unmap(m_indices.Get(), 0);
+        IndexStride(stride);
+    }
 
     void Draw(const ComPtr<ID3D11DeviceContext> &context, UINT drawCount,
               UINT drawOffset)
@@ -410,24 +435,22 @@ public:
             {
                 if (item.Skin.Ptr)
                 {
-                    m_context->UpdateSubresource(
-                        drawable->VertexBuffer().Get(), 0, nullptr,
-                        item.Skin.Ptr, item.Skin.Stride, item.Skin.Size);
+                    drawable->UpdateVertexBuffer(m_context, item.Skin.Ptr,
+                                                 item.Skin.Size,
+                                                 item.Skin.Stride);
                 }
                 else if (item.Vertices.Ptr)
                 {
-                    m_context->UpdateSubresource(drawable->VertexBuffer().Get(),
-                                                 0, nullptr, item.Vertices.Ptr,
-                                                 item.Vertices.Stride,
-                                                 item.Vertices.Size);
+                    drawable->UpdateVertexBuffer(m_context, item.Vertices.Ptr,
+                                                 item.Vertices.Size,
+                                                 item.Vertices.Stride);
                 }
 
                 if (item.Indices.Ptr)
                 {
-                    m_context->UpdateSubresource(drawable->IndexBuffer().Get(),
-                                                 0, nullptr, item.Indices.Ptr,
-                                                 item.Indices.Stride,
-                                                 item.Indices.Size);
+                    drawable->UpdateIndexBuffer(m_context, item.Indices.Ptr,
+                                                item.Indices.Size,
+                                                item.Indices.Stride);
                 }
             }
         }
@@ -597,11 +620,9 @@ private:
             {
                 D3D11_BUFFER_DESC desc{
                     .ByteWidth = static_cast<UINT>(vertices->buffer.size()),
-                    // .Usage = D3D11_USAGE_DYNAMIC,
-                    .Usage = D3D11_USAGE_DEFAULT,
+                    .Usage = D3D11_USAGE_DYNAMIC,
                     .BindFlags = D3D11_BIND_VERTEX_BUFFER,
-                    // .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-                    .CPUAccessFlags = 0,
+                    .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
                     .MiscFlags = 0,
                     .StructureByteStride = 0,
                 };
@@ -640,11 +661,9 @@ private:
             {
                 D3D11_BUFFER_DESC desc{
                     .ByteWidth = static_cast<UINT>(indices->buffer.size()),
-                    // .Usage = D3D11_USAGE_DYNAMIC,
-                    .Usage = D3D11_USAGE_DEFAULT,
+                    .Usage = D3D11_USAGE_DYNAMIC,
                     .BindFlags = D3D11_BIND_INDEX_BUFFER,
-                    // .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-                    .CPUAccessFlags = 0,
+                    .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
                     .MiscFlags = 0,
                     .StructureByteStride = 0,
                 };

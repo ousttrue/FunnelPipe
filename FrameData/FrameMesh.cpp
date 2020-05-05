@@ -21,12 +21,12 @@ std::shared_ptr<FrameMesh> FrameMesh::CreateDynamic(
     mesh->vertices = VertexBuffer::CreateDynamic(
         Semantics::Vertex,
         vertexStride,
-        vertexReserve);
+        vertexStride * vertexReserve);
 
     mesh->indices = VertexBuffer::CreateDynamic(
         Semantics::Index,
         indexStride,
-        indexReserve);
+        indexStride * indexReserve);
 
     return mesh;
 }

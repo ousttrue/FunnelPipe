@@ -45,12 +45,12 @@ public:
         assert(!m_device);
 
         ComPtr<IDXGIFactory4> factory;
-        Gpu::dx12::ThrowIfFailed(CreateDXGIFactory2(
+        Gpu::ThrowIfFailed(CreateDXGIFactory2(
             Gpu::dx12::GetDxgiFactoryFlags(), IID_PPV_ARGS(&factory)));
 
         ComPtr<IDXGIAdapter1> hardwareAdapter =
             Gpu::dx12::GetHardwareAdapter(factory.Get());
-        Gpu::dx12::ThrowIfFailed(D3D12CreateDevice(hardwareAdapter.Get(),
+        Gpu::ThrowIfFailed(D3D12CreateDevice(hardwareAdapter.Get(),
                                                    D3D_FEATURE_LEVEL_11_0,
                                                    IID_PPV_ARGS(&m_device)));
 
