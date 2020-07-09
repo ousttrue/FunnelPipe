@@ -9,6 +9,7 @@
 
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
+#include <plog/Init.h>
 #include "LogConfig.h"
 
 class ApplicationImpl
