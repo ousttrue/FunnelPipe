@@ -8,7 +8,7 @@
             "name": "FunnelPipe",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/FunnelPipe/Debug/FunnelPipe.exe",
+            "program": "${workspaceFolder}/build/Debug/bin/FunnelPipe.exe",
             "args": [
                 "${workspaceFolder}\\shaders",
             ],

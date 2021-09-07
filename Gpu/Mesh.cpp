@@ -62,8 +62,10 @@ std::pair<bool, std::function<void()>> Mesh::IsDrawable(const ComPtr<ID3D12Graph
     }
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    commandList->IASetVertexBuffers(0, 1, &m_vertexBuffer->VertexBufferView());
-    commandList->IASetIndexBuffer(&m_indexBuffer->IndexBufferView());
+    auto vb = m_vertexBuffer->VertexBufferView();
+    commandList->IASetVertexBuffers(0, 1, &vb);
+    auto ib = m_indexBuffer->IndexBufferView();
+    commandList->IASetIndexBuffer(&ib);
 
     return {true, std::function<void()>()};
 }

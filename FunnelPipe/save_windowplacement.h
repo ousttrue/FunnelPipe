@@ -144,8 +144,8 @@ inline void Save(HWND hWnd, const wchar_t *config_file)
     if (GetWindowPlacement(hWnd, &config.window))
     {
         nlohmann::json config_json = config;
-        std::ofstream config_file(config_file);
-        config_file << config_json.dump(4);
+        std::ofstream ofs(config_file);
+        ofs << config_json.dump(4);
     }
 }
 } // namespace windowplacement
