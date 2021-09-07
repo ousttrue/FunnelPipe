@@ -4,6 +4,7 @@
 #include "save_windowplacement.h"
 #include <filesystem>
 #include <iostream>
+#include <ToUnicode.h>
 
 const auto CLASS_NAME = L"FunnelPipeClass";
 const auto WINDOW_NAME = L"FunnelPipe";
@@ -24,7 +25,7 @@ int main(int argc, char **argv)
     auto windowconf = std::filesystem::current_path().append("FunnelPipe.window.json").u16string();
     windowplacement::Restore(hwnd, SW_SHOW, (const wchar_t *)windowconf.c_str());
     window.OnDestroy = [hwnd, conf = windowconf]() {
-        windowplacement::Save(hwnd, (const wchar_t *)conf.c_str());
+        windowplacement::Save(hwnd, UnicodeToUtf8((const wchar_t *)conf.c_str()).c_str());
     };
 
     {

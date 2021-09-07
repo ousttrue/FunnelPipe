@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <Plog/Converters/UTF8Converter.h>
 
 ///
 /// logger setup

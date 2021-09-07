@@ -589,18 +589,18 @@ SceneModelPtr SceneModel::LoadFromPath(const std::filesystem::path &path)
     auto bytes = read_allbytes(path);
     if (bytes.empty())
     {
-        LOGW << "fail to read bytes: " << path.filename().c_str();
+        LOGW << "fail to read bytes: " << path.filename().generic_string();
         return nullptr;
     }
 
     auto model = LoadGlbBytes(bytes.data(), (int)bytes.size());
     if (!model)
     {
-        LOGW << "fail to load: " << path.filename().c_str();
+        LOGW << "fail to load: " << path.filename().generic_string();
         return nullptr;
     }
 
-    LOGI << "load: " << path.filename().c_str();
+    LOGI << "load: " << path.filename().generic_string();
     model->name = (const char *)path.filename().u8string().c_str();
     model->root->Name(model->name);
 
