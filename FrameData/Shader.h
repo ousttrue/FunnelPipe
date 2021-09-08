@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <gsl/span>
+#include <span>
 #include "ShaderConstantVariable.h"
 
 namespace framedata
@@ -95,7 +95,7 @@ public:
     bool Compile(const std::string &source, const std::string &entrypoint,
                  const D3D_SHADER_MACRO *define) override;
     // same with D3D11_INPUT_ELEMENT_DESC or D3D12_INPUT_ELEMENT_DESC
-    gsl::span<const InputLayoutElement> InputLayout() const
+    std::span<const InputLayoutElement> InputLayout() const
     {
         return m_layout;
     }

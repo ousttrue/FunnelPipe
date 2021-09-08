@@ -24,4 +24,5 @@ target_compile_definitions(${TARGET_NAME} PUBLIC
     )
 target_link_libraries(${TARGET_NAME} PUBLIC
     FrameData
+    gltfformat
     )

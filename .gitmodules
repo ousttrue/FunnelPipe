@@ -1,0 +1,21 @@
+[submodule ".\\_external\\stb/stb"]
+	path = .\\_external\\stb/stb
+	url = https://github.com/nothings/stb.git
+[submodule "_external/gizmesh/gizmesh"]
+	path = _external/gizmesh/gizmesh
+	url = https://github.com/ousttrue/gizmesh.git
+[submodule ".\\_external\\sukonbu\\sukonbu"]
+	path = .\\_external\\sukonbu\\sukonbu
+	url = https://github.com/ousttrue/sukonbu.git
+[submodule "_external/imgui/imgui"]
+	path = _external/imgui/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule ".\\_external\\json/json"]
+	path = .\\_external\\json/json
+	url = https://github.com/nlohmann/json.git
+[submodule ".\\_external\\plog\\plog"]
+	path = .\\_external\\plog\\plog
+	url = https://github.com/SergiusTheBest/plog.git
+[submodule ".\\_external\\nameof\\nameof"]
+	path = .\\_external\\nameof\\nameof
+	url = https://github.com/Neargye/nameof.git
