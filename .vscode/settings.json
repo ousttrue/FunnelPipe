@@ -1,9 +1,10 @@
 {
-    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+    "C_Cpp.clang_format_style": "file",
     "cSpell.words": [
         "DXGI",
         "Gltf",
         "HRESULT",
+        "IDXGI",
         "TEXCOORD",
         "countof",
         "falg",
@@ -17,6 +18,7 @@
         "mutex": "cpp",
         "memory": "cpp",
         "functional": "cpp",
-        "filesystem": "cpp"
-    }
+        "vector": "cpp",
+        "span": "cpp"
+    },
 }

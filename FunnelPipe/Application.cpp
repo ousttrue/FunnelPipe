@@ -62,6 +62,10 @@ public:
             {
                 auto viewTexture = m_renderer.ViewTexture((size_t)&m_frameData);
                 isShowView = m_view.ImGui(state, viewTexture, m_scene.Selected(), &m_frameData);
+                if(!isShowView)
+                {
+                    m_renderer.ReleaseViewTexture(viewTexture);
+                }
             }
 
             // model panel

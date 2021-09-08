@@ -21,12 +21,12 @@ std::shared_ptr<FrameMesh> FrameMesh::CreateDynamic(
     mesh->vertices = VertexBuffer::CreateDynamic(
         Semantics::Vertex,
         vertexStride,
-        vertexReserve);
+        vertexStride * vertexReserve);
 
     mesh->indices = VertexBuffer::CreateDynamic(
         Semantics::Index,
         indexStride,
-        indexReserve);
+        indexStride * indexReserve);
 
     return mesh;
 }
@@ -132,11 +132,10 @@ bool FrameMesh::Validate()
         // }
 
         auto dstStride = 0;
-        int inputLayoutCount;
-        auto inputLayout = submesh.material->Shader->VS->inputLayout(&inputLayoutCount);
-        for (int i = 0; i < inputLayoutCount; ++i)
+        auto inputLayout = submesh.material->Shader->VS->InputLayout();
+        for (auto elm: inputLayout)
         {
-            dstStride += GetStride(inputLayout[i].Format);
+            dstStride += GetStride(elm.Format);
         }
 
         if (vertices->stride != dstStride)

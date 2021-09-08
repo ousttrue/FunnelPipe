@@ -50,7 +50,7 @@ namespace gui
 {
 
 bool View(framedata::FrameData *view, const screenstate::ScreenState &state,
-          ID3D12Resource *texture,
+          void *texture,
           screenstate::ScreenState *viewState)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -82,7 +82,6 @@ bool View(framedata::FrameData *view, const screenstate::ScreenState &state,
 
         if (texture)
         {
-            texture->AddRef();
             ViewButton(view, (ImTextureID)texture, size, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 0);
             // update camera
             if (!ImGui::IsWindowHovered())

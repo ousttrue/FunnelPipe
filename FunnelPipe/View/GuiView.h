@@ -7,7 +7,7 @@ namespace gui
 {
 
 bool View(framedata::FrameData *view, const screenstate::ScreenState &state,
-          ID3D12Resource *texture,
+          void *texture,
           screenstate::ScreenState *viewState);
 
 } // namespace gui

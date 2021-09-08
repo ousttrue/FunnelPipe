@@ -92,8 +92,7 @@ static void Texture(const std::string &label, const framedata::FrameTexturePtr &
                         colorImage->name.c_str(),
                         colorImage->width, colorImage->height);
             auto resource = getTexture(texture);
-            resource->AddRef();
-            ImGui::Image((ImTextureID)resource.Get(), ImVec2(150, 150));
+            ImGui::Image((ImTextureID)resource, ImVec2(150, 150));
         }
         break;
 

@@ -1,6 +1,6 @@
-#include "Renderer.h"
+#include "../Renderer.h"
+#include "../SceneMapper.h"
 #include "ImGuiDX12.h"
-#include "SceneMapper.h"
 #include <FrameData.h>
 #include <Gpu.h>
 
@@ -9,8 +9,7 @@
 
 const uint32_t BACKBUFFER_COUNT = 2;
 
-template <class T>
-using ComPtr = Microsoft::WRL::ComPtr<T>;
+template <class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 class Impl
 {
@@ -46,17 +45,20 @@ public:
         assert(!m_device);
 
         ComPtr<IDXGIFactory4> factory;
-        Gpu::dx12::ThrowIfFailed(CreateDXGIFactory2(Gpu::dx12::GetDxgiFactoryFlags(), IID_PPV_ARGS(&factory)));
+        Gpu::ThrowIfFailed(CreateDXGIFactory2(
+            Gpu::dx12::GetDxgiFactoryFlags(), IID_PPV_ARGS(&factory)));
 
-        ComPtr<IDXGIAdapter1> hardwareAdapter = Gpu::dx12::GetHardwareAdapter(factory.Get());
-        Gpu::dx12::ThrowIfFailed(D3D12CreateDevice(
-            hardwareAdapter.Get(),
-            D3D_FEATURE_LEVEL_11_0,
-            IID_PPV_ARGS(&m_device)));
+        ComPtr<IDXGIAdapter1> hardwareAdapter =
+            Gpu::dx12::GetHardwareAdapter(factory.Get());
+        Gpu::ThrowIfFailed(D3D12CreateDevice(hardwareAdapter.Get(),
+                                                   D3D_FEATURE_LEVEL_11_0,
+                                                   IID_PPV_ARGS(&m_device)));
 
         m_queue->Initialize(m_device);
-        m_swapchain->Initialize(factory, m_queue->Get(), hwnd, BACKBUFFER_COUNT);
-        m_backbuffer->Initialize(m_swapchain->Get(), m_device, BACKBUFFER_COUNT);
+        m_swapchain->Initialize(factory, m_queue->Get(), hwnd,
+                                BACKBUFFER_COUNT);
+        m_backbuffer->Initialize(m_swapchain->Get(), m_device,
+                                 BACKBUFFER_COUNT);
         m_sceneMapper->Initialize(m_device);
         m_commandlist->InitializeDirect(m_device);
         m_rootSignature->Initialize(m_device);
@@ -73,8 +75,7 @@ public:
         D3D12_MESSAGE_ID denyIds[] = {
             D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
         };
-        D3D12_MESSAGE_SEVERITY severities[] = {
-            D3D12_MESSAGE_SEVERITY_INFO};
+        D3D12_MESSAGE_SEVERITY severities[] = {D3D12_MESSAGE_SEVERITY_INFO};
         D3D12_INFO_QUEUE_FILTER filter{};
         filter.DenyList.NumIDs = _countof(denyIds);
         filter.DenyList.pIDList = denyIds;
@@ -120,7 +121,8 @@ public:
     ComPtr<ID3D12Resource> ViewTexture(size_t id)
     {
         auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget(id);
-        auto resource = viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
+        auto resource =
+            viewRenderTarget->Resource(m_swapchain->CurrentFrameIndex());
         if (!resource)
         {
             return nullptr;
@@ -130,7 +132,8 @@ public:
 
     void View(const framedata::FrameData &framedata)
     {
-        auto viewRenderTarget = m_sceneMapper->GetOrCreateRenderTarget((size_t)&framedata);
+        auto viewRenderTarget =
+            m_sceneMapper->GetOrCreateRenderTarget((size_t)&framedata);
         int width = framedata.ViewWidth();
         int height = framedata.ViewHeight();
         int frameIndex = m_swapchain->CurrentFrameIndex();
@@ -160,19 +163,24 @@ public:
 
         if (!viewRenderTarget->Resource(frameIndex))
         {
-            viewRenderTarget->Initialize(width, height, m_device, BACKBUFFER_COUNT);
+            viewRenderTarget->Initialize(width, height, m_device,
+                                         BACKBUFFER_COUNT);
         }
 
-        m_rootSignature->m_viewConstantsBuffer.CopyToGpu(framedata.ViewConstantBuffer);
+        m_rootSignature->m_viewConstantsBuffer.CopyToGpu(
+            framedata.ViewConstantBuffer);
         UpdateMeshes(framedata);
-        m_rootSignature->UpdateSRV(m_device, m_commandlist.get(), framedata, m_sceneMapper->GetUploader());
+        m_rootSignature->UpdateSRV(m_device, m_commandlist.get(), framedata,
+                                   m_sceneMapper->GetUploader());
         DrawView(m_commandlist->Get(), frameIndex, viewRenderTarget,
                  framedata.ViewClearColor.data(), framedata);
     }
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> GetTexture(const framedata::FrameTexturePtr &texture)
+    Microsoft::WRL::ComPtr<ID3D12Resource>
+    GetTexture(const framedata::FrameTexturePtr &texture)
     {
-        auto resource = m_rootSignature->GetOrCreate(m_device, texture, m_sceneMapper->GetUploader());
+        auto resource = m_rootSignature->GetOrCreate(
+            m_device, texture, m_sceneMapper->GetUploader());
         return resource->Resource();
     }
 
@@ -184,9 +192,10 @@ private:
             // recreate swapchain
             m_queue->SyncFence();
             m_backbuffer->Release(); // require before resize
-            m_swapchain->Resize(m_queue->Get(),
-                                hwnd, BACKBUFFER_COUNT, width, height);
-            m_backbuffer->Initialize(m_swapchain->Get(), m_device, BACKBUFFER_COUNT);
+            m_swapchain->Resize(m_queue->Get(), hwnd, BACKBUFFER_COUNT, width,
+                                height);
+            m_backbuffer->Initialize(m_swapchain->Get(), m_device,
+                                     BACKBUFFER_COUNT);
 
             m_width = width;
             m_height = height;
@@ -204,30 +213,37 @@ private:
             {
                 if (item.Skin.Ptr)
                 {
-                    drawable->VertexBuffer()->MapCopyUnmap(item.Skin.Ptr, item.Skin.Size, item.Skin.Stride);
+                    drawable->VertexBuffer()->MapCopyUnmap(
+                        item.Skin.Ptr, item.Skin.Size, item.Skin.Stride);
                 }
                 else if (item.Vertices.Ptr)
                 {
-                    drawable->VertexBuffer()->MapCopyUnmap(item.Vertices.Ptr, item.Vertices.Size, item.Vertices.Stride);
+                    drawable->VertexBuffer()->MapCopyUnmap(
+                        item.Vertices.Ptr, item.Vertices.Size,
+                        item.Vertices.Stride);
                 }
 
                 if (item.Indices.Ptr)
                 {
-                    drawable->IndexBuffer()->MapCopyUnmap(item.Indices.Ptr, item.Indices.Size, item.Indices.Stride);
+                    drawable->IndexBuffer()->MapCopyUnmap(item.Indices.Ptr,
+                                                          item.Indices.Size,
+                                                          item.Indices.Stride);
                 }
             }
         }
 
         // CB
-        m_rootSignature->m_drawConstantsBuffer.Assign((const std::pair<UINT, UINT> *)framedata.CBRanges.data(),
-                                                      (uint32_t)framedata.CBRanges.size());
-        m_rootSignature->m_drawConstantsBuffer.CopyToGpu(framedata.CB.data(), framedata.CB.size());
+        m_rootSignature->m_drawConstantsBuffer.Assign(
+            (const std::pair<UINT, UINT> *)framedata.CBRanges.data(),
+            (uint32_t)framedata.CBRanges.size());
+        m_rootSignature->m_drawConstantsBuffer.CopyToGpu(framedata.CB.data(),
+                                                         framedata.CB.size());
     }
 
-    void DrawView(const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
-                  const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
-                  const float *clearColor,
-                  const framedata::FrameData &framedata)
+    void DrawView(
+        const ComPtr<ID3D12GraphicsCommandList> &commandList, int frameIndex,
+        const std::shared_ptr<Gpu::dx12::RenderTargetChain> &viewRenderTarget,
+        const float *clearColor, const framedata::FrameData &framedata)
     {
         // begin, clear
         if (viewRenderTarget->Begin(frameIndex, commandList, clearColor))
@@ -265,48 +281,55 @@ private:
         }
 
         auto cbIndex = i * 2;
-        m_rootSignature->SetDrawDescriptorTable(m_device, commandList, D3D12_SHVER_VERTEX_SHADER, cbIndex);
-        m_rootSignature->SetDrawDescriptorTable(m_device, commandList, D3D12_SHVER_PIXEL_SHADER, cbIndex + 1);
+        m_rootSignature->SetDrawDescriptorTable(
+            m_device, commandList, D3D12_SHVER_VERTEX_SHADER, cbIndex);
+        m_rootSignature->SetDrawDescriptorTable(
+            m_device, commandList, D3D12_SHVER_PIXEL_SHADER, cbIndex + 1);
 
         auto &submesh = info.Submesh;
-        auto material = m_rootSignature->GetOrCreate(m_device, submesh.material);
+        auto material =
+            m_rootSignature->GetOrCreate(m_device, submesh.material);
 
-        m_rootSignature->SetTextureDescriptorTable(m_device, commandList, info.MaterialIndex);
+        m_rootSignature->SetTextureDescriptorTable(m_device, commandList,
+                                                   info.MaterialIndex);
         if (material->SetPipeline(commandList))
         {
-            commandList->DrawIndexedInstanced(submesh.drawCount, 1, submesh.drawOffset, 0, 0);
+            commandList->DrawIndexedInstanced(submesh.drawCount, 1,
+                                              submesh.drawOffset, 0, 0);
         }
     }
 };
 
-Renderer::Renderer(int maxModelCount)
-    : m_impl(new Impl(maxModelCount))
-{
-}
+Renderer::Renderer(int maxModelCount) : m_impl(new Impl(maxModelCount)) {}
 
-Renderer::~Renderer()
-{
-    delete m_impl;
-}
+Renderer::~Renderer() { delete m_impl; }
 
-void Renderer::Initialize(void *hwnd)
-{
-    m_impl->Initialize((HWND)hwnd);
-}
+void Renderer::Initialize(void *hwnd) { m_impl->Initialize((HWND)hwnd); }
 
 void Renderer::BeginFrame(void *hwnd, int width, int height)
 {
     m_impl->BeginFrame((HWND)hwnd, width, height);
 }
 
-void Renderer::EndFrame()
+void Renderer::EndFrame() { m_impl->EndFrame(); }
+
+void *Renderer::ViewTexture(size_t view)
 {
-    m_impl->EndFrame();
+    auto p = m_impl->ViewTexture(view).Get();
+    if (p)
+    {
+        p->AddRef();
+    }
+    return p;
 }
 
-ID3D12Resource *Renderer::ViewTexture(size_t view)
+void Renderer::ReleaseViewTexture(void *viewTexture)
 {
-    return m_impl->ViewTexture(view).Get();
+    auto p = (ID3D12Resource *)viewTexture;
+    if (p)
+    {
+        p->Release();
+    }
 }
 
 void Renderer::View(const framedata::FrameData &framedata)
@@ -314,7 +337,12 @@ void Renderer::View(const framedata::FrameData &framedata)
     m_impl->View(framedata);
 }
 
-Microsoft::WRL::ComPtr<ID3D12Resource> Renderer::GetTexture(const framedata::FrameTexturePtr &texture)
+void *Renderer::GetTexture(const framedata::FrameTexturePtr &texture)
 {
-    return m_impl->GetTexture(texture);
+    auto p = m_impl->GetTexture(texture).Get();
+    if (p)
+    {
+        p->AddRef();
+    }
+    return p;
 }

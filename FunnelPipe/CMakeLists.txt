@@ -4,9 +4,14 @@ add_executable(${TARGET_NAME}
     ${EXTERNAL_DIR}/imgui/imgui_draw.cpp
     ${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
     ${EXTERNAL_DIR}/imgui/imgui_demo.cpp
-    Graphics/Renderer.cpp
-    Graphics/ImGuiDX12.cpp
-    Graphics/ImGuiDX12FrameResources.cpp
+
+    # Graphics/DX12/Renderer.cpp
+    # Graphics/DX12/ImGuiDX12.cpp
+    # Graphics/DX12/ImGuiDX12FrameResources.cpp
+
+    Graphics/DX11/Renderer.cpp    
+    ${EXTERNAL_DIR}/imgui/examples/imgui_impl_dx11.cpp
+
     Graphics/SceneMapper.cpp
     Gui/Gui.cpp
     Gui/ImGuiImplScreenState.cpp
@@ -27,6 +32,7 @@ target_include_directories(${TARGET_NAME} PRIVATE
     ${EXTERNAL_DIR}/plog/include
     ${EXTERNAL_DIR}/nlohmann_json/include
     ${EXTERNAL_DIR}/imgui
+    ${EXTERNAL_DIR}/imgui/examples
     ${EXTERNAL_DIR}/gizmesh/example/camera_example
     ${EXTERNAL_DIR}/nameof/include
     )
@@ -41,4 +47,6 @@ target_link_libraries(${TARGET_NAME} PRIVATE
     #
     dxgi
     d3dcompiler
+    #
+    d3d11
     )

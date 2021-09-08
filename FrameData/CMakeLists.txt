@@ -17,6 +17,7 @@ set_property(TARGET ${TARGET_NAME}
 target_include_directories(${TARGET_NAME}
     PUBLIC 
     ${CMAKE_CURRENT_LIST_DIR}
+    ${EXTERNAL_DIR}/GSL/include
     PRIVATE 
     ${EXTERNAL_DIR}/stb
     ${EXTERNAL_DIR}/plog/include

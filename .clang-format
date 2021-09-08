@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM
+# AllowShortIfStatementsOnASingleLine: false
+# AllowShortBlocksOnASingleLine: false
+BreakBeforeBraces: Allman
+IndentCaseLabels: false
+IndentWidth: 4
+AccessModifierOffset: -4
+SortIncludes: false
+UseTab: Never

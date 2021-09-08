@@ -1,10 +1,10 @@
 #pragma once
 #include <wrl/client.h>
-#include <d3d12.h>
 #include <d3dcompiler.h>
 #include <string>
 #include <vector>
 #include <memory>
+#include <gsl/span>
 #include "ShaderConstantVariable.h"
 
 namespace framedata
@@ -13,8 +13,7 @@ namespace framedata
 class Shader
 {
 protected:
-    template <typename T>
-    using ComPtr = Microsoft::WRL::ComPtr<T>;
+    template <typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
     Shader(const Shader &) = delete;
     Shader &operator=(const Shader &) = delete;
@@ -28,21 +27,18 @@ protected:
                       const std::string &source);
 
 public:
-    Shader(const std::string &name)
-        : m_name(name)
-    {
-    }
+    Shader(const std::string &name) : m_name(name) {}
 
     const std::string &Name() const { return m_name; }
 
-    virtual bool Compile(const std::string &source, const std::string &entrypoint, const D3D_SHADER_MACRO *define) = 0;
+    virtual bool Compile(const std::string &source,
+                         const std::string &entrypoint,
+                         const D3D_SHADER_MACRO *define) = 0;
 
-    D3D12_SHADER_BYTECODE ByteCode() const
+    std::tuple<LPVOID, UINT> ByteCode() const
     {
-        return {
-            m_compiled->GetBufferPointer(),
-            m_compiled->GetBufferSize(),
-        };
+        return std::make_pair(m_compiled->GetBufferPointer(),
+                              static_cast<UINT>(m_compiled->GetBufferSize()));
     }
 
     // register(b0), register(b1), register(b2)...
@@ -64,27 +60,44 @@ class PixelShader : public Shader
 {
 public:
     using Shader::Shader;
-    bool Compile(const std::string &source, const std::string &entrypoint, const D3D_SHADER_MACRO *define) override;
+    bool Compile(const std::string &source, const std::string &entrypoint,
+                 const D3D_SHADER_MACRO *define) override;
 };
 using PixelShaderPtr = std::shared_ptr<PixelShader>;
 
 class VertexShader : public Shader
 {
-    template <typename T>
-    using ComPtr = Microsoft::WRL::ComPtr<T>;
+    template <typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
     // keep semantic strings
+    enum INPUT_CLASSIFICATION
+    {
+        INPUT_CLASSIFICATION_PER_VERTEX_DATA = 0,
+        INPUT_CLASSIFICATION_PER_INSTANCE_DATA = 1
+    };
+    struct InputLayoutElement
+    {
+        LPCSTR SemanticName;
+        UINT SemanticIndex;
+        DXGI_FORMAT Format;
+        UINT InputSlot;
+        UINT AlignedByteOffset;
+        INPUT_CLASSIFICATION InputSlotClass;
+        UINT InstanceDataStepRate;
+    };
     std::vector<std::string> m_semantics;
-    std::vector<D3D12_INPUT_ELEMENT_DESC> m_layout;
-    bool InputLayoutFromReflection(const ComPtr<ID3D12ShaderReflection> &reflection);
+    std::vector<InputLayoutElement> m_layout;
+    bool
+    InputLayoutFromReflection(const ComPtr<ID3D12ShaderReflection> &reflection);
 
 public:
     using Shader::Shader;
-    bool Compile(const std::string &source, const std::string &entrypoint, const D3D_SHADER_MACRO *define) override;
-    const D3D12_INPUT_ELEMENT_DESC *inputLayout(int *count) const
+    bool Compile(const std::string &source, const std::string &entrypoint,
+                 const D3D_SHADER_MACRO *define) override;
+    // same with D3D11_INPUT_ELEMENT_DESC or D3D12_INPUT_ELEMENT_DESC
+    gsl::span<const InputLayoutElement> InputLayout() const
     {
-        *count = (int)m_layout.size();
-        return m_layout.data();
+        return m_layout;
     }
 };
 using VertexShaderPtr = std::shared_ptr<VertexShader>;
